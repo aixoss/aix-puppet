@@ -21,10 +21,16 @@ module Automation
         Log.log_debug("c_rsh command=#{c_rsh_command}")
         stdout, stderr, status = Open3.capture3(c_rsh_command.to_s)
         if Constants.debug_level >= FULL_DEBUG_LEVEL
-          Log.log_debug("c_rsh stdout=#{stdout}")
+          if !stdout.nil? && !stdout.strip.empty?
+            Log.log_debug("c_rsh stdout=#{stdout}")
+          end
         end
-        Log.log_debug("c_rsh stderr=#{stderr}")
-        Log.log_debug("c_rsh status=#{status}")
+        if !stderr.nil? && !stderr.strip.empty?
+          Log.log_debug("c_rsh stderr=#{stderr}")
+        end
+        if !status.nil?
+          Log.log_debug("c_rsh status=#{status}")
+        end
         output[0] = if status
                       stdout
                     else

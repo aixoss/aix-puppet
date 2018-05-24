@@ -12,7 +12,7 @@ Puppet::Type.type(:patchmngt).provide(:nimpush) do
 
   commands :nim => '/usr/sbin/nim'
 
-  ##############################################################################
+  # ###########################################################################
   # exists?
   #      Method      Ensure 	 Action	                  Ensure state
   #       result      value                              transition
@@ -21,10 +21,10 @@ Puppet::Type.type(:patchmngt).provide(:nimpush) do
   #      false       present   create method            absent → present
   #      true        absent    destroy method           present → absent
   #      false       absent    do nothing               n/a
-  ##############################################################################
+  # ###########################################################################
   def exists?
     Log.log_info("Provider 'nimpush' exists! We want to realize : \
-\"#{resource[:ensure]}\" for \"#{resource[:action]}\" action \
+                 \"#{resource[:ensure]}\" for \"#{resource[:action]}\" action \
 sync=\"#{resource[:sync]}\" mode=\"#{resource[:mode]}\" \
 on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" \
 lpp_source.")
@@ -59,8 +59,6 @@ lpp_source.")
           else
             fail '"mode" must be either "update", "commit", or "apply"'
         end
-      else
-        #
     end
 
     # Depending on the action param, interpretation of ensure is not the same
@@ -181,11 +179,10 @@ lpp_source.")
     returned
   end
 
-  ##############################################################################
+  # ###########################################################################
   #
   #
-  #
-  ##############################################################################
+  # ###########################################################################
   def create
     Log.log_info("Provider nimpush create.\
  Doing : \"#{resource[:ensure]}\" for \"#{resource[:action]}\" \
@@ -213,7 +210,7 @@ with \"#{resource[:lpp_source]}\" lpp_source.")
         results_status = {}
         targets_array.each do |target|
           status_output = Utils.status(target)
-          Log.log_debug("target=" + target + " " + status_output.to_s)
+          Log.log_debug('target=' + target + ' ' + status_output.to_s)
           results_status[target] = status_output
         end
         # persist to yaml
@@ -302,11 +299,10 @@ with \"#{resource[:lpp_source]}\" lpp_source.")
     end
   end
 
-  ##############################################################################
+  # ###########################################################################
   #
   #
-  #
-  ##############################################################################
+  # ###########################################################################
   def destroy
     Log.log_info("Provider nimpush destroy. Doing : \"#{resource[:ensure]}\" \
 for \"#{resource[:action]}\" action on \"#{resource[:targets]}\" \
@@ -326,15 +322,15 @@ targets with \"#{resource[:lpp_source]}\" lpp_source.")
                   end
 
     # depending the action param, nimaction is not the same
-    case action.to_s
-      when :status
+    case action
+      when :status.to_s
         Log.log_debug('Doing status')
         targets_array.each do |target|
           status_output = Utils.status(target)
-          Log.log_debug("target=" + target + " " + status_output.to_s)
+          Log.log_debug('target=' + target + ' ' + status_output.to_s)
         end
 
-      when :install
+      when :install.to_s
         Log.log_debug('Uninstalling the lpp_source')
         lpp_source = resource[:lpp_source].to_s
 
@@ -349,7 +345,7 @@ targets with \"#{resource[:lpp_source]}\" lpp_source.")
           Log.log_err("Could not remove #{filesets} on " + targets_array.to_s)
         end
 
-      when :update
+      when :update.to_s
         Log.log_debug('Updating')
         Log.log_debug('Doing the remove of the update : reject')
 
@@ -381,12 +377,11 @@ targets with \"#{resource[:lpp_source]}\" lpp_source.")
           end
         end
 
-      when :reboot
+      when :reboot.to_s
         Log.log_debug('Nothing to be done : not supported')
 
       else
-        fail '"action"" must be either "status", install", "update", or "reboot"'
-
+        fail '"action" must be either "status", install", "update", or "reboot"'
     end
   end
 end

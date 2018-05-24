@@ -1,3 +1,4 @@
+require_relative './Constants.rb'
 require_relative './Log.rb'
 require_relative './Utils.rb'
 require_relative './SpLevel.rb'
@@ -5,9 +6,9 @@ require 'yaml'
 
 module Automation
   module Lib
-    # ##########################################################################
+    # #########################################################################
     # Class Suma
-    # ##########################################################################
+    # #########################################################################
     #  Suma class implementation with methods to
     #   1) query metadata
     #    Suma metadata are queried and analysed to that of available list of SP
@@ -44,34 +45,40 @@ module Automation
       # param :input:args:arrays of strings
       #     args[0]:string  root download directory, will contain
       #       metadata and lpp_sources sub-directories
-      #     args[1]:from_level:string   for example "7100-01"
-      #     args[2]:to_level:string for example "7100-03-05-1524"",
+      #     args[1]:clean:string to clean everything and restart downloads
+      #       from scratch
+      #     args[2]:from_level:string   for example "7100-01"
+      #     args[3]:to_level:string for example "7100-03-05-1524"",
       #       can be empty
-      #     args[3]:type:string :TL :SP :Latest
+      #     args[4]:type:string :TL :SP :Latest
+      #     args[5]:lpp_source:string lpp_source to be built with suma downloads
       # return :
       # description : instantiate Suma request, either metadata, or
-      #   download or download-preview
-      #  request.
+      #   download or download-preview request.
       # ######################################################################
       def initialize(args)
-        if args.size < 4
-          raise("Suma constructor needs at least five parameters in its\
-'args' parameter. Cannot continue!")
+        if args.size < 5
+          raise("Suma constructor needs at least six parameters in its 'args' \
+parameter. Cannot continue!")
         end
 
         root = args[0]
-        from_level = args[1]
-        to_level = args[2]
-        type = args[3]
-        lpp_source = args[4]
+        clean = args[1]
+        from_level = args[2]
+        to_level = args[3]
+        type = args[4]
+        lpp_source = args[5]
 
         @root_dir = if root =~ /^\//
                       root
                     else
-                      Dir.pwd + '/' + root
+                      ::File.join(Dir.pwd,
+                                  root)
                     end
 
-        @dir_metadata = @root_dir + '/metadata/' + from_level
+        @dir_metadata = ::File.join(@root_dir,
+                                    'metadata',
+                                    from_level)
         # Check metadata root directory
         Utils.check_directory(@dir_metadata)
         Log.log_debug('dir_metadata=' + @dir_metadata)
@@ -80,15 +87,15 @@ module Automation
         rq_type = ' -a RqType=' + type.to_s
         rq_name = ' '
 
+        @display_metadata = " -a DisplayName=\"Downloading metadata into '" +@dir_metadata.to_s+"\""
         if to_level != ''
           rq_name = ' -a RqName=' + to_level
-          @dir_lpp_sources = @root_dir + '/lpp_sources/' +
-              type.to_s + '/' + from_level + '/' + to_level
-          @display_metadata = " -a DisplayName=\"Downloading '" +
-              type.to_s + '/' + from_level + '/' + to_level + "' metadata\""
-          @display_lpp_sources = " -a DisplayName=\"Downloading '" +
-              type.to_s + '/' + from_level + '/' + to_level + "' lppsources\""
-
+          @dir_lpp_sources = ::File.join(@root_dir,
+                                         'lpp_sources',
+                                         type.to_s,
+                                         from_level,
+                                         to_level)
+          @display_lpp_sources = " -a DisplayName=\"Downloading lppsources into '" +@dir_lpp_sources.to_s+ "\""
           @lpp_source = if lpp_source.nil? || lpp_source.empty?
                           'PAA_' + type.to_s + '_' + from_level + '_' +
                               to_level
@@ -97,13 +104,11 @@ module Automation
                         end
 
         else
-          @dir_lpp_sources = @root_dir + '/lpp_sources/' +
-              type.to_s + '/' + from_level
-          @display_metadata = " -a DisplayName=\"Downloading '" +
-              type.to_s + '/' + from_level + "' metadata\""
-          @display_lpp_sources = " -a DisplayName=\"Downloading '" +
-              type.to_s + '/' + from_level + "' lppsources\""
-
+          @dir_lpp_sources = ::File.join(@root_dir,
+                                         'lpp_sources',
+                                         type.to_s,
+                                         from_level)
+          @display_lpp_sources = " -a DisplayName=\"Downloading lppsources into '" +@dir_lpp_sources.to_s+ "\""
           @lpp_source = if lpp_source.nil? || lpp_source.empty?
                           'PAA_' + type.to_s + '_' + from_level
                         else
@@ -120,21 +125,14 @@ module Automation
         @failed = 0
         @skipped = 0
         @suma_command = '/usr/sbin/suma -x ' + rq_type + rq_name + filter_ml
-        # ### BUG SUMA WORKAROUND ###
-        dir = ::File.join('usr', 'sys', 'inst.images')
-        ::FileUtils.mkdir_p(dir) unless ::File.directory?(dir)
-        # ######### END #############
-
-        # To check validity of connection
-        # data –x –a Action=Preview –a RqType=Latest
       end
 
-      # ########################################################################
+      # #######################################################################
       # name : metadata
       # param : none
       # return :
       # description :
-      # ########################################################################
+      # #######################################################################
       def metadata
         returned = true
         dl_target = ' -a DLTarget=' + @dir_metadata
@@ -149,12 +147,10 @@ module Automation
                                                        metadata_suma_command)
           unless exit_status.nil?
             Log.log_info('exit_status=' + exit_status.to_s)
-            # else
-            #   Log.log_info('exit_status=nil')
           end
 
           stdout.each_line do |line|
-            Log.log_info(line.chomp.to_s)
+            Log.log_debug(line.chomp.to_s)
           end
           stderr.each_line do |line|
             # To improve : we might have to distinguish between these errors
@@ -177,12 +173,12 @@ module Automation
         returned
       end
 
-      # ##########################################################################
+      # ########################################################################
       # name : preview
       # param : none
       # return :
       # description :
-      # ##########################################################################
+      # ########################################################################
       def preview
         dl_target = ' -a DLTarget=' + @dir_lpp_sources
         filter_dir = ' -a FilterDir=' + @dir_lpp_sources
@@ -247,12 +243,12 @@ if line =~ /0500-035 No fixes match your query./
         missing
       end
 
-      # ########################################################################
+      # #######################################################################
       # name : download
       # param : none
       # return :
       # description :
-      # ########################################################################
+      # #######################################################################
       def download
         dl_target = ' -a DLTarget=' + @dir_lpp_sources
         filter_dir = ' -a FilterDir=' + @dir_lpp_sources
@@ -301,7 +297,7 @@ if line =~ /([0-9]+) downloaded/
 if line =~ /([0-9]+) failed/
             download_skipped = Regexp.last_match(1).to_i \
 if line =~ /([0-9]+) skipped/
-            Log.log_info(line.chomp.to_s)
+            Log.log_debug(line.chomp.to_s)
           end
 
           stderr.each_line do |line|
@@ -336,25 +332,41 @@ fixes (~ #{download_dl.to_f.round(2)} GB).")
       #  of file instead.
       # #####################################################################
       def self.sp_per_tl
+
+        Log.log_debug('Suma.sp_per_tl')
+
         #
         # If yaml file exists, return its contents
         # otherwise mine metadata to build results
         #
-        root_directory = 'aixautomation/suma'
-        yml_file = root_directory + '/sp_per_tl.yml'
+        root_directory = ::File.join(Constants.inst_dir,
+                                     'aixautomation',
+                                     'facter')
+        metadata_root_directory = ::File.join(root_directory,
+                                              'suma')
+        yml_file = ::File.join(root_directory,
+                               'sp_per_tl.yml')
         mine_metadata = false
         begin
-          sp_per_tl_from_file =
-              YAML.load_file(yml_file)
+          Log.log_info('Attempting to load ' + yml_file + ' file')
+          sp_per_tl_from_file = YAML.load_file(yml_file)
           if sp_per_tl_from_file.nil?
+            Log.log_info('Service Packs per Technical Level not found into ' +
+                             yml_file)
             mine_metadata = true
           elsif sp_per_tl_from_file.empty?
+            Log.log_info('Service Packs per Technical Level not set into ' +
+                             yml_file)
             mine_metadata = true
           else
-            Log.log_debug('Service Packs per Technical Level found into ' +
-                              yml_file)
+            Log.log_info('Service Packs per Technical Level found into ' +
+                             yml_file)
           end
         rescue StandardError
+          Log.log_warning('Service Packs per Technical Level ' +
+                              yml_file +
+                              ' not found ' +
+                              ' : compute it by downloading Suma Metadata')
           mine_metadata = true
         end
 
@@ -362,15 +374,10 @@ fixes (~ #{download_dl.to_f.round(2)} GB).")
         # yaml does not exist yet, build it
         #
         if mine_metadata
-
-          hr_versions = %w[6.1 7.1 7.2] # ['6.1', '7.1', '7.2']
-          # hr_versions = ['7.2']
+          hr_versions = %w[6.1 7.1 7.2]
           sp_per_tl = {}
 
           hr_versions.each do |hr_version|
-            # Log.log_debug('hr_version=' + hr_version)
-            # version_padded = SpLevel.version(hr_version)
-            # Log.log_debug('version_padded=' + version_padded)
 
             metadata_index = 0
             metadata_successive_failures = 0
@@ -380,24 +387,21 @@ fixes (~ #{download_dl.to_f.round(2)} GB).")
               begin
                 technical_levels = SpLevel.technical_level(hr_version, metadata_index)
                 technical_level = technical_levels[:technical_level]
-                # hr_technical_level = technical_levels[:hr_technical_level]
-                # Log.log_debug('technical_level=' + technical_level + '
-                #  hr_technical_level=' + hr_technical_level)
                 sps_of_tl = []
 
                 # Retrieve the data
-                suma = Suma.new([root_directory, technical_level, '', 'Latest'])
+                suma = Suma.new([metadata_root_directory, :no, technical_level, '', 'Latest', ''])
 
                 metadata_return_code = suma.metadata
                 if metadata_return_code
                   list_of_files =
-                      Dir.glob(::File.join(root_directory + '/metadata/',
+                      Dir.glob(::File.join(metadata_root_directory,
+                                           'metadata',
                                            technical_level,
                                            'installp',
                                            'ppc',
                                            technical_level + '*.xml'))
                   list_of_files.collect! do |file|
-                    # Log.log_debug('file=' + file)
                     ::File.open(file) do |f|
                       servicepack = nil
                       s = f.read
@@ -406,16 +410,12 @@ fixes (~ #{download_dl.to_f.round(2)} GB).")
                       # ######### END #############
                       servicepack = Regexp.last_match(1) \
 if s.to_s =~ /^<SP name="([0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4})">/
-                      # Log.log_debug('servicepack=' + servicepack.to_s)
                       unless servicepack.nil?
-                        # Log.log_debug('servicepack=' + servicepack.to_s)
                         sps_of_tl.push(servicepack)
-                        # Log.log_debug('sps_of_tl=' + sps_of_tl.to_s)
                       end
                     end
                   end
                   sp_per_tl[technical_level] = sps_of_tl
-                  # Log.log_debug('sp_per_tl=' + sp_per_tl.to_s)
                   metadata_successive_failures = 0
                   metadata_tl_failures = []
                 else
@@ -425,8 +425,6 @@ if s.to_s =~ /^<SP name="([0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4})">/
                 end
               end
               metadata_index += 1
-              # Log.log_debug('metadata_successive_failures=' +
-              #  metadata_successive_failures.to_s)
             end
             #
             next unless metadata_successive_failures >= max_failure
@@ -441,21 +439,23 @@ if s.to_s =~ /^<SP name="([0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4})">/
           #
           # Everything should be cleaned at the end
           #
-          # FileUtils.rm_rf(Dir[root_directory + '/metadata/'])
+
+          FileUtils.rm_rf(metadata_root_directory)
           Log.log_debug('Created Service Packs per Technical Level =' +
                             sp_per_tl.to_s)
           # persist to yaml
           File.write(yml_file, sp_per_tl.to_yaml)
           sp_per_tl
         else
-          # Everything should be cleaned
-          # FileUtils.rm_rf(Dir[root_directory + '/metadata/'])
-          # Log.log_debug('Existing sp_per_tl_from_file=' + sp_per_tl_from_file.to_s)
+          #
+          # Everything should be cleaned at the end
+          #
+          FileUtils.rm_rf(metadata_root_directory)
           sp_per_tl_from_file
         end
       end
 
-      # ########################################################################
+      # #######################################################################
       # name : column_presentation
       # param :input:data:string
       # return : column format presentation of a dictionary
@@ -468,7 +468,7 @@ if s.to_s =~ /^<SP name="([0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4})">/
       #    | client3 | 7100-04-00-0000 | ready for a NIM operation |
       #    | master  | 7200-01-00-0000 |                           |
       #    +---------+-----------------+---------------------------+
-      # ########################################################################
+      # #######################################################################
       #   def self.column_presentation(data)
       #     widths = {}
       #     data.keys.each do |key|
@@ -480,14 +480,14 @@ if s.to_s =~ /^<SP name="([0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4})">/
       #       widths[key] = key.to_s.length > widths[key] ? key.to_s.length : widths[key]
       #     end
       #
-      #     result = '+'
-      #     data.keys.each {|key| result += ''.center(widths[key] + 2, '-') + '+'}
+      #     result = ' + '
+      #     data.keys.each {|key| result += ''.center(widths[key] + 2, '-') + ' + '}
       #     result += '\n'
       #     result += '|'
       #     data.keys.each {|key| result += key.to_s.center(widths[key] + 2) + '|'}
       #     result += '\n'
-      #     result += '+'
-      #     data.keys.each {|key| result += ''.center(widths[key] + 2, '-') + '+'}
+      #     result += ' + '
+      #     data.keys.each {|key| result += ''.center(widths[key] + 2, '-') + ' + '}
       #     result += '\n'
       #     length = data.values.max_by(&:length).length
       #     0.upto(length - 1).each do |i|
@@ -495,8 +495,8 @@ if s.to_s =~ /^<SP name="([0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4})">/
       #       data.keys.each {|key| result += data[key][i].to_s.center(widths[key] + 2) + '|'}
       #       result += '\n'
       #     end
-      #     result += '+'
-      #     data.keys.each {|key| result += ''.center(widths[key] + 2, '-') + '+'}
+      #     result += ' + '
+      #     data.keys.each {|key| result += ''.center(widths[key] + 2, '-') + ' + '}
       #     result += '\n'
       #     result
       #   end
@@ -507,11 +507,11 @@ if s.to_s =~ /^<SP name="([0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4})">/
     #############################
     class SumaError < StandardError
     end
+    class SumaMetadataError < SumaError
+    end
     class SumaPreviewError < SumaError
     end
     class SumaDownloadError < SumaError
-    end
-    class SumaMetadataError < SumaError
     end
   end # Suma
 end

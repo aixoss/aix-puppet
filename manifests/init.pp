@@ -1,33 +1,9 @@
 # class aixautomation {
-#   patchmngt { "status":
-#     provider  => nimpush,
-#     ensure    => present,
-#     name      => "status",
-#     action    => "status",
-#     targets   => "quimby01 quimby02 quimby03 quimby04 quimby05 quimby06 quimby07 quimby08 quimby09 quimby10 quimby11 quimby12",
-#   }
-# }
-# class aixautomation {
 #   fix { "ifix_remove":
 #     provider => flrtvc,
 #     name     => "ifix_remove",
 #     ensure   => absent,
-#     targets  =>
-#       "quimby02",
-#     #"quimby01 quimby02 quimby03 quimby04 quimby05 quimby06 quimby07 quimby08 quimby09 quimby10 quimby11 quimby12",
-#     root     => "/export/extra/puppet/flrtvc",
-#   }
-# }
-# class aixautomation {
-#   fix { "ifix_install":
-#     provider => flrtvc,
-#     name     => "ifix_install",
-#     ensure   => absent,
-#     to_step  => "installResource",
-#     targets  => "quimby01 quimby02",
-#     clean => "no",
-#     #"quimby01 quimby02 quimby03 quimby04 quimby05 quimby06 quimby07 quimby08 quimby09 quimby10 quimby11 quimby12",
-#     root     => "/export/extra/puppet/flrtvc",
+#     targets  => "quimby01 quimby02 quimby03 quimby04 quimby05 quimby06 quimby07 quimby08 quimby09 quimby10 quimby11 quimby12",
 #   }
 # }
 # class aixautomation {
@@ -36,22 +12,34 @@
 #     name     => "ifix_install",
 #     ensure   => present,
 #     to_step  => "installResource",
-#     #level => "hiper",
-#     clean    => "yes",
-#     targets  =>
-#       "quimby01 quimby02 quimby03 quimby04 quimby05 quimby06 quimby07 quimby08 quimby09 quimby10 quimby11 quimby12",
+#     targets  => "quimby01 quimby02 quimby03 quimby04 quimby05 quimby06 quimby07 quimby08 quimby09 quimby10 quimby11 quimby12",
+#     clean => "yes",
 #     root     => "/export/extra/puppet/flrtvc",
 #   }
 # }
-
-# patchmngt { "dos2unix_mngt2":
-#   provider  => nimpush,
-#   ensure    => present,
-#   name      => "dos2unix_mngt2",
-#   action    => "install",
-#   lpp_source => "dos2unix",
-#   targets   => "quimby01, quimby02",
-#   sync      => "yes",
+class aixautomation {
+  fix { "ifix_install":
+    provider => flrtvc,
+    name     => "ifix_install",
+    ensure   => absent,
+    #to_step  => "installResource",
+    #level => "hiper",
+    #clean    => "yes",
+    targets  => "quimby01 quimby02 quimby03 quimby04 quimby05 quimby06 quimby07 quimby08 quimby09 quimby10 quimby11
+    quimby12",
+    #root     => "/export/extra/puppet/flrtvc",
+  }
+}
+# class aixautomation {
+#   patchmngt { "dos2unix_mngt2":
+#     provider   => nimpush,
+#     ensure     => absent,
+#     name       => "dos2unix_mngt2",
+#     action     => "install",
+#     lpp_source => "dos2unix",
+#     targets    => "quimby01, quimby02",
+#     sync       => "yes",
+#   }
 # }
 # patchmngt { "dos2unix_mngt4":
 #   provider  => nimpush,
@@ -474,50 +462,50 @@
 #   "quimby09"=>{"oslevel -s"=>"7100-01-10-1415", "lslpp -e"=>""},
 #   "quimby11"=>{"oslevel -s"=>"7100-00-10-1334", "lslpp -e"=>""},
 #   "quimby12"=>{"oslevel -s"=>"7100-00-10-1334", "lslpp -e"=>""}}
-class aixautomation {
-  # download { "my_download_2_1":
-  #   provider   => suma,
-  #   ensure     => present,
-  #   name       => "my_download_2_1",
-  #   type       => "TL",
-  #   root       => "/export/extra/puppet/suma",
-  #   from       => "7100-01",
-  #   to         => "7100-03",
-  #   lpp_source => "PAA_TL_7100-01_7100-03",
-  # }
-
-  download { "my_download_2_2":
-    provider   => suma,
-    ensure     => present,
-    name       => "my_download_2_2",
-    type       => "SP",
-    root       => "/export/extra/puppet/suma",
-    from       => "7100-03",
-    to         => "7100-03-07-1614",
-    lpp_source => "PAA_SP_7100-03_7100-03-07-1614",
-  }
-
-  # patchmngt { "update quimby07 to 7100-03":
-  #   provider   => nimpush,
-  #   ensure     => present,
-  #   name       => "update quimby07 to 7100-03",
-  #   action     => "update",
-  #   targets    => "quimby07",
-  #   sync       => "yes",
-  #   lpp_source => "PAA_TL_7100-01_7100-03",
-  # }
-
-  patchmngt { "update quimby07 to 7100-03-07-1614":
-    provider   => nimpush,
-    ensure     => present,
-    name       => "update quimby07 to 7100-03-07-1614",
-    action     => "update",
-    targets    => "quimby07",
-    sync       => "yes",
-    lpp_source => "PAA_SP_7100-03_7100-03-07-1614",
-  }
-
-}
+# class aixautomation {
+#   # download { "my_download_2_1":
+#   #   provider   => suma,
+#   #   ensure     => present,
+#   #   name       => "my_download_2_1",
+#   #   type       => "TL",
+#   #   root       => "/export/extra/puppet/suma",
+#   #   from       => "7100-01",
+#   #   to         => "7100-03",
+#   #   lpp_source => "PAA_TL_7100-01_7100-03",
+#   # }
+#
+#   download { "my_download_2_2":
+#     provider   => suma,
+#     ensure     => present,
+#     name       => "my_download_2_2",
+#     type       => "SP",
+#     root       => "/export/extra/puppet/suma",
+#     from       => "7100-03",
+#     to         => "7100-03-07-1614",
+#     lpp_source => "PAA_SP_7100-03_7100-03-07-1614",
+#   }
+#
+#   # patchmngt { "update quimby07 to 7100-03":
+#   #   provider   => nimpush,
+#   #   ensure     => present,
+#   #   name       => "update quimby07 to 7100-03",
+#   #   action     => "update",
+#   #   targets    => "quimby07",
+#   #   sync       => "yes",
+#   #   lpp_source => "PAA_TL_7100-01_7100-03",
+#   # }
+#
+#   patchmngt { "update quimby07 to 7100-03-07-1614":
+#     provider   => nimpush,
+#     ensure     => present,
+#     name       => "update quimby07 to 7100-03-07-1614",
+#     action     => "update",
+#     targets    => "quimby07",
+#     sync       => "yes",
+#     lpp_source => "PAA_SP_7100-03_7100-03-07-1614",
+#   }
+#
+# }
 # # patchmngt { "reboot quimby05":
 #   provider  => nimpush,
 #   ensure    => present,
@@ -752,7 +740,7 @@ class aixautomation {
 #   lpp_source => "PAA_7100-00-10-1334_7100-01-06-1241",
 # }
 #
-# Info: [STDERR] 0500-035 No fixes match your query.
+# Info:  0500-035 No fixes match your query.
 # download { "my_download":
 #   provider => suma,
 #   ensure => present,

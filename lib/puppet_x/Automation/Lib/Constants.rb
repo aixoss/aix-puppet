@@ -6,11 +6,27 @@
 module Automation
   module Lib
     class Constants
+
+      #
+      #
+      #
       def self.debug_level
-        Facter.value(:debug_level)
+        hash = Facter.value(:props)
+        hash['debug_level']
       rescue StandardError
         4
       end
+
+      #
+      #
+      #
+      def self.inst_dir
+        hash = Facter.value(:props)
+        hash['inst_dir']
+      rescue StandardError
+        '/etc/puppetlabs/code/environments/production/modules'
+      end
+
     end
   end
 end

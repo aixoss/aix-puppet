@@ -11,10 +11,10 @@ require_relative '../../../puppet_x/Automation/Lib/Utils.rb'
 Puppet::Type.type(:download).provide(:suma) do
   include Automation::Lib
 
-  commands :lsnim => "/usr/sbin/lsnim"
-  commands :rm => "/bin/rm"
+  commands :lsnim => '/usr/sbin/lsnim'
+  commands :rm => '/bin/rm'
 
-  ##############################################################################
+  # ###########################################################################
   # exists?
   #      Method      Ensure 	 Action	                  Ensure state
   #       result      value                              transition
@@ -23,17 +23,21 @@ Puppet::Type.type(:download).provide(:suma) do
   #      false       present   create method            absent → present
   #      true        absent    destroy method           present → absent
   #      false       absent    do nothing               n/a
-  ##############################################################################
+  # ###########################################################################
   def exists?
     Log.log_info("Provider suma exists! We want to realize : \
-\"#{resource[:ensure]}\" for type=\"#{resource[:type]}\" \
+                 \"#{resource[:ensure]}\" for type=\"#{resource[:type]}\" \
 into directory=\"#{resource[:root]}\" \
 from=\"#{resource[:from]}\" to \"#{resource[:to]}\" \
 lpp_source=\"#{resource[:lpp_source]}\".")
     creation_done = true
     Log.log_debug('Suma.preview')
-    @suma = Suma.new([resource[:root], resource[:from], \
-resource[:to], resource[:type], resource[:lpp_source]])
+    @suma = Suma.new([resource[:root],
+                      resource[:clean],
+                      resource[:from],
+                      resource[:to],
+                      resource[:type],
+                      resource[:lpp_source]])
     Log.log_info('dir_metadata= ' + @suma.dir_metadata)
     Log.log_info('dir_lpp_sources= ' + @suma.dir_lpp_sources)
     Log.log_info('lpp_source= ' + @suma.lpp_source)
@@ -47,10 +51,10 @@ resource[:to], resource[:type], resource[:lpp_source]])
     creation_done
   end
 
-  ##############################################################################
+  # ###########################################################################
   #
   #
-  ##############################################################################
+  # ###########################################################################
   def create
     Log.log_info("Provider suma create. Doing \"#{resource[:ensure]}\" \
 for type=\"#{resource[:type]}\" into directory=\"#{resource[:root]}\" \
@@ -71,15 +75,16 @@ lpp_source=\"#{resource[:lpp_source]}\".")
     end
 
     Log.log_debug('Nim.define_lpp_source')
-    Nim.define_lpp_source(@suma.lpp_source, @suma.dir_lpp_sources, \
-comments = 'built by Puppet AixAutomation')
+    Nim.define_lpp_source(@suma.lpp_source,
+                          @suma.dir_lpp_sources,
+                          comments = 'built by Puppet AixAutomation')
     Log.log_debug('Nim.define_lpp_source')
   end
 
-  ##############################################################################
+  # ###########################################################################
   #
   #
-  ##############################################################################
+  # ###########################################################################
   def destroy
     Log.log_info("Provider suma destroy. Doing \"#{resource[:ensure]}\" \
 for type=\"#{resource[:type]}\" into directory=\"#{resource[:root]}\" \

@@ -1,13 +1,13 @@
-# require_relative '../puppet_x/Automation/Lib/Log.rb'
 # require_relative '../puppet_x/Automation/Lib/Constants.rb'
+#  require_relative '../puppet_x/Automation/Lib/Log.rb'
 # require_relative '../puppet_x/Automation/Lib/Remote/c_rsh.rb'
 #
 # ##########################################################################
 # name : vioss factor
 # param : none
 # return : hash of vioss
-# description : this factor builds a fact called 'vioss' containing a hash with all
-#   vioss names known by the NIM server as value
+# description : this factor builds a fact called 'vioss' containing a hash
+#  with all vioss names known by the NIM server as value.
 #   oslevel -s as values.
 # ##########################################################################
 # include Automation::Lib
@@ -20,6 +20,9 @@
 #
 # Facter.add('vioss') do
 #   setcode do
+#
+#     Log.log_info('Computing "vios" facter')
+#
 #     ##########################################################
 #     #### Sample of use of log API
 #     # Log.log_info("Sample info message")
@@ -116,6 +119,23 @@
 #       end
 #
 #     end
+#    # Failure
+# Log.log_err('vios in failure="' +vios_failure.to_s+ '"')
+# # persist to yaml
+# failure_result_yml_file = ::File.join(Constants.inst_dir,
+# 'facter',
+# 'vios_in_failure.yml')
+# File.write(failure_result_yml_file, vios_failure.to_yaml)
+# Log.log_debug('Refer to "' +failure_result_yml_file+ '" to have results of "vios in failure" facter.')
+#
+# # Success
+# # persist to yaml
+# result_yml_file = ::File.join(Constants.inst_dir,
+# 'facter',
+# 'vios.yml')
+# File.write(result_yml_file, vios.to_yaml)
+# Log.log_debug('Refer to "' +result_yml_file+ '" to have results of "vios" facter.')
+# standalones
 #
 #     Log.log_info("vioss=" + vioss.to_s)
 #     vioss

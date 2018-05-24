@@ -10,7 +10,7 @@ require_relative '../../../puppet_x/Automation/Lib/Flrtvc.rb'
 Puppet::Type.type(:fix).provide(:flrtvc) do
   include Automation::Lib
 
-  ##############################################################################
+  # ###########################################################################
   # exists?
   #      Method      Ensure 	 Action	                  Ensure state
   #       result      value                              transition
@@ -19,7 +19,7 @@ Puppet::Type.type(:fix).provide(:flrtvc) do
   #      false       present   create method            absent → present
   #      true        absent    destroy method           present → absent
   #      false       absent    do nothing               n/a
-  ##############################################################################
+  # ###########################################################################
   def exists?
     Log.log_info("Provider flrtvc exists! We want to realize up to \
 \"#{resource[:to_step]}\" : \"#{resource[:ensure]}\" \
@@ -27,14 +27,14 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
     returned = true
     returned = false\
 if resource[:ensure].to_s == 'present' || resource[:to_step].to_s == 'status'
-    Log.log_info("Provider flrtvc exists! returning "+returned.to_s)
+    Log.log_info('Provider flrtvc exists! returning ' + returned.to_s)
     returned
   end
 
-  ##############################################################################
+  # ###########################################################################
   #
   #
-  ##############################################################################
+  # ###########################################################################
   def create
     Log.log_info("Provider flrtvc create : doing up \
 to \"#{resource[:to_step]}\" : \"#{resource[:ensure]}\" \
@@ -51,17 +51,6 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
     status_before = {}
     status_after = {}
     targets_array.each do |target|
-      #
-      step = :status
-      Log.log_debug('target=' + target + ' doing :' + step.to_s)
-      flrtvc_report = @flrtvc.run_step(step, target)
-      Log.log_debug('target=' + target + ' done  :' + step.to_s)
-
-      if to_step == :status
-        Log.log_debug('target=' + target + "\n" + flrtvc_report.to_s)
-        status_before[target] = flrtvc_report
-        next
-      end
 
       #
       step = :runFlrtvc
@@ -98,9 +87,16 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
             next if to_step == :checkFixes
             step = :buildResource
             if !sorted_fixes_by_pkgdate.nil? && !sorted_fixes_by_pkgdate.empty?
-              Log.log_debug('target=' + target + ' doing :' + step.to_s + " sorted_fixes_by_pkgdate="+sorted_fixes_by_pkgdate.to_s)
-              nim_resource_and_sorted_fixes = @flrtvc.run_step(step, target, sorted_fixes_by_pkgdate)
-              Log.log_debug('target=' + target + ' done  :' + step.to_s + " nim_resource_and_sorted_fixes="+nim_resource_and_sorted_fixes.to_s )
+              Log.log_debug('target=' + target + ' doing :' + step.to_s +
+                                ' sorted_fixes_by_pkgdate=' +
+                                sorted_fixes_by_pkgdate.to_s)
+              nim_resource_and_sorted_fixes = @flrtvc.run_step(step,
+                                                               target,
+                                                               sorted_fixes_by_pkgdate)
+              Log.log_debug('target=' + target + ' done  :' +
+                                step.to_s +
+                                ' nim_resource_and_sorted_fixes=' +
+                                nim_resource_and_sorted_fixes.to_s )
 
               #
               next if to_step == :buildResource
@@ -118,7 +114,7 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
               Log.log_debug('target=' + target + ' doing :' + step.to_s)
               flrtvc_report = @flrtvc.run_step(step, target)
               Log.log_debug('target=' + target + ' done  :' + step.to_s)
-              Log.log_debug('target=' + target + "\n" + flrtvc_report.to_s + "\n")
+              Log.log_debug('target=' + target + '\n' + flrtvc_report.to_s + '\n')
               status_after[target] = flrtvc_report
 
             else
@@ -145,10 +141,10 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
     Log.log_debug('Provider flrtvc.create')
   end
 
-  ##############################################################################
+  # ###########################################################################
   #
   #
-  ##############################################################################
+  # ###########################################################################
   def destroy
     Log.log_info("Provider flrtvc destroy : doing \"#{resource[:ensure]}\" \
 for targets=\"#{resource[:targets]}\" and clean=\"#{resource[:clean]}\" \
@@ -165,7 +161,7 @@ directory=\"#{resource[:root]}\"")
     @flrtvc.remove_nim_resources
     Log.log_debug('flrtvc.removed nim resources')
 
-    if resource[:clean] == "yes"
+    if resource[:clean] == 'yes'
       Log.log_debug('flrtvc.removing downloaded ifix files')
       @flrtvc.remove_downloaded_files
       Log.log_debug('flrtvc.removed downloaded ifix files')

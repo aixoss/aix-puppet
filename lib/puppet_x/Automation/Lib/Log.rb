@@ -1,3 +1,4 @@
+require_relative './Constants.rb'
 require 'logger'
 require 'open3'
 require 'pp'
@@ -11,30 +12,33 @@ module Automation
     LARGE_DEBUG_LEVEL = 5
     FULL_DEBUG_LEVEL = 6
 
-    # ##########################################################################
+    # #########################################################################
     # name : LoggerSingleton class
     # description : wrapper of Logger with a singleton-design-pattern
-    # ##########################################################################
+    # #########################################################################
     class LoggerSingleton
-      # timestamp = Time.now.strftime('%Y-%m-%d_%H-%M-%S')
-      # log_file_name = '/tmp/AixAutomation_' + timestamp.to_s + '.log'
-      log_file_name = '/tmp/PuppetAixAutomation.log'
+      log_file_dir = ::File.join(Constants.inst_dir,
+                                 'aixautomation',
+                                 'logs')
+      ::FileUtils.mkdir_p(log_file_dir) unless ::File.directory?(log_file_dir)
+
+      log_file_name = ::File.join(log_file_dir,
+                                  'PuppetAixAutomation.log')
       @@instance = Logger.new(log_file_name, 12, 1_024_000)
-      @@instance.datetime_format = '%Y-%m-%d %H:%M:%S'
 
       def self.instance
         @@instance
       end
     end
 
-    # ##########################################################################
+    # #########################################################################
     # name : Log class
     # description : collection of log utility class methods
     # All these methods are made independent from Puppet framework thanks
     #  to rescue blocks
-    # ##########################################################################
+    # #########################################################################
     class Log
-      # ########################################################################
+      # #######################################################################
       # name : log_debug
       # param :input:message:string
       # return : none
@@ -62,13 +66,13 @@ module Automation
         end
       end
 
-      # ########################################################################
+      # #######################################################################
       # name : log_info
       # param :input:message:string
       # return : none
       # description : to log in info mode, displayed only with --debug
       #  rescue is here to be able to run code outside of Puppet
-      # ########################################################################
+      # #######################################################################
       def self.log_info(message)
         if Constants.debug_level >= INFO_LEVEL
           begin
@@ -81,28 +85,28 @@ module Automation
         end
       end
 
-      # ########################################################################
+      # #######################################################################
       # name : log_warning
       # param :input:message:string
       # return : none
       # description : to log in warn mode, always displayed
       #  rescue is here to be able to run code outside of Puppet
-      # ########################################################################
+      # #######################################################################
       def self.log_warning(message)
         # This is displayed even without --debug
         Puppet.warning(message)
-        LoggerSingleton.instance.warning {message}
+        LoggerSingleton.instance.debug {'WARNING ' + message}
       rescue StandardError
         p 'WARNING ' + message
       end
 
-      # ########################################################################
+      # #######################################################################
       # name : log_err
       # param :input:message:string
       # return : none
       # description : to log in error mode, always displayed
       #  rescue is here to be able to run code outside of Puppet
-      # ########################################################################
+      # #######################################################################
       def self.log_err(message)
         begin
           # This is displayed even without --debug
@@ -116,7 +120,13 @@ module Automation
           ###########################################################
           # To have execution stack of all threads into one file
           ###########################################################
-          File.open("/tmp/AixAutomation_ruby_backtrace_#{Process.pid}.txt", 'a') do |f|
+          log_file_dir = ::File.join(Constants.inst_dir,
+                                     'aixautomation',
+                                     'logs')
+          ::FileUtils.mkdir_p(log_file_dir) unless ::File.directory?(log_file_dir)
+          stack_file = ::File.join(log_file_dir,
+                                   "PuppetAixAutomation_ruby_backtrace_#{Process.pid}.txt")
+          File.open(stack_file, 'a') do |f|
             f.puts "--- dump backtrace for all threads at #{Time.now}"
             if Thread.current.respond_to?(:backtrace)
               Thread.list.each do |t|
