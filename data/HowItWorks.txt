@@ -1,0 +1,21 @@
+Facters are called in this order
+ - servicepacks.rb
+ - standalones
+All other facters are done, and this is a lot of things : how to un-trigger them if unnecessay ?
+
+Debug: importing '/etc/puppet/modules/aixautomation/manifests/init.pp' in environment production
+For each clause into init.pp, the custom type verification is done
+
+
+Releases Notes
+==============
+Added
+ ftp_download able to increase file system as well
+ cstate analysed so that LPAR is removed from target list if necessary
+ flrtvc ability to remove all download  : absent and clean=yes
+ fix custom type validation
+
+Missing
+ regex for targets variable
+ possibility to provide apar.csv as input file
+ rescue exception on download and generally speaking
