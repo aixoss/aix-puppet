@@ -1,4 +1,4 @@
-#
+# titi toto
 # The baseline for module testing used by Puppet Inc. is that each manifest
 #  should have a corresponding test manifest that declares that class or defined
 #  type.
