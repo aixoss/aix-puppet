@@ -1,3 +1,6 @@
+# #
+# # TODO : This file needs to be cleaned
+# #
 # class aixautomation {
 #   fix { "ifix_remove":
 #     provider => flrtvc,

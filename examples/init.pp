@@ -1,18 +1,18 @@
-# titi toto
+#
 # The baseline for module testing used by Puppet Inc. is that each manifest
 #  should have a corresponding test manifest that declares that class or defined
 #  type.
 #
 # Manifest init.pp contains all declarations to be applied on your systems.
 # You can launch it, by using:
-#    puppet apply --noop --modulepath=/etc/puppet/modules -e "include aixautomation"
+#    puppet apply --noop --modulepath=/etc/puppetlabs/code/environments/production/modules -e "include aixautomation"
 #  to check for compilation errors and view a log of events
 # Or by fully applying the manifest in a real environment, by using:
-#    puppet apply --debug --modulepath=/etc/puppet/modules -e "include aixautomation"
+#    puppet apply --debug --modulepath=/etc/puppetlabs/code/environments/production/modules -e "include aixautomation"
 #  to apply manifest and run it.
 # Or by using:
-#    puppet apply --debug --logdest=/tmp/Puppet.log \
-#                 --modulepath=/etc/puppet/modules -e "include aixautomation"
+#    puppet apply --debug --logdest=/etc/puppetlabs/code/environments/production/modulesaixautomation/logs/Puppet.log \
+#                 --modulepath=/etc/puppetlabs/code/environments/production/modules -e "include aixautomation"
 #  to apply manifest and run it, keeping all logs into a file
 #
 # This examples.init.pp contains several samples of declarations with complete explanations
