@@ -104,14 +104,16 @@ module Automation
       # name : log_err
       # param :input:message:string
       # return : none
-      # description : to log in error mode, always displayed
+      # description : to log in error mode, always displayed (in red !)
       #  rescue is here to be able to run code outside of Puppet
       # #######################################################################
       def self.log_err(message)
         begin
           # This is displayed even without --debug
           Puppet.err(message)
-          LoggerSingleton.instance.error {message}
+          #LoggerSingleton.instance.warn {"\033[0;31m#{message}\033[0m"} if message =~/There is no efix data on this
+          # system/
+          LoggerSingleton.instance.error {"\033[0;31m#{message}\033[0m"}
         rescue StandardError
           p 'ERROR ' + message
         end

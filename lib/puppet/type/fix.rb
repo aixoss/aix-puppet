@@ -27,7 +27,8 @@ Puppet::Type.newtype(:fix) do
   end
 
   # ###########################################################################
-  #
+  # Only valid targets are kept, targets nedd to be pingable,
+  #  accessible thru c_rsh, in a proper NIM state
   # ###########################################################################
   newparam(:targets) do
     desc '"targets" parameter: list of lpar or vios on which to perform action'
@@ -36,7 +37,7 @@ Puppet::Type.newtype(:fix) do
       kept = []
       suppressed = []
       Utils.check_input_targets(values, kept, suppressed)
-      raise('targets kept is empty, but must not be empty ') \
+      raise('list of kept targets is empty, but cannot be empty') \
         if kept.empty?
     end
     munge do |_values|
@@ -91,17 +92,17 @@ Puppet::Type.newtype(:fix) do
   # ############################################################################
   validate do
     # NEEDS TO BE TESTED AGAIN
-    # what is done here : if targets==null failure
+    # what is done here : if targets==null then failure
     raise('"targets" needs to be set') \
         if self[:targets].nil? ||
            self[:targets].empty?
 
-    # what is done here : if ensure==present and root==null failure
+    # what is done here : if ensure==present and root==null then failure
     raise('"root" needs to be set if "ensure=>present"') \
       if self[:ensure] == 'present' &&
          (self[:root].nil? || self[:root].empty?)
 
-    # what is done here : if ensure=absent and clean==yes and root==null failure
+    # what is done here : if ensure=absent and clean==yes and root==null then failure
     raise('"root" needs to be set if "ensure=>absent" and "clean=>yes"') \
       if self[:ensure] == 'absent' &&
          self[:clean] == 'yes' &&

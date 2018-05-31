@@ -29,18 +29,18 @@ Facter.add('standalones') do
     standalones_array.each do |standalone|
       standalone_hash = {}
       # To shorten execution, only keep some standalones
-      # if standalone != "quimby01" && standalone != "quimby02"
-      #  && standalone != "quimby03" \
-      #  && standalone != "quimby04" && standalone != "quimby05" \
-      #  && standalone != "quimby07" && standalone != "quimby08" \
-      #  && standalone != "quimby09" && standalone != "quimby11"  \
-      #  && standalone != "quimby12"
-      #  Log.log_info("Please note, to shorten execution "+standalone+" standalone is not kept.")
-      #  next
-      # end
+      if standalone == "quimby06" || standalone == "quimby10"
+        #  && standalone != "quimby03" \
+        #  && standalone != "quimby04" && standalone != "quimby05" \
+        #  && standalone != "quimby07" && standalone != "quimby08" \
+        #  && standalone != "quimby09" && standalone != "quimby11"  \
+        #  && standalone != "quimby12"
+        Log.log_info("Please note, to shorten execution " + standalone + " standalone is not kept.")
+        next
+      end
 
       # To shorten execution, skip some standalones
-      # if standalone != 'quimby01' && standalone != 'quimby02' &&  standalone != 'quimby06'
+      # if standalone != 'quimby03'
       #   Log.log_info('Please note, to shorten execution ' + standalone + ' standalone is not kept.')
       #   standalone_hash['WARNING']='Standalone system skipped in aixautomation/lib/facter/standalones.rb'
       #   standalones_skipped[standalone] = standalone_hash

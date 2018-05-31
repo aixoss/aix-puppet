@@ -5,4 +5,7 @@
 ** Propose to exploit 'Reboot' needed to inform user when a reboot is needed after an install/update eFix 
 ** Propose to work with an offline 'apar.csv'. Currenly the last 'apar.csv' is downloaded each time. 
 ** Propose automatic installation of a list of eFix by providing them by their names.
-** Have a timeout on ftp download, and a retry mechanism   
+** Have a timeout on ftp download, and a retry mechanism 
+** Restrict the standalones list analysed by facter 'standalones' to the list of targets provided in 
+ manifests/init.pp but how to do that, as facter runs at the beginning, at a time manifets/init.pp is 
+ not yet read   

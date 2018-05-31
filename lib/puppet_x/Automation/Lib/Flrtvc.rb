@@ -112,8 +112,8 @@ lppminmax_of_fixes_hash.to_s)
       # description :
       # ########################################################################
       def check_flrtvc
-        # raise FlrtvcNotFound unless ::File.exist?('/usr/bin/flrtvc.ksh')
-        raise FlrtvcNotFound unless File.zero?('/usr/bin/flrtvc.ksh')
+        raise FlrtvcNotFound unless ::File.exist?('/usr/bin/flrtvc.ksh')
+        # raise FlrtvcNotFound unless File.zero?('/usr/bin/flrtvc.ksh')
         # File.zero returns false if file is not found or if file size is zero
 
       end
@@ -948,8 +948,8 @@ and #{filesets.size} filesets.")
                                       ' into ' +
                                       common_efixes_dirname +
                                       " : #{count}/#{total} fixes.")
-                    # if !::File.exist?(local_path_of_file_to_download)
-                    if !File.zero?(local_path_of_file_to_download)
+                    if !::File.exist?(local_path_of_file_to_download)
+                    # if !File.zero?(local_path_of_file_to_download)
                       # File.zero returns false if file is not found or if file size is zero
                       # Download file
                       Log.log_debug("  downloading #{url_of_file_to_download} \
@@ -1019,8 +1019,8 @@ into #{common_efixes_dirname} and kept into\
                             ' into ' +
                             tar_dir +
                             " : #{count}/#{total} fixes.")
-          # if !::File.exist?(local_path_of_file_to_download)
-          if !File.zero?(local_path_of_file_to_download)
+          if !::File.exist?(local_path_of_file_to_download)
+          # if !File.zero?(local_path_of_file_to_download)
             # File.zero returns false if file is not found or if file size is zero
             # download file
             Log.log_debug("  downloading #{url_to_download} \
@@ -1073,8 +1073,8 @@ into #{tar_dir}: #{count}/#{total} fixes.")
                             ' into ' +
                             local_path_of_file_to_download +
                             " : #{count}/#{total} fixes.")
-          # if !::File.exist?(local_path_of_file_to_download)
-          if !File.zero?(local_path_of_file_to_download)
+          if !::File.exist?(local_path_of_file_to_download)
+          # if !File.zero?(local_path_of_file_to_download)
             # File.zero returns false if file is not found or if file size is zero
             # download file
             Log.log_debug("  downloading #{url_to_download} \
@@ -1121,9 +1121,10 @@ into #{local_path_of_file_to_download} \
                           ' protocol=' + protocol + ')')
         returned = false
         begin
-          # unless ::File.exist?(destination_file)
-          unless File.zero?(destination_file)
-            # File.zero returns false if file is not found or if file size is zero
+          unless ::File.exist?(destination_file)
+          Log.log_debug(::File.exist?(destination_file).to_s+" "+File.zero?(destination_file).to_s)
+          #unless File.zero?(destination_file)
+            ## File.zero returns false if file is not found or if file size is zero
 
             ::File.open(destination_file, 'w') do |f|
               download_expected = open(download_url)
@@ -1212,8 +1213,8 @@ as Exception e=' + e.to_s)
                                 local_path_of_file_to_download +
                                 " : #{count}.#{subcount}/#{total} fixes.")
 
-              # if !::File.exist?(local_path_of_file_to_download)
-              if !File.zero?(local_path_of_file_to_download)
+              if !::File.exist?(local_path_of_file_to_download)
+              # if !File.zero?(local_path_of_file_to_download)
                 # File.zero returns false if file is not found or if file size is zero
                 Log.log_debug('  downloading ' + fix_to_download +
                                   'into ' +

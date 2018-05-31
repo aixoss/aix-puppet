@@ -31,7 +31,7 @@ into directory=\"#{resource[:root]}\" \
 from=\"#{resource[:from]}\" to \"#{resource[:to]}\" \
 lpp_source=\"#{resource[:lpp_source]}\".")
     creation_done = true
-    Log.log_debug('Suma.preview')
+    Log.log_debug('Suma.new')
     @suma = Suma.new([resource[:root],
                       resource[:clean],
                       resource[:from],
@@ -41,12 +41,15 @@ lpp_source=\"#{resource[:lpp_source]}\".")
     Log.log_info('dir_metadata= ' + @suma.dir_metadata)
     Log.log_info('dir_lpp_sources= ' + @suma.dir_lpp_sources)
     Log.log_info('lpp_source= ' + @suma.lpp_source)
-    begin
-      Log.log_info('lsnim')
-      lsnim('-l', @suma.lpp_source)
-    rescue Puppet::ExecutionFailure => e
-      Log.log_debug('lsnim Puppet::ExecutionFailure e=' + e.to_s)
-      creation_done = false # this will trigger creation
+
+    if resource[:ensure].to_s != 'absent'
+      begin
+        Log.log_info('lsnim')
+        lsnim('-l', @suma.lpp_source)
+      rescue Puppet::ExecutionFailure => e
+        Log.log_debug('lsnim Puppet::ExecutionFailure e=' + e.to_s)
+        creation_done = false # this will trigger creation
+      end
     end
     creation_done
   end
@@ -77,8 +80,9 @@ lpp_source=\"#{resource[:lpp_source]}\".")
     Log.log_debug('Nim.define_lpp_source')
     Nim.define_lpp_source(@suma.lpp_source,
                           @suma.dir_lpp_sources,
-                          comments = 'built by Puppet AixAutomation')
+                          'built by Puppet AixAutomation')
     Log.log_debug('Nim.define_lpp_source')
+    Log.log_debug('End of suma.create')
   end
 
   # ###########################################################################
@@ -96,16 +100,16 @@ lpp_source=.\"#{resource[:lpp_source]}\".")
     Log.log_info('lpp_source= ' + @suma.lpp_source)
 
     Log.log_debug('Cleaning directories')
-    if false
-      # TO BE DONE ON OPTION ?
-      rm('-r', '-f', @suma.dir_lpp_sources)
-      rm('-r', '-f', @suma.dir_metadata)
-    end
+    # TO BE DONE ON OPTION ?
+    rm('-r', '-f', @suma.dir_lpp_sources)
+    rm('-r', '-f', @suma.dir_metadata)
 
     Log.log_debug('Cleaning directories')
 
     Log.log_debug('Nim.remove_lpp_source')
     Nim.remove_lpp_source(@suma.lpp_source)
     Log.log_debug('Nim.remove_lpp_source')
+
+    Log.log_debug('End of suma.destroy')
   end
 end

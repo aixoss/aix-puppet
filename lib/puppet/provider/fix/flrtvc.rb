@@ -52,6 +52,13 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
     status_after = {}
     targets_array.each do |target|
 
+      step = :status
+      Log.log_debug('target=' + target + ' doing :' + step.to_s)
+      flrtvc_report = @flrtvc.run_step(step, target)
+      Log.log_debug('target=' + target + ' done  :' + step.to_s)
+      #Log.log_debug('target=' + target + '\n' + flrtvc_report.to_s + '\n')
+      status_before[target] = flrtvc_report
+
       #
       step = :runFlrtvc
       Log.log_debug('target=' + target + ' doing :' + step.to_s)
@@ -114,7 +121,7 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
               Log.log_debug('target=' + target + ' doing :' + step.to_s)
               flrtvc_report = @flrtvc.run_step(step, target)
               Log.log_debug('target=' + target + ' done  :' + step.to_s)
-              Log.log_debug('target=' + target + '\n' + flrtvc_report.to_s + '\n')
+              #Log.log_debug('target=' + target + '\n' + flrtvc_report.to_s + '\n')
               status_after[target] = flrtvc_report
 
             else
@@ -131,14 +138,32 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
       end
     end
 
+    # display and persist status before
     if !status_before.nil? && !status_before.empty?
       Log.log_debug('status before=' + status_before.to_s)
+      # Persist to yml
+      status_before_yml_file = ::File.join(Constants.inst_dir,
+                                           'aixautomation',
+                                           'logs',
+                                           'PuppetAix_StatusBefore.yml')
+      File.write(status_before_yml_file, status_before.to_yaml)
+      Log.log_debug('Refer to "' + status_before_yml_file + '" to have status at the start of "fix" ("flrtvc"
+provider)')
     end
+
+    # display and persist status after
     if !status_after.nil? && !status_after.empty?
       Log.log_debug('status after=' + status_after.to_s)
+      # Persist to yml
+      status_after_yml_file = ::File.join(Constants.inst_dir,
+                                          'aixautomation',
+                                          'logs',
+                                          'PuppetAix_StatusAfter.yml')
+      File.write(status_after_yml_file, status_after.to_yaml)
+      Log.log_debug('Refer to "' + status_after_yml_file + '" to have status at the end of "fix" ("flrtvc" provider)')
     end
-    # reset all params
-    Log.log_debug('Provider flrtvc.create')
+
+    Log.log_debug('End of flrtvc.create')
   end
 
   # ###########################################################################
@@ -167,6 +192,6 @@ directory=\"#{resource[:root]}\"")
       Log.log_debug('flrtvc.removed downloaded ifix files')
     end
 
-    Log.log_debug('Provider flrtvc.destroy')
+    Log.log_debug('End of flrtvc.destroy')
   end
 end

@@ -4,7 +4,8 @@ require_relative '../../puppet_x/Automation/Lib/SpLevel.rb'
 
 # ##########################################################################
 # name : download type
-# description :
+# description : this custom type enables to automate download through
+#  suma metadata/preview/download
 # ##########################################################################
 Puppet::Type.newtype(:download) do
   @doc = 'To manage all simple download functions.'
@@ -28,7 +29,7 @@ Puppet::Type.newtype(:download) do
   end
 
   # ############################################################################
-  #
+  # :root is the download root directory
   # ############################################################################
   newparam(:root) do
     desc '"root" parameter: download root directory for updates'
@@ -38,7 +39,9 @@ Puppet::Type.newtype(:download) do
   end
 
   # ############################################################################
+  # :type is the type of suma download desired
   #
+  # Check :type against a short list, provide a default
   # ############################################################################
   newparam(:type) do
     desc '"type" parameter: either "SP", "TL", "Latest", or "Meta"'
@@ -47,7 +50,9 @@ Puppet::Type.newtype(:download) do
   end
 
   # ############################################################################
-  #
+  # :lpp_source is the name of the NIM resource lpp_source built at the end
+  #  of suma download. If ever it is not provided, a default value is generated
+  #  with naming convention "PAA_<type>_<from>_<to>"
   # ############################################################################
   newparam(:lpp_source) do
     desc '"lpp_source" parameter: optional parameter, \
@@ -56,7 +61,7 @@ name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
   end
 
   # ############################################################################
-  #
+  # :from is a parameter of the suma request, giving current level of the system
   # ############################################################################
   newparam(:from) do
     desc '"from" parameter: current level'
@@ -64,7 +69,7 @@ name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
   end
 
   # ############################################################################
-  #
+  # :to is a parameter of the suma request, giving desired level of the system
   # ############################################################################
   newparam(:to) do
     desc '"to" parameter: desired level'
@@ -72,7 +77,9 @@ name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
   end
 
   # ############################################################################
+  # :clean parameter to
   #
+  # Check :clean against a short list, provide a default
   # ############################################################################
   newparam(:clean) do
     desc '"clean" parameter: possible values "yes", "no"'
@@ -81,15 +88,15 @@ name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
   end
 
   # ############################################################################
-  #
+  # Perform global consistency checks between parameters
   # ############################################################################
   validate do
 
     # validate directories
-    dir_metadata = self[:root] + '/metadata/' + self[:from]
+    dir_metadata = ::File.join(self[:root], 'metadata', self[:from])
     raise(dir_metadata + ' needs to exist') if Utils.check_directory(dir_metadata) == -1
 
-    dir_lppsource = self[:root] + '/lpp_sources'
+    dir_lppsource = ::File.join(self[:root], 'lpp_sources')
     raise(dir_lppsource + ' needs to exist') if Utils.check_directory(dir_lppsource) == -1
 
     from = self[:from]

@@ -59,6 +59,8 @@ lpp_source.")
           else
             fail '"mode" must be either "update", "commit", or "apply"'
         end
+      else
+        # type code here
     end
 
     # Depending on the action param, interpretation of ensure is not the same
@@ -297,6 +299,7 @@ with \"#{resource[:lpp_source]}\" lpp_source.")
         fail '"action"" must be either "status", install", "update", or "reboot"'
 
     end
+    Log.log_debug('End of nimpush.create')
   end
 
   # ###########################################################################
@@ -383,5 +386,6 @@ targets with \"#{resource[:lpp_source]}\" lpp_source.")
       else
         fail '"action" must be either "status", install", "update", or "reboot"'
     end
+    Log.log_debug('End of nimpush.destroy')
   end
 end
