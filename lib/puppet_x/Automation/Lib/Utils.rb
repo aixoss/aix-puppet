@@ -48,7 +48,7 @@ module Automation
       # ########################################################################
       def self.execute2(command, command_output)
         Log.log_debug('Utils.execute2 command : ' + command)
-        exit_status=Open3.popen3({'LANG' => 'C'}, command) do |_stdin, stdout, stderr, wait_thr|
+        exit_status = Open3.popen3({'LANG' => 'C'}, command) do |_stdin, stdout, stderr, wait_thr|
           unless exit_status.nil?
             Log.log_debug('   exit_status=' + exit_status.to_s)
           end
@@ -343,49 +343,70 @@ module Automation
       end
 
       # ########################################################################
-      # name : install_flrtvc
-      # param :
-      # return :
-      # description : install flrtvc on target system
+      # name : check_install_flrtvc
+      # param : none
+      # return : 0 if everything is ok,
+      # description : check if /usr/bin/flrtvc.ksh is installed or not and
+      #  install it if necessary
       # ########################################################################
-      def self.install_flrtvc
-        Log.log_debug('Into install_flrtvc')
+      def self.check_install_flrtvc
+        Log.log_debug('Into check_install_flrtvc')
+
+        returned = 0
 
         unless ::File.exist?('/usr/bin/flrtvc.ksh')
+          Log.log_debug('/usr/bin/flrtvc.ksh does not exist')
           unless ::File.exist?('/tmp/FLRTVC-latest.zip')
+            Log.log_debug('/tmp/FLRTVC-latest.zip does not exist')
             ::File.open('/tmp/FLRTVC-latest.zip', 'w') do |f|
               download_expected = open('https://www-304.ibm.com/webapp/set2/sas/f/flrt3/FLRTVC-latest.zip')
               ::IO.copy_stream(download_expected, f)
+              Log.log_debug('downloaded /tmp/FLRTVC-latest.zip')
             end
           end
 
           command = "/bin/which unzip"
           returned = Utils.execute(command)
           if returned != 0
+            Log.log_debug('downloaded /tmp/FLRTVC-latest.zip')
             # missing unzip on system
             # download and install
             unless ::File.exist?('/tmp/unzip-6.0-3.aix6.1.ppc.rpm')
+              Log.log_debug('/tmp/unzip-6.0-3.aix6.1.ppc.rpm does not exist')
               ::File.open('/tmp/unzip-6.0-3.aix6.1.ppc.rpm', 'w') do |f|
                 download_expected = open('https://public.dhe.ibm.com/aix/freeSoftware/aixtoolbox/RPMS/ppc/unzip/unzip-6.0-3.aix6.1.ppc.rpm')
                 ::IO.copy_stream(download_expected, f)
+                Log.log_debug('downloaded /tmp/unzip-6.0-3.aix6.1.ppc.rpm')
               end
 
               command = "/bin/rpm -i /tmp/unzip-6.0-3.aix6.1.ppc.rpm"
+              Log.log_debug('launching command ' + command)
               returned = Utils.execute(command)
-              Log.log_debug('command ' +command+ ' returns ' + returned)
+              Log.log_debug('command ' + command + ' returns ' + returned.to_s)
+              if returned == 0
+                Log.log_debug('installed unzip-6.0-3.aix6.1.ppc.rpm')
+              end
             end
           end
 
-          command = "/bin/unzip -o /tmp/FLRTVC-latest.zip -d /usr/bin"
-          returned = Utils.execute(command)
-          Log.log_debug('command ' +command+ ' returns ' + returned)
+          if returned == 0
+            command = "/bin/unzip -o /tmp/FLRTVC-latest.zip -d /usr/bin"
+            Log.log_debug('launching command ' + command)
+            returned = Utils.execute(command)
+            Log.log_debug('command ' + command + ' returns ' + returned.to_s)
+            if returned == 0
+              Log.log_debug('installed /usr/bin/flrtvc.ksh')
+            end
+          end
 
-          # set execution mode
-          file '/usr/bin/flrtvc.ksh' do
-            mode '0755'
+          if returned == 0
+            # set execution mode
+            File.new('/usr/bin/flrtvc.ksh').chmod(0755)
+            Log.log_debug('set execution mode on /usr/bin/flrtvc.ksh')
           end
         end
-        Log.log_debug('Finish install_flrtvc')
+        Log.log_debug('Finish check_install_flrtvc')
+        returned
       end
 
 

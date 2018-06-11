@@ -173,7 +173,7 @@
   not up-to-date, and therefore let 'suma' provider downloads metadata 'in live' 
   and compute a more recent version of './facter/sp_per_tl.yml'. To perform this, you can rename 
   './facter/sp_per_tl.yml' to './facter/sp_per_tl.yml.saved' so that this './facter/sp_per_tl.yml' 
-  is computed again. You should perform thsi operation once in a while (every month or so).<br>
+  is computed again. You should perform this operation once in a while (every month or so).<br>
  Various types of suma downloads can be performed : either "SP", or "TL", or "Latest" :<br>
   - "SP" contains everything update system on a given Technical Level.<br>
   - "TL" contains everything to update system from a Technical Level to another 
@@ -186,7 +186,11 @@
    as a shortcut for "<b>P</b>uppet<b>A</b>ix<b>A</b>utomation"'. Then the <type> of suma 
    download is used : "SP", "TL", "Latest", then the <from> and the <to> fields. As a example, 
    you would have : "PAA_SP_7100-03_7100-03-07-1614" indicating a NIM resource to update from 
-   7.3.0 to 7.3.7.1614 SP.         
+   7.3.0 to 7.3.7.1614 SP.
+ It is possible to perform only the suma 'preview' (and therefore not the suma 'download')
+   by setting the 'to_step' parameter of the download custom type to 'preview'. By default, this
+   'to_step' parameter is set to 'download', meaning that the suma download is performed. 
+             
  
  #### Custom type : patchmngt (provider : nimpush)
  The aim of this provider is to provide software maintenance operations on a list of LPARs 
@@ -233,4 +237,14 @@
  Refer to TODO.md<br>
 
 ## Release Notes/Contributors/Etc. **Optional**
- Last changes to be documented. <br>
+ Last changes documented. <br>
+ 0.51 :
+   - fix the automatic installation of "/usr/bin/flrtvc.ksh" if this file is missing 
+   - renaming of "facter/sp_per_tl.yml" file to "facter/sp_per_tl.yml.June_2018", so that this 
+     file is generated at least once after installation. This file contains the matches between 
+     Technical Levels and Service Packs for all releases.      
+ 0.52 : 
+   - add 'to_step' parameter to "download" custom type, to control execution of the two steps 
+   'suma preview' and 'suma download' separately. By setting 'to_step' to "preview", only 
+   "preview" is performed. By default "download" is performed. 
+ 

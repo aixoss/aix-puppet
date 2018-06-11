@@ -39,6 +39,7 @@ module Automation
       attr_accessor :dir_metadata
       attr_accessor :dir_lpp_sources
       attr_accessor :lpp_source
+      attr_accessor :to_step
 
       # ######################################################################
       # name : initialize
@@ -67,7 +68,8 @@ parameter. Cannot continue!")
         from_level = args[2]
         to_level = args[3]
         type = args[4]
-        lpp_source = args[5]
+        to_step = args[5]
+        lpp_source = args[6]
 
         @root_dir = if root =~ /^\//
                       root
@@ -75,7 +77,8 @@ parameter. Cannot continue!")
                       ::File.join(Dir.pwd,
                                   root)
                     end
-
+        @to_step = to_step
+        Log.log_debug('to_step=' + @to_step.to_s)
         @dir_metadata = ::File.join(@root_dir,
                                     'metadata',
                                     from_level)
@@ -390,7 +393,7 @@ fixes (~ #{download_dl.to_f.round(2)} GB).")
                 sps_of_tl = []
 
                 # Retrieve the data
-                suma = Suma.new([metadata_root_directory, :no, technical_level, '', 'Latest', ''])
+                suma = Suma.new([metadata_root_directory, :no, technical_level, '', 'Latest', :download, ''])
 
                 metadata_return_code = suma.metadata
                 if metadata_return_code

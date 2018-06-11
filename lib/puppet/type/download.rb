@@ -77,6 +77,16 @@ name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
   end
 
   # ############################################################################
+  #
+  # ############################################################################
+  newparam(:to_step) do
+    desc '"to_step" parameter possible values: "preview", "download"'
+    defaultto :download
+    newvalues(:preview, :download)
+  end
+
+
+  # ############################################################################
   # :clean parameter to
   #
   # Check :clean against a short list, provide a default

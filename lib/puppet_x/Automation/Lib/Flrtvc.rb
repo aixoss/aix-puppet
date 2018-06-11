@@ -85,17 +85,6 @@ module Automation
         # so that they are not parsed again and again
         #
         @lppminmax_of_fixes = {}
-        lppminmax_of_fixes_hash = mine_this_step('lppminmax_of_fixes',
-                                                 'all')
-        Log.log_info('Starting with lppminmax_of_fixes_hash=' + \
-lppminmax_of_fixes_hash.to_s)
-        @lppminmax_of_fixes = if lppminmax_of_fixes_hash[false].nil?
-                                {}
-                              else
-                                lppminmax_of_fixes_hash[false]
-                              end
-        Log.log_info('Starting with @lppminmax_of_fixes=' + \
- @lppminmax_of_fixes.length.to_s)
 
         #
         # to keep in memory the list of fixes per url
@@ -279,6 +268,8 @@ lppminmax_of_fixes_hash.to_s)
         case step
           when :status
             returned = step_status(step, target)
+          when :installFlrtvc
+            returned = step_install_flrtvc(step)
           when :runFlrtvc
             returned = step_run_flrtvc(step, target)
           when :parseFlrtvc
@@ -310,6 +301,17 @@ lppminmax_of_fixes_hash.to_s)
         Log.log_debug('Into step ' + step.to_s + ' target=' + target)
         #status_output = {}
         status_output = Utils.status(target)
+      end
+
+      # ########################################################################
+      # name : step_install_flrtvc
+      # param : input:step:string current step being done, to log it
+      # return : 0 if everything is ok
+      # description : step to install flrtvc if it is not installed.
+      # ########################################################################
+      def step_install_flrtvc(step)
+        Log.log_debug('Into step ' + step.to_s)
+        Utils.check_install_flrtvc
       end
 
       # ########################################################################
@@ -611,6 +613,21 @@ and #{filesets.size} filesets.")
 
           ifix_ct_for_this_target = 0
           ifix_nb_for_this_target = listoffixes.length
+
+          ###
+          lppminmax_of_fixes_hash = mine_this_step('lppminmax_of_fixes',
+                                                   'all')
+          Log.log_info('Starting with lppminmax_of_fixes_hash=' + \
+lppminmax_of_fixes_hash.to_s)
+          @lppminmax_of_fixes = if lppminmax_of_fixes_hash[false].nil?
+                                  {}
+                                else
+                                  lppminmax_of_fixes_hash[false]
+                                end
+          Log.log_info('Starting with @lppminmax_of_fixes=' + \
+ @lppminmax_of_fixes.length.to_s)
+          ###
+
 
           Log.log_debug('Into step_check_fixes target=' + target +
                             ' lppminmax_of_fixes=' + @lppminmax_of_fixes.to_s)

@@ -28,18 +28,22 @@ Facter.add('standalones') do
     #
     standalones_array.each do |standalone|
       standalone_hash = {}
-      # To shorten execution, only keep some standalones
-      if standalone == "quimby06" || standalone == "quimby10"
-        #  && standalone != "quimby03" \
-        #  && standalone != "quimby04" && standalone != "quimby05" \
-        #  && standalone != "quimby07" && standalone != "quimby08" \
-        #  && standalone != "quimby09" && standalone != "quimby11"  \
-        #  && standalone != "quimby12"
-        Log.log_info("Please note, to shorten execution " + standalone + " standalone is not kept.")
-        next
-      end
-
-      # To shorten execution, skip some standalones
+      # # To shorten execution, skip some standalone, manage white list
+      # # To only keep standalones which are listed
+      # # Take model on perform same logic
+      # if standalone == "quimby06" || standalone == "quimby10"
+      #   #  && standalone != "quimby03" \
+      #   #  && standalone != "quimby04" && standalone != "quimby05" \
+      #   #  && standalone != "quimby07" && standalone != "quimby08" \
+      #   #  && standalone != "quimby09" && standalone != "quimby11"  \
+      #   #  && standalone != "quimby12"
+      #   Log.log_info("Please note, to shorten execution " + standalone + " standalone is not kept.")
+      #   next
+      # end
+      #
+      # # To shorten execution, skip some standalone, manage black list
+      # # To only keep standalones which are listed
+      # # Take model on perform same logic
       # if standalone != 'quimby03'
       #   Log.log_info('Please note, to shorten execution ' + standalone + ' standalone is not kept.')
       #   standalone_hash['WARNING']='Standalone system skipped in aixautomation/lib/facter/standalones.rb'

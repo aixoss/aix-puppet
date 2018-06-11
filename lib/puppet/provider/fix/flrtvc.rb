@@ -60,70 +60,80 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
       status_before[target] = flrtvc_report
 
       #
-      step = :runFlrtvc
+      step = :installFlrtvc
       Log.log_debug('target=' + target + ' doing :' + step.to_s)
-      flrtvc_report = @flrtvc.run_step(step, target)
+      returned = @flrtvc.run_step(step, target)
       Log.log_debug('target=' + target + ' done  :' + step.to_s)
-
-      next if to_step == :runFlrtvc
+      next if to_step == :installFlrtvc
 
       #
-      step = :parseFlrtvc
-      if !flrtvc_report.nil? && !flrtvc_report.strip.empty?
+      step = :runFlrtvc
+      if returned == 0
         Log.log_debug('target=' + target + ' doing :' + step.to_s)
-        download_urls = @flrtvc.run_step(step, target, flrtvc_report)
+        flrtvc_report = @flrtvc.run_step(step, target)
         Log.log_debug('target=' + target + ' done  :' + step.to_s)
+        next if to_step == :runFlrtvc
 
         #
-        next if to_step == :parseFlrtvc
-        step = :downloadFixes
-        if !download_urls.nil? && !download_urls.empty?
+        step = :parseFlrtvc
+        if !flrtvc_report.nil? && !flrtvc_report.strip.empty?
           Log.log_debug('target=' + target + ' doing :' + step.to_s)
-          fixes_of_target = @flrtvc.run_step(step, target, download_urls)
+          download_urls = @flrtvc.run_step(step, target, flrtvc_report)
           Log.log_debug('target=' + target + ' done  :' + step.to_s)
 
           #
-          next if to_step == :downloadFixes
-          step = :checkFixes
-          if !fixes_of_target.nil? && !fixes_of_target.empty?
+          next if to_step == :parseFlrtvc
+          step = :downloadFixes
+          if !download_urls.nil? && !download_urls.empty?
             Log.log_debug('target=' + target + ' doing :' + step.to_s)
-            sorted_fixes_by_pkgdate = @flrtvc.run_step(step, target, fixes_of_target)
+            fixes_of_target = @flrtvc.run_step(step, target, download_urls)
             Log.log_debug('target=' + target + ' done  :' + step.to_s)
 
             #
-            next if to_step == :checkFixes
-            step = :buildResource
-            if !sorted_fixes_by_pkgdate.nil? && !sorted_fixes_by_pkgdate.empty?
-              Log.log_debug('target=' + target + ' doing :' + step.to_s +
-                                ' sorted_fixes_by_pkgdate=' +
-                                sorted_fixes_by_pkgdate.to_s)
-              nim_resource_and_sorted_fixes = @flrtvc.run_step(step,
-                                                               target,
-                                                               sorted_fixes_by_pkgdate)
-              Log.log_debug('target=' + target + ' done  :' +
-                                step.to_s +
-                                ' nim_resource_and_sorted_fixes=' +
-                                nim_resource_and_sorted_fixes.to_s )
+            next if to_step == :downloadFixes
+            step = :checkFixes
+            if !fixes_of_target.nil? && !fixes_of_target.empty?
+              Log.log_debug('target=' + target + ' doing :' + step.to_s)
+              sorted_fixes_by_pkgdate = @flrtvc.run_step(step, target, fixes_of_target)
+              Log.log_debug('target=' + target + ' done  :' + step.to_s)
 
               #
-              next if to_step == :buildResource
-              step = :installFixes
-              if !nim_resource_and_sorted_fixes.nil? && !nim_resource_and_sorted_fixes.empty?
+              next if to_step == :checkFixes
+              step = :buildResource
+              if !sorted_fixes_by_pkgdate.nil? && !sorted_fixes_by_pkgdate.empty?
+                Log.log_debug('target=' + target + ' doing :' + step.to_s +
+                                  ' sorted_fixes_by_pkgdate=' +
+                                  sorted_fixes_by_pkgdate.to_s)
+                nim_resource_and_sorted_fixes = @flrtvc.run_step(step,
+                                                                 target,
+                                                                 sorted_fixes_by_pkgdate)
+                Log.log_debug('target=' + target + ' done  :' +
+                                  step.to_s +
+                                  ' nim_resource_and_sorted_fixes=' +
+                                  nim_resource_and_sorted_fixes.to_s)
+
+                #
+                next if to_step == :buildResource
+                step = :installFixes
+                if !nim_resource_and_sorted_fixes.nil? && !nim_resource_and_sorted_fixes.empty?
+                  Log.log_debug('target=' + target + ' doing :' + step.to_s)
+                  @flrtvc.run_step(step, target, nim_resource_and_sorted_fixes)
+                  Log.log_debug('target=' + target + ' done  :' + step.to_s)
+                else
+                  Log.log_debug('target=' + target + ' skip  :' + step.to_s)
+                end
+
+                #
+                step = :status
                 Log.log_debug('target=' + target + ' doing :' + step.to_s)
-                @flrtvc.run_step(step, target, nim_resource_and_sorted_fixes)
+                flrtvc_report = @flrtvc.run_step(step, target)
                 Log.log_debug('target=' + target + ' done  :' + step.to_s)
+                #Log.log_debug('target=' + target + '\n' + flrtvc_report.to_s + '\n')
+                status_after[target] = flrtvc_report
+
               else
                 Log.log_debug('target=' + target + ' skip  :' + step.to_s)
               end
-
-              #
-              step = :status
-              Log.log_debug('target=' + target + ' doing :' + step.to_s)
-              flrtvc_report = @flrtvc.run_step(step, target)
-              Log.log_debug('target=' + target + ' done  :' + step.to_s)
-              #Log.log_debug('target=' + target + '\n' + flrtvc_report.to_s + '\n')
-              status_after[target] = flrtvc_report
-
             else
               Log.log_debug('target=' + target + ' skip  :' + step.to_s)
             end

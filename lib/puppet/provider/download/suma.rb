@@ -37,9 +37,11 @@ lpp_source=\"#{resource[:lpp_source]}\".")
                       resource[:from],
                       resource[:to],
                       resource[:type],
+                      resource[:to_step],
                       resource[:lpp_source]])
     Log.log_info('dir_metadata= ' + @suma.dir_metadata)
     Log.log_info('dir_lpp_sources= ' + @suma.dir_lpp_sources)
+    Log.log_info('to_step= ' + @suma.to_step.to_s)
     Log.log_info('lpp_source= ' + @suma.lpp_source)
 
     if resource[:ensure].to_s != 'absent'
@@ -66,22 +68,31 @@ lpp_source=\"#{resource[:lpp_source]}\".")
 
     Log.log_info('dir_metadata= ' + @suma.dir_metadata)
     Log.log_info('dir_lpp_sources= ' + @suma.dir_lpp_sources)
+    Log.log_info('to_step= ' + @suma.to_step.to_s)
     Log.log_info('lpp_source= ' + @suma.lpp_source)
 
     Log.log_debug('suma.preview')
     missing = @suma.preview
     Log.log_debug('suma.preview missing=' + missing.to_s)
     if missing
-      Log.log_debug('suma.download')
-      @suma.download
-      Log.log_debug('suma.download')
+      Log.log_debug('"' + @suma.to_step.to_s + '"' + :download.to_s + '"')
+      if @suma.to_step.to_s == :download.to_s
+        Log.log_debug('suma.download')
+        downloaded = @suma.download
+        Log.log_debug('suma.download missing=' + missing.to_s)
+      else
+        Log.log_debug('not suma.download, only preview')
+      end
     end
 
-    Log.log_debug('Nim.define_lpp_source')
-    Nim.define_lpp_source(@suma.lpp_source,
-                          @suma.dir_lpp_sources,
-                          'built by Puppet AixAutomation')
-    Log.log_debug('Nim.define_lpp_source')
+    if !missing or downloaded == 0
+      Log.log_debug('Nim.define_lpp_source')
+      Nim.define_lpp_source(@suma.lpp_source,
+                            @suma.dir_lpp_sources,
+                            'built by Puppet AixAutomation')
+      Log.log_debug('Nim.define_lpp_source')
+    end
+
     Log.log_debug('End of suma.create')
   end
 
