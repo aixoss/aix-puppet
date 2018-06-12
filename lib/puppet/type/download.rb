@@ -115,40 +115,40 @@ name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
     if self[:type] == :SP
 
       result = SpLevel.validate_sp_tl('from', from)
-      raise('"from" parameter is invalid') unless result
+      raise('"' + from + '" "from" parameter is invalid') unless result
 
       result = SpLevel.sp_tl_exists(from)
-      raise('"from" parameter is neither a known TL nor a known SP') unless result
+      raise('"' + from + '" "from" parameter is neither a known TL nor a known SP') unless result
 
       result = SpLevel.validate_sp('to', to)
-      raise('"to" parameter is invalid') unless result
+      raise('"' + to + '" "to" parameter is invalid') unless result
 
       result = SpLevel.sp_exists(to)
-      raise('"to" parameter is not a known SP') unless result
+      raise('"' + to + '" "to" parameter is not a known SP') unless result
 
     elsif self[:type] == :TL
 
       result = SpLevel.validate_tl('from', from)
-      raise('"from" parameter is invalid') unless result
+      raise('"' + from + '" "from" parameter is invalid') unless result
 
       # result = SpLevel.validate_sp_tl("to", to)
       result = SpLevel.validate_tl('to', to)
-      raise('"to" parameter is invalid') unless result
+      raise('"' + to + '" "to" parameter is invalid') unless result
 
       result = SpLevel.tl_exists(from)
-      raise('"from" parameter is not a known TL') unless result
+      raise('"' + from + '" "from" parameter is not a known TL') unless result
       result = SpLevel.tl_exists(to)
-      raise('"to" parameter is not a known TL') unless result
+      raise('"' + to + '" "to" parameter is not a known TL') unless result
 
     elsif self[:type] == :Latest
 
       result = SpLevel.validate_tl('from', from)
-      raise('"from" parameter is invalid') unless result
+      raise('"' + from + '" "from" parameter is invalid') unless result
 
-      raise('"to" parameter must not be specified for Latest') if to != ''
+      raise('"' + to + '" "to" parameter must not be specified for Latest') if to != ''
 
       result = SpLevel.tl_exists(from)
-      raise('"from" parameter is not a known TL') unless result
+      raise('"' + from + '" "from" parameter is not a known TL') unless result
     end
   end
 end

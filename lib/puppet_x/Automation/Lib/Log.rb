@@ -19,6 +19,7 @@ module Automation
     class LoggerSingleton
       log_file_dir = ::File.join(Constants.inst_dir,
                                  'aixautomation',
+                                 'output',
                                  'logs')
       ::FileUtils.mkdir_p(log_file_dir) unless ::File.directory?(log_file_dir)
 
@@ -124,6 +125,7 @@ module Automation
           ###########################################################
           log_file_dir = ::File.join(Constants.inst_dir,
                                      'aixautomation',
+                                     'output',
                                      'logs')
           ::FileUtils.mkdir_p(log_file_dir) unless ::File.directory?(log_file_dir)
           stack_file = ::File.join(log_file_dir,

@@ -11,8 +11,9 @@
 #    puppet apply --debug --modulepath=/etc/puppetlabs/code/environments/production/modules -e "include aixautomation"
 #  to apply manifest and run it.
 # Or by using:
-#    puppet apply --debug --logdest=/etc/puppetlabs/code/environments/production/modulesaixautomation/logs/Puppet.log \
-#                 --modulepath=/etc/puppetlabs/code/environments/production/modules -e "include aixautomation"
+#    puppet apply --debug \
+#          --logdest=/etc/puppetlabs/code/environments/production/modules/aixautomation/output/logs/Puppet.log \
+#          --modulepath=/etc/puppetlabs/code/environments/production/modules -e "include aixautomation"
 #  to apply manifest and run it, keeping all logs into a file
 #
 # This examples.init.pp contains several samples of declarations with complete explanations

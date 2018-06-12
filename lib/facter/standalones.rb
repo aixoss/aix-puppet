@@ -136,6 +136,7 @@ Facter.add('standalones') do
     # persist to yaml
     skipped_result_yml_file = ::File.join(Constants.inst_dir,
                                           'aixautomation',
+                                          'output',
                                           'facter',
                                           'standalones_skipped.yml')
     File.write(skipped_result_yml_file, standalones_skipped.to_yaml)
@@ -145,6 +146,7 @@ Facter.add('standalones') do
     # persist to yaml
     kept_result_yml_file = ::File.join(Constants.inst_dir,
                                        'aixautomation',
+                                       'output',
                                        'facter',
                                        'standalones_kept.yml')
     File.write(kept_result_yml_file, standalones_kept.to_yaml)

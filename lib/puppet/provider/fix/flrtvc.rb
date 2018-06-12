@@ -154,6 +154,7 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
       # Persist to yml
       status_before_yml_file = ::File.join(Constants.inst_dir,
                                            'aixautomation',
+                                           'outpout',
                                            'logs',
                                            'PuppetAix_StatusBefore.yml')
       File.write(status_before_yml_file, status_before.to_yaml)
@@ -167,6 +168,7 @@ provider)')
       # Persist to yml
       status_after_yml_file = ::File.join(Constants.inst_dir,
                                           'aixautomation',
+                                          'output',
                                           'logs',
                                           'PuppetAix_StatusAfter.yml')
       File.write(status_after_yml_file, status_after.to_yaml)

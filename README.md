@@ -110,9 +110,9 @@
   "--logdest=logfile.txt" on the command line. 
  
  AixAutomation logs (and only AixAutomation log, and not Puppet log) are generated into 
-   ./logs/PuppetAixAutomation.log.<br>
-  Up to 12 rotation log files of one 1 MB are kept : ./logs/PuppetAixAutomation.log.0
-   to ./logs/PuppetAixAutomation.log.12<br>
+   ./output/logs/PuppetAixAutomation.log.<br>
+  Up to 12 rotation log files of one 1 MB are kept : ./output/logs/PuppetAixAutomation.log.0
+   to ./output/logs/PuppetAixAutomation.log.12<br>
   These logs does not depend from Puppet --debug flag on the command line, and you'll get them 
    in any case.
  
@@ -135,7 +135,7 @@
         puppet apply  --debug --modulepath=/etc/puppetlabs/code/environments/production/modules \
           -e "include aixautomation"<br>
      or apply it with debug message and Puppet logs into a file : <br>
-        puppet apply --logdest=/etc/puppetlabs/code/environments/production/modules/logs/PuppetApply.log \
+        puppet apply --logdest=/etc/puppetlabs/code/environments/production/modules/output/logs/PuppetApply.log \
          --debug --modulepath=/etc/puppetlabs/code/environments/production/modules \
          -e "include aixautomation"<br>   
         Please note that if you use "--logdest" parameter, you won't see any output on the 
@@ -145,16 +145,16 @@
 ### Facters
  Specific aixautomation facters collect the necessary data enabling aixautomation module to run :<br> 
     - props : to have shared configuration properties.<br>
-    - standalones : you'll find results on this factor into ./facter/standalones_kept.yml file, 
-       and into ./facter/standalones_skipped.yml file. This 'standalones' facter takes some time at 
+    - standalones : you'll find results on this factor into ./output/facter/standalones_kept.yml file, 
+       and into ./output/facter/standalones_skipped.yml file. This 'standalones' facter takes some time at 
        the beginning of aixautomation module, but as explained above, you have the possibility to manage 
        white list or black list of standalones to shorten execution.<br>
-    - (preparation for) vios  : you'll find results on this factor into ./facter/vios_kept.yml file, 
-       and into ./facter/vios_skipped.yml file.<br> 
-    - servicepacks : you'll find results on this factor into ./facter/sp_per_tl.yml file, if this 
+    - (preparation for) vios  : you'll find results on this factor into ./output/facter/vios_kept.yml file, 
+       and into ./output/facter/vios_skipped.yml file.<br> 
+    - servicepacks : you'll find results on this factor into ./output/facter/sp_per_tl.yml file, if this 
        file does not exist, it is computed by automatically downloading Suma metadata files, all 
-       Suma metadata files are temporarily downloaded under ./facter/suma, but are removed at the end, 
-       when new ./facter/sp_per_tl.yml file is generated.<br>
+       Suma metadata files are temporarily downloaded under ./output/facter/suma, but are removed at the end, 
+       when new ./output/facter/sp_per_tl.yml file is generated.<br>
     
  
 ### Custom types and providers
@@ -167,13 +167,14 @@
  "root" parameter is used as download directory : it should be an ad-hoc file system dedicated to 
   download updates, keep this file system separated from the system so prevent saturation.<br>   
  At a preliminary step, suma <b>metadata</b> are downloaded if ever they are not locally 
-  present into './facter/sp_per_tl.yml' file : this file gives for each possible technical 
+  present into './output/facter/sp_per_tl.yml' file : this file gives for each possible technical 
   level the list of available service packs.<br> 
- It is a good practice to consider that the './facter/sp_per_tl.yml' delivered is maybe
+ It is a good practice to consider that the './output/facter/sp_per_tl.yml' delivered is maybe
   not up-to-date, and therefore let 'suma' provider downloads metadata 'in live' 
-  and compute a more recent version of './facter/sp_per_tl.yml'. To perform this, you can rename 
-  './facter/sp_per_tl.yml' to './facter/sp_per_tl.yml.saved' so that this './facter/sp_per_tl.yml' 
-  is computed again. You should perform this operation once in a while (every month or so).<br>
+  and compute a more recent version of './output/facter/sp_per_tl.yml'. To perform this, you can rename 
+  './output/facter/sp_per_tl.yml' to './output/facter/sp_per_tl.yml.saved' so that this 
+  './output/facter/sp_per_tl.yml' is computed again. You should perform this operation once in a 
+  while (every month or so).<br>
  Various types of suma downloads can be performed : either "SP", or "TL", or "Latest" :<br>
   - "SP" contains everything update system on a given Technical Level.<br>
   - "TL" contains everything to update system from a Technical Level to another 
@@ -211,7 +212,7 @@
   against constraints and a short list of eFix of installable eFix is computed, a NIM resource 
   is then built and then applied, so that eFix are installed.<br>
  These several steps necessary to achieve this efix installation task, are performed 
-  following this order : "runFlrtvc", "parseFlrtvc", "downloadFixes", "checkFixes", 
+  following this order : "installFlrtvc", "runFlrtvc", "parseFlrtvc", "downloadFixes", "checkFixes", 
   "buildResource", "installResource". <br>
  Executions can be stopped after any step, and this is controlled thru the 'to_step' parameter 
   into ./manifests/init.pp.<br>
@@ -225,8 +226,8 @@
   occur that one particular eFix prevents another one (less recent) from being installed if 
   they touch the same file.<br>
  At the end of execution of this provider, you'll find into : <br>
-  - ./logs/PuppetAix_StatusBefore.yml : how were the LPARs before eFix installation.<br> 
-  - ./logs/PuppetAix_StatusAfter.yml : how are the LPARs after eFix installation.<br>
+  - ./output/logs/PuppetAix_StatusBefore.yml : how were the LPARs before eFix installation.<br> 
+  - ./output/logs/PuppetAix_StatusAfter.yml : how are the LPARs after eFix installation.<br>
         
 ## Limitations
  List of missing things to be documented.<br> 
@@ -240,11 +241,15 @@
  Last changes documented. <br>
  0.51 :
    - fix the automatic installation of "/usr/bin/flrtvc.ksh" if this file is missing 
-   - renaming of "facter/sp_per_tl.yml" file to "facter/sp_per_tl.yml.June_2018", so that this 
-     file is generated at least once after installation. This file contains the matches between 
-     Technical Levels and Service Packs for all releases.      
+   - renaming of "./output/facter/sp_per_tl.yml" file to "./output/facter/sp_per_tl.yml.June_2018", 
+     so that this file is generated at least once after installation. This file contains
+     the matches between Technical Levels and Service Packs for all releases.      
  0.52 : 
    - add 'to_step' parameter to "download" custom type, to control execution of the two steps 
-   'suma preview' and 'suma download' separately. By setting 'to_step' to "preview", only 
-   "preview" is performed. By default "download" is performed. 
+    'suma preview' and 'suma download' separately. By setting 'to_step' to "preview", only 
+    "preview" is performed. By default "download" is performed. 
+ 0.53 : 
+   - validation messages of custom type contain contextual messages 
+   - move all outputs into ./output directory : logs are now into ./output/logs, facter results are 
+     now into ./output/facter.    
  

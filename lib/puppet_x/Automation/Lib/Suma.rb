@@ -25,13 +25,13 @@ module Automation
     #
     # Metadata requests generated
     #  /usr/sbin/suma -x -a "DisplayName="Downloading '7100-03' metadata"
-    #   -a FilterML=7100-03 -a DLTarget=/home/desgrang/suma2/metadata/7100-03
-    #   -a FilterDir=/home/desgrang/suma2/metadata/7100-03
+    #   -a FilterML=7100-03 -a DLTarget=/tmp/suma/metadata/7100-03
+    #   -a FilterDir=/tmp/suma/metadata/7100-03
     #   -a RqType=Latest
     #   -a Action=Metadata
     #  /usr/sbin/suma -x -a "DisplayName=Downloading '7100-03' metadata"
-    #   -a FilterML=7100-03 -a DLTarget=/home/desgrang/suma3/metadata/7100-03
-    #   -a FilterDir=/home/desgrang/suma3/metadata/7100-03
+    #   -a FilterML=7100-03 -a DLTarget=/tmp/suma/metadata/7100-03
+    #   -a FilterDir=/tmp/suma/metadata/7100-03
     #   -a RqType=SP -a RqName=7100-03-05-1524
     #   -a Action=Metadata
     # ########################################################################
@@ -78,7 +78,7 @@ parameter. Cannot continue!")
                                   root)
                     end
         @to_step = to_step
-        Log.log_debug('to_step=' + @to_step.to_s)
+        Log.log_debug('to_step=>' + @to_step.to_s)
         @dir_metadata = ::File.join(@root_dir,
                                     'metadata',
                                     from_level)
@@ -344,6 +344,7 @@ fixes (~ #{download_dl.to_f.round(2)} GB).")
         #
         root_directory = ::File.join(Constants.inst_dir,
                                      'aixautomation',
+                                     'output',
                                      'facter')
         metadata_root_directory = ::File.join(root_directory,
                                               'suma')
