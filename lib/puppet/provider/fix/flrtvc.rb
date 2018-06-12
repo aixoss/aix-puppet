@@ -152,9 +152,7 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
     if !status_before.nil? && !status_before.empty?
       Log.log_debug('status before=' + status_before.to_s)
       # Persist to yml
-      status_before_yml_file = ::File.join(Constants.inst_dir,
-                                           'aixautomation',
-                                           'outpout',
+      status_before_yml_file = ::File.join(Constants.output_dir,
                                            'logs',
                                            'PuppetAix_StatusBefore.yml')
       File.write(status_before_yml_file, status_before.to_yaml)
@@ -166,9 +164,7 @@ provider)')
     if !status_after.nil? && !status_after.empty?
       Log.log_debug('status after=' + status_after.to_s)
       # Persist to yml
-      status_after_yml_file = ::File.join(Constants.inst_dir,
-                                          'aixautomation',
-                                          'output',
+      status_after_yml_file = ::File.join(Constants.output_dir,
                                           'logs',
                                           'PuppetAix_StatusAfter.yml')
       File.write(status_after_yml_file, status_after.to_yaml)

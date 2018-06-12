@@ -122,7 +122,7 @@
 #    # Failure
 # Log.log_err('vios in failure="' +vios_failure.to_s+ '"')
 # # persist to yaml
-# failure_result_yml_file = ::File.join(Constants.inst_dir,
+# failure_result_yml_file = ::File.join(Constants.output_dir,
 # 'facter',
 # 'vios_in_failure.yml')
 # File.write(failure_result_yml_file, vios_failure.to_yaml)
@@ -130,7 +130,7 @@
 #
 # # Success
 # # persist to yaml
-# result_yml_file = ::File.join(Constants.inst_dir,
+# result_yml_file = ::File.join(Constants.output_dir,
 # 'facter',
 # 'vios.yml')
 # File.write(result_yml_file, vios.to_yaml)

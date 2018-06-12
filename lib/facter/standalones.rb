@@ -134,9 +134,7 @@ Facter.add('standalones') do
     # Skipped
     Log.log_warning('standalones not kept="' + standalones_skipped.to_s + '"')
     # persist to yaml
-    skipped_result_yml_file = ::File.join(Constants.inst_dir,
-                                          'aixautomation',
-                                          'output',
+    skipped_result_yml_file = ::File.join(Constants.output_dir,
                                           'facter',
                                           'standalones_skipped.yml')
     File.write(skipped_result_yml_file, standalones_skipped.to_yaml)
@@ -144,9 +142,7 @@ Facter.add('standalones') do
 
     # Kept
     # persist to yaml
-    kept_result_yml_file = ::File.join(Constants.inst_dir,
-                                       'aixautomation',
-                                       'output',
+    kept_result_yml_file = ::File.join(Constants.output_dir,
                                        'facter',
                                        'standalones_kept.yml')
     File.write(kept_result_yml_file, standalones_kept.to_yaml)

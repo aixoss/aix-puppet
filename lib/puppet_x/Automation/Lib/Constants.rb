@@ -27,6 +27,16 @@ module Automation
         '/etc/puppetlabs/code/environments/production/modules'
       end
 
+      #
+      #
+      #
+      def self.output_dir
+        hash = Facter.value(:props)
+        hash['output_dir']
+      rescue StandardError
+        '/etc/puppetlabs/code/environments/production/modules/aixautomation/output'
+      end
+
     end
   end
 end

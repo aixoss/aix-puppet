@@ -33,36 +33,50 @@
 #   }
 # }
 class aixautomation {
-  # This rule allows to perform download thru suma provider
-  #  to get update of 7100-03-07-1614 SP into /export/extra/puppet/suma
-  #  for a system which is currently in 7100-03
-  # lpp_source created is named : PAA_SP_7100-03_7100-03-07-1614
-  #  and this same name needs to be used to perform update
-  # "/export/extra/puppet/suma" is the root directory of download
-  #  It should be an ad hoc file system dedicated to download
-  #   data, keep this file system separated from the system to prevent
-  #   saturation.
-  download { "my_download_714":
+  download { "test_suma_download_SP_from_6100-preview":
     provider   => suma,
     ensure     => present,
-    name       => "my_download_714",
+    name       => "test_suma_download_SP_from_6100-preview",
     type       => "SP",
-    root       => "/export/extra/puppet/suma",
-    from       => "7100-04",
-    to         => "7100-04-01-1543",
-    to_step    => "download",
-    lpp_source => "PAA_SP_7100-04_7100-04-01-1543",
-  }
-  patchmngt { "update quimby09 to 7100-04-01-1543":
-    provider   => nimpush,
-    ensure     => present,
-    name       => "update quimby09 to 7100-04-01-1543",
-    action     => "update",
-    targets    => "quimby10",
-    sync       => "yes",
-    lpp_source => "PAA_SP_7100-04_7100-04-01-1543",
+    root       => "/home/puppet/suma",
+    from       => "6100-08",
+    to         => "6100-08-03-1339",
+    to_step    => "preview",
+    lpp_source => "PAA_SP_SP_from_preview",
   }
 }
+
+# class aixautomation {
+#   # This rule allows to perform download thru suma provider
+#   #  to get update of 7100-03-07-1614 SP into /export/extra/puppet/suma
+#   #  for a system which is currently in 7100-03
+#   # lpp_source created is named : PAA_SP_7100-03_7100-03-07-1614
+#   #  and this same name needs to be used to perform update
+#   # "/export/extra/puppet/suma" is the root directory of download
+#   #  It should be an ad hoc file system dedicated to download
+#   #   data, keep this file system separated from the system to prevent
+#   #   saturation.
+#   download { "my_download_714":
+#     provider   => suma,
+#     ensure     => present,
+#     name       => "my_download_714",
+#     type       => "SP",
+#     root       => "/export/extra/puppet/suma",
+#     from       => "7100-04",
+#     to         => "7100-04-01-1543",
+#     to_step    => "download",
+#     lpp_source => "PAA_SP_7100-04_7100-04-01-1543",
+#   }
+#   patchmngt { "update quimby09 to 7100-04-01-1543":
+#     provider   => nimpush,
+#     ensure     => present,
+#     name       => "update quimby09 to 7100-04-01-1543",
+#     action     => "update",
+#     targets    => "quimby11",
+#     sync       => "yes",
+#     lpp_source => "PAA_SP_7100-04_7100-04-01-1543",
+#   }
+# }
 #   # This rule allows to perform download thru suma provider
 #   #  to get update of 7100-04 TL into /export/extra/puppet/suma
 #   #  for a system which is currently in 7100-03

@@ -58,8 +58,8 @@ module Automation
       #   download or download-preview request.
       # ######################################################################
       def initialize(args)
-        if args.size < 5
-          raise("Suma constructor needs at least six parameters in its 'args' \
+        if args.size < 6
+          raise("Suma constructor needs at least 7 parameters in its 'args' \
 parameter. Cannot continue!")
         end
 
@@ -77,8 +77,8 @@ parameter. Cannot continue!")
                       ::File.join(Dir.pwd,
                                   root)
                     end
-        @to_step = to_step
-        Log.log_debug('to_step=>' + @to_step.to_s)
+        @to_step = to_step.to_s
+        #Log.log_debug("to_step=>#{to_step}")
         @dir_metadata = ::File.join(@root_dir,
                                     'metadata',
                                     from_level)
@@ -342,9 +342,7 @@ fixes (~ #{download_dl.to_f.round(2)} GB).")
         # If yaml file exists, return its contents
         # otherwise mine metadata to build results
         #
-        root_directory = ::File.join(Constants.inst_dir,
-                                     'aixautomation',
-                                     'output',
+        root_directory = ::File.join(Constants.output_dir,
                                      'facter')
         metadata_root_directory = ::File.join(root_directory,
                                               'suma')

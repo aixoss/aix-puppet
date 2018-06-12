@@ -39,10 +39,9 @@ lpp_source=\"#{resource[:lpp_source]}\".")
                       resource[:type],
                       resource[:to_step],
                       resource[:lpp_source]])
-    Log.log_info('dir_metadata= ' + @suma.dir_metadata)
-    Log.log_info('dir_lpp_sources= ' + @suma.dir_lpp_sources)
-    Log.log_info('to_step=>' + @suma.to_step.to_s)
-    Log.log_info('lpp_source= ' + @suma.lpp_source)
+    Log.log_info('dir_metadata=' + @suma.dir_metadata)
+    Log.log_info('dir_lpp_sources=' + @suma.dir_lpp_sources)
+    Log.log_info('lpp_source=' + @suma.lpp_source)
 
     if resource[:ensure].to_s != 'absent'
       begin
@@ -66,17 +65,17 @@ for type=\"#{resource[:type]}\" into directory=\"#{resource[:root]}\" \
 from=\"#{resource[:from]}\" to \"#{resource[:to]}\" \
 lpp_source=\"#{resource[:lpp_source]}\".")
 
-    Log.log_info('dir_metadata= ' + @suma.dir_metadata)
-    Log.log_info('dir_lpp_sources= ' + @suma.dir_lpp_sources)
-    Log.log_info('to_step=>' + @suma.to_step.to_s)
-    Log.log_info('lpp_source= ' + @suma.lpp_source)
+    Log.log_info('dir_metadata=' + @suma.dir_metadata)
+    Log.log_info('dir_lpp_sources=' + @suma.dir_lpp_sources)
+    #Log.log_info("to_step=#{@suma.to_step}")
+    Log.log_info('lpp_source=' + @suma.lpp_source)
 
     Log.log_debug('suma.preview')
     missing = @suma.preview
     Log.log_debug('suma.preview missing=' + missing.to_s)
     if missing
-      Log.log_debug('"' + @suma.to_step.to_s + '"' + :download.to_s + '"')
-      if @suma.to_step.to_s == :download.to_s
+      Log.log_debug('to_step=' + @suma.to_step.to_s)
+      if @suma.to_step.to_s == 'download'
         Log.log_debug('suma.download')
         downloaded = @suma.download
         Log.log_debug('suma.download missing=' + missing.to_s)
@@ -106,9 +105,9 @@ for type=\"#{resource[:type]}\" into directory=\"#{resource[:root]}\" \
 from=\"#{resource[:from]}\" to \"#{resource[:to]}\" \
 lpp_source=.\"#{resource[:lpp_source]}\".")
 
-    Log.log_info('dir_metadata= ' + @suma.dir_metadata)
-    Log.log_info('dir_lpp_sources= ' + @suma.dir_lpp_sources)
-    Log.log_info('lpp_source= ' + @suma.lpp_source)
+    Log.log_info('dir_metadata=' + @suma.dir_metadata)
+    Log.log_info('dir_lpp_sources=' + @suma.dir_lpp_sources)
+    Log.log_info('lpp_source=' + @suma.lpp_source)
 
     Log.log_debug('Cleaning directories')
     # TO BE DONE ON OPTION ?

@@ -17,9 +17,7 @@ module Automation
     # description : wrapper of Logger with a singleton-design-pattern
     # #########################################################################
     class LoggerSingleton
-      log_file_dir = ::File.join(Constants.inst_dir,
-                                 'aixautomation',
-                                 'output',
+      log_file_dir = ::File.join(Constants.output_dir,
                                  'logs')
       ::FileUtils.mkdir_p(log_file_dir) unless ::File.directory?(log_file_dir)
 
@@ -123,9 +121,7 @@ module Automation
           ###########################################################
           # To have execution stack of all threads into one file
           ###########################################################
-          log_file_dir = ::File.join(Constants.inst_dir,
-                                     'aixautomation',
-                                     'output',
+          log_file_dir = ::File.join(Constants.output_dir,
                                      'logs')
           ::FileUtils.mkdir_p(log_file_dir) unless ::File.directory?(log_file_dir)
           stack_file = ::File.join(log_file_dir,

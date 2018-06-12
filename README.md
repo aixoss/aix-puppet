@@ -107,7 +107,8 @@
   All other level ("info", "warning", "error") are displayed without condition.<br>   
  These Puppet log messages are displayed on console output.<br> 
  You can redirect all Puppet output to one file with the use of Puppet 
-  "--logdest=logfile.txt" on the command line. 
+  "--logdest=/etc/puppetlabs/code/environments/production/modules/output/logs/logfile.txt" on 
+  the command line. 
  
  AixAutomation logs (and only AixAutomation log, and not Puppet log) are generated into 
    ./output/logs/PuppetAixAutomation.log.<br>
@@ -197,7 +198,7 @@
  The aim of this provider is to provide software maintenance operations on a list of LPARs 
   using NIM push mode. Everything is performed from the NIM server on which this aixautomation 
   Puppet module runs.<br>   
- This NIM push mode can use suma downloads performed by Suma provider, as preliminary step, 
+ This NIM push mode can use Suma downloads performed by Suma provider, as preliminary step, 
   by using into 'lpp_source' parameter the lpp_source which was created by 'suma' provider.<br>
  Software maintenance operations include : install and updates.<br>
  You'll find samples of install and update into ./manifests/init.pp.<br> 
@@ -218,7 +219,7 @@
   into ./manifests/init.pp.<br>
  Each step persists its results into a yaml file, which can be found into 'root' directory 
   used for storing downloaded iFix.<br> 
- All yaml file can be reused between two executions, to spare time if ever the external 
+ All yaml files can be reused between two executions, to spare time if ever the external 
   conditions have not changed, this is controlled thru the 'clean' parameter which needs 
   then to be set to 'no'. By default it is set to 'true', meaning the previously computed 
   yaml files are not used.<br>
