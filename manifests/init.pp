@@ -20,31 +20,31 @@
 #     root     => "/export/extra/puppet/flrtvc",
 #   }
 # }
-# class aixautomation {
-#   fix { "ifix_install":
-#     provider => flrtvc,
-#     name     => "ifix_install",
-#     ensure   => absent,
-#     to_step  => "installResource",
-#     #level => "sec",
-#     clean    => "no",
-#     targets  => "quimby03",
-#     root     => "/export/extra/puppet/flrtvc",
-#   }
-# }
 class aixautomation {
-  download { "test_suma_download_SP_from_6100-preview":
-    provider   => suma,
-    ensure     => present,
-    name       => "test_suma_download_SP_from_6100-preview",
-    type       => "SP",
-    root       => "/home/puppet/suma",
-    from       => "6100-08",
-    to         => "6100-08-03-1339",
-    to_step    => "preview",
-    lpp_source => "PAA_SP_SP_from_preview",
+  fix { "ifix_install":
+    provider => flrtvc,
+    name     => "ifix_install",
+    ensure   => present,
+    to_step  => "installResource",
+    #level => "sec",
+    clean    => "yes",
+    targets  => "castor8",
+    root     => "/flrtvc/paul",
   }
 }
+# class aixautomation {
+#   download { "test_suma_download_SP_from_6100-preview":
+#     provider   => suma,
+#     ensure     => present,
+#     name       => "test_suma_download_SP_from_6100-preview",
+#     type       => "SP",
+#     root       => "/home/puppet/suma",
+#     from       => "6100-08",
+#     to         => "6100-08-03-1339",
+#     to_step    => "download",
+#     lpp_source => "PAA_SP_SP_from_preview",
+#   }
+# }
 
 # class aixautomation {
 #   # This rule allows to perform download thru suma provider

@@ -1,6 +1,7 @@
 require_relative '../../puppet_x/Automation/Lib/Utils.rb'
 require_relative '../../puppet_x/Automation/Lib/Suma.rb'
 require_relative '../../puppet_x/Automation/Lib/SpLevel.rb'
+require_relative '../../puppet_x/Automation/Lib/Constants.rb'
 
 # ##########################################################################
 # name : download type
@@ -9,8 +10,6 @@ require_relative '../../puppet_x/Automation/Lib/SpLevel.rb'
 # ##########################################################################
 Puppet::Type.newtype(:download) do
   @doc = 'To manage all simple download functions.'
-  feature :download, 'The ability to manage simple download actions.', \
-:methods => [:download]
 
   include Automation::Lib
 
@@ -85,14 +84,16 @@ name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
     newvalues(:preview, :download)
   end
 
-
   # ############################################################################
-  # :clean parameter to
-  #
-  # Check :clean against a short list, provide a default
+  # :force parameter to force new download of suma metadata and lppsource
+  #   If set to 'yes', all previous downloads are removed, so that everything
+  #    is downloaded again from scratch.
+  #   By default it is set to 'no', meaning all previous downloads are kept
+  #    and reused. This can spare a lot of time.
+  # Check :force against a short list, provide a default
   # ############################################################################
-  newparam(:clean) do
-    desc '"clean" parameter: possible values "yes", "no"'
+  newparam(:force) do
+    desc '"force" parameter: possible values "yes", "no"'
     defaultto :no
     newvalues(:yes, :no)
   end
@@ -101,7 +102,10 @@ name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
   # Perform global consistency checks between parameters
   # ############################################################################
   validate do
-
+    root_directory = ::File.join(Constants.output_dir,
+                                 'facter')
+    yml_file = ::File.join(root_directory,
+                           'sp_per_tl.yml')
     # validate directories
     dir_metadata = ::File.join(self[:root], 'metadata', self[:from])
     raise(dir_metadata + ' needs to exist') if Utils.check_directory(dir_metadata) == -1
@@ -115,40 +119,40 @@ name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
     if self[:type] == :SP
 
       result = SpLevel.validate_sp_tl('from', from)
-      raise('"' + from + '" "from" parameter is invalid') unless result
+      raise('"' + from + '" "from" parameter is invalid. Check ' + yml_file + ' file.') unless result
 
       result = SpLevel.sp_tl_exists(from)
-      raise('"' + from + '" "from" parameter is neither a known TL nor a known SP') unless result
+      raise('"' + from + '" "from" parameter is neither a known TL nor a known SP. Check ' + yml_file + ' file.') unless result
 
       result = SpLevel.validate_sp('to', to)
-      raise('"' + to + '" "to" parameter is invalid') unless result
+      raise('"' + to + '" "to" parameter is invalid. Check ' + yml_file + ' file.') unless result
 
       result = SpLevel.sp_exists(to)
-      raise('"' + to + '" "to" parameter is not a known SP') unless result
+      raise('"' + to + '" "to" parameter is not a known SP. Check ' + yml_file + ' file.') unless result
 
     elsif self[:type] == :TL
 
       result = SpLevel.validate_tl('from', from)
-      raise('"' + from + '" "from" parameter is invalid') unless result
+      raise('"' + from + '" "from" parameter is invalid. Check ' + yml_file + ' file.') unless result
 
       # result = SpLevel.validate_sp_tl("to", to)
       result = SpLevel.validate_tl('to', to)
-      raise('"' + to + '" "to" parameter is invalid') unless result
+      raise('"' + to + '" "to" parameter is invalid. Check ' + yml_file + ' file.') unless result
 
       result = SpLevel.tl_exists(from)
-      raise('"' + from + '" "from" parameter is not a known TL') unless result
+      raise('"' + from + '" "from" parameter is not a known TL. Check ' + yml_file + ' file.') unless result
       result = SpLevel.tl_exists(to)
-      raise('"' + to + '" "to" parameter is not a known TL') unless result
+      raise('"' + to + '" "to" parameter is not a known TL. Check ' + yml_file + ' file.') unless result
 
     elsif self[:type] == :Latest
 
       result = SpLevel.validate_tl('from', from)
-      raise('"' + from + '" "from" parameter is invalid') unless result
+      raise('"' + from + '" "from" parameter is invalid. Check ' + yml_file + ' file.') unless result
 
       raise('"' + to + '" "to" parameter must not be specified for Latest') if to != ''
 
       result = SpLevel.tl_exists(from)
-      raise('"' + from + '" "from" parameter is not a known TL') unless result
+      raise('"' + from + '" "from" parameter is not a known TL. Check ' + yml_file + ' file.') unless result
     end
   end
 end

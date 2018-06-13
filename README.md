@@ -155,7 +155,11 @@
     - servicepacks : you'll find results on this factor into ./output/facter/sp_per_tl.yml file, if this 
        file does not exist, it is computed by automatically downloading Suma metadata files, all 
        Suma metadata files are temporarily downloaded under ./output/facter/suma, but are removed at the end, 
-       when new ./output/facter/sp_per_tl.yml file is generated.<br>
+       when new ./output/facter/sp_per_tl.yml file is generated. Please note that as part of this computing,
+       metadata downloads are attempted for SP of each TL until repeatedly errors occur, meaning that the last 
+       SP do not exist. Therefore it is normal to have errors when we reach non-existing SP, this is the way 
+       which is used to go until last existing SP.  
+        
     
  
 ### Custom types and providers
@@ -192,8 +196,11 @@
  It is possible to perform only the suma 'preview' (and therefore not the suma 'download')
    by setting the 'to_step' parameter of the download custom type to 'preview'. By default, this
    'to_step' parameter is set to 'download', meaning that the suma download is performed. 
-             
- 
+ One new parameter 'force' enables to force downloads of everything from scratch, even if 
+   the results of downloads are available. Set this 'force' parameter to 'yes' to force 
+   downloads again. In that case 'preview' is done only if explicitly required. 
+   By default 'force is set to 'no', meaning all previous downloads are kept and reused, this 
+   can spare a lot of time.   
  #### Custom type : patchmngt (provider : nimpush)
  The aim of this provider is to provide software maintenance operations on a list of LPARs 
   using NIM push mode. Everything is performed from the NIM server on which this aixautomation 
@@ -239,18 +246,60 @@
  Refer to TODO.md<br>
 
 ## Release Notes/Contributors/Etc. **Optional**
- Last changes documented. <br>
- 0.51 :
+ ### Last changes documented
+ #### 0.5.1:
    - fix the automatic installation of "/usr/bin/flrtvc.ksh" if this file is missing 
    - renaming of "./output/facter/sp_per_tl.yml" file to "./output/facter/sp_per_tl.yml.June_2018", 
      so that this file is generated at least once after installation. This file contains
-     the matches between Technical Levels and Service Packs for all releases.      
- 0.52 : 
+     the matches between Technical Levels and Service Packs for all releases.<br>      
+ #### 0.5.2:
    - add 'to_step' parameter to "download" custom type, to control execution of the two steps 
     'suma preview' and 'suma download' separately. By setting 'to_step' to "preview", only 
-    "preview" is performed. By default "download" is performed. 
- 0.53 : 
-   - validation messages of custom type contain contextual messages 
+    "preview" is performed. By default "download" is performed.<br> 
+ #### 0.5.3:
+   - validation messages of custom type contain contextual messages<br> 
    - move all outputs into ./output directory : logs are now into ./output/logs, facter results are 
-     now into ./output/facter.    
+     now into ./output/facter.    <br>
+ #### 0.5.4:
+   - add status before and after ifix removal, as these status exist before and after ifix 
+    installation. Commonlize status output persistance into Flrtvc.step_status
+    method.<br>
+    These files can be found:<br> 
+     ./aixautomation/output/logs/PuppetAix_StatusAfterInstall.yml<br>
+     ./aixautomation/output/logs/PuppetAix_StatusAfterRemoval.yml<br>
+     ./aixautomation/output/logs/PuppetAix_StatusBeforeInstall.yml<br>
+     ./aixautomation/output/logs/PuppetAix_StatusBeforeRemoval.yml<br>
+   - better management of downloads : for example for timeout on ftp download, the failed urls
+    are identified as being in failure, and are listed at the end of download phase. If you run
+    flrtvc a second time, after a fist time which had download failures, only failed urls
+    downloads are attempted.<br>
+ #### 0.5.5:
+   - Rubocop warnings removal 
+ #### 0.5.6:
+   Several bugs fixed : 
+   - One status file per target is necessary, otherwise if several 'fix' clauses, then last one 
+     overrides previous ones. Therefore we'll have these files 
+     ./aixautomation/output/logs/PuppetAix_StatusAfterInstall_<target>.yml<br>
+     ./aixautomation/output/logs/PuppetAix_StatusAfterRemoval_<target>.yml<br>
+     ./aixautomation/output/logs/PuppetAix_StatusBeforeInstall_<target>.yml<br>
+     ./aixautomation/output/logs/PuppetAix_StatusBeforeRemoval_<target>.yml<br>
+   - Persistence of flrtvc information commmon to all targets into two files
+       so that these files are taken as input at beginning of flrtvc processings
+       (only if clean='no') : listoffixes_per_url.yml, lppminmax_of_fixes.yml      
+   - 'nimpush' targets are now reset between each 'nimpush' clause info manifests/init.pp
+      this was not teh case previously, and brought a lot of confusion when several 'nimpush'
+      clauses, applying on different sets of targets, existed into manifests/init.pp.
+ #### 0.5.7
+   - Rubocop warnings removal 
+   - fix custom type 'clean' parameter is changed to 'force' parameter
+     If force is set to 'yes', all downloads are forced again, even if the downloads 
+      existed before and were available. By default force is set to 'no', meaning we keep 
+      everything.  
+ ### Debugguing tips
+ If ever you have in your environment this variable set : 'ENV=/.kshrc', this can lead to abnormal 
+ behaviour, not well explained. In that case, perform 'unset ENV' before retrying.
  
+      
+       
+    
+     

@@ -126,7 +126,7 @@
 # 'facter',
 # 'vios_in_failure.yml')
 # File.write(failure_result_yml_file, vios_failure.to_yaml)
-# Log.log_debug('Refer to "' +failure_result_yml_file+ '" to have results of "vios in failure" facter.')
+# Log.log_info('Refer to "' +failure_result_yml_file+ '" to have results of "vios in failure" facter.')
 #
 # # Success
 # # persist to yaml
@@ -134,7 +134,7 @@
 # 'facter',
 # 'vios.yml')
 # File.write(result_yml_file, vios.to_yaml)
-# Log.log_debug('Refer to "' +result_yml_file+ '" to have results of "vios" facter.')
+# Log.log_info('Refer to "' +result_yml_file+ '" to have results of "vios" facter.')
 # standalones
 #
 #     Log.log_info("vioss=" + vioss.to_s)

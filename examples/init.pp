@@ -204,3 +204,42 @@ class aixautomation {
   }
 }
 */
+/*
+5. Samples with all steps together
+
+ This sample shows how to update one LPAR 'castor8' to the last 721 SP, and
+  install all ifixes.
+*/
+/*
+class aixautomation {
+  download { "test PAA_SP_7200-01-02-1717_7200-01-03-1720":
+    provider => suma,
+    ensure => present,
+    name => "test PAA_SP_7200-01-02-1717_7200-01-03-1720",
+    type => "SP",
+    root => "/exports/extra/test-puppet/suma",
+    from => "7200-01-02-1717",
+    to => "7200-01-03-1720",
+    to_step => "download",
+    lpp_source => "PAA_SP_7200-01-02-1717_7200-01-03-1720",
+  }
+  patchmngt { "update castor8 to 7200-01-03-1720":
+    provider   => nimpush,
+    ensure     => present,
+    name       => "update castor8 to 7200-01-03-1720",
+    action     => "update",
+    targets    => "castor8",
+    sync       => "yes",
+    lpp_source => "PAA_SP_7200-01-02-1717_7200-01-03-1720",
+  }
+  fix { "ifix_install":
+    provider => flrtvc,
+    name     => "ifix_install",
+    ensure   => present,
+    to_step  => "installResource",
+    targets  => "castor8",
+    clean    => "yes",
+    root     => "/exports/extra/test-puppet/flrtvc",
+  }
+}
+*/

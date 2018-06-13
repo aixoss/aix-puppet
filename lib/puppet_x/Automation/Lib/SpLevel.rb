@@ -1,4 +1,3 @@
-require_relative './Log.rb'
 require 'yaml'
 
 module Automation
@@ -198,10 +197,14 @@ format or under the WWWW-XX-YY-ZZZZ format')
         # take 7 first characters of sp and
         Log.log_debug('sp=' + sp)
         version = sp[0..6]
-        Log.log_debug('version=' + version)
+        # Log.log_debug('version=' + version)
         sps_of_tl = sps_per_tl[version]
-        Log.log_debug('sps_of_tl=' + sps_of_tl.to_s)
-        returned = true if sps_of_tl.include? sp
+        Log.log_debug('Possible sps_of_tl[' + version + ']=' + sps_of_tl.to_s)
+        if !sps_of_tl.nil?
+          returned = true if sps_of_tl.include? sp
+        else
+          returned = false
+        end
         returned
       end
 
@@ -236,6 +239,6 @@ format or under the WWWW-XX-YY-ZZZZ format')
         returned ||= SpLevel.sp_exists(sp_tl)
         returned
       end
-    end
+    end # SpLevel
   end
 end

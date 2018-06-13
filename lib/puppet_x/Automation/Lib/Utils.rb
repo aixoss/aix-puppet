@@ -1,4 +1,3 @@
-require_relative './Log.rb'
 require_relative './Remote/c_rsh.rb'
 require 'open3'
 
@@ -20,15 +19,16 @@ module Automation
       # ########################################################################
       def self.execute(command)
         Log.log_info('Utils.execute command : ' + command)
-        exit_status = Open3.popen3({'LANG' => 'C'}, command) do |_stdin, stdout, stderr, wait_thr|
+        #
+        exit_status = Open3.popen3({ 'LANG' => 'C' }, command) do |_stdin, stdout, stderr, wait_thr|
           unless exit_status.nil?
             Log.log_info('exit_status=' + exit_status.to_s)
           end
-
+          #
           stdout.each_line do |line|
             Log.log_info(line.chomp.to_s)
           end
-
+          #
           stderr.each_line do |line|
             Log.log_err(line.chomp.to_s)
           end
@@ -46,9 +46,11 @@ module Automation
       #   and set the command_output[0] param as output parameter
       #  This method is a convenience used by all other methods.
       # ########################################################################
-      def self.execute2(command, command_output)
+      def self.execute2(command,
+          command_output)
         Log.log_debug('Utils.execute2 command : ' + command)
-        exit_status = Open3.popen3({'LANG' => 'C'}, command) do |_stdin, stdout, stderr, wait_thr|
+        #
+        exit_status = Open3.popen3({ 'LANG' => 'C' }, command) do |_stdin, stdout, stderr, wait_thr|
           unless exit_status.nil?
             Log.log_debug('   exit_status=' + exit_status.to_s)
           end
@@ -72,6 +74,7 @@ module Automation
       # ########################################################################
       def self.check_input_lppsource(lppsource)
         Log.log_debug('Into check_input_lppsource lppsource=' + lppsource)
+        #
         if !lppsource.empty?
           cmd = "/usr/sbin/lsnim -l #{lppsource}"
           stdout, stderr, status = Open3.capture3(cmd.to_s)
@@ -106,13 +109,16 @@ module Automation
       #               returns in 'kept' the valid targets
       #               returns in 'suppressed' the invalid targets
       # ########################################################################
-      def self.check_input_targets(targets, kept, suppressed)
+      def self.check_input_targets(targets,
+          kept,
+          suppressed)
         Log.log_debug('Into check_input_targets targets=' + targets.to_s +
                           " kept=" + kept.to_s +
                           " suppressed=" + suppressed.to_s)
+        #
         targets_list = targets.to_s.split(/\W+/)
         Log.log_debug("targets_list=#{targets_list}")
-
+        #
         standalones = Facter.value(:standalones)
         standalones_keys = []
         unless standalones.nil?
@@ -123,18 +129,18 @@ module Automation
           #   Log.log_debug('standalone=' + standalone.to_s)
           # end
         end
-
+        #
         targets_list.each do |target|
           if !target.empty?
             if standalones_keys.include? target
               kept.push(target.to_s)
             else
-              Log.log_err("This  \"#{target}\" target is not part of standalones \
+              Log.log_err("This \"#{target}\" target is not part of standalones \
 : cannot be kept.")
               suppressed.push(target.to_s)
             end
           else
-            Log.log_err("This  \"#{target}\" target parameter is empty.")
+            Log.log_err("This \"#{target}\" target parameter is empty.")
             suppressed.push(target.to_s)
           end
         end
@@ -148,8 +154,9 @@ module Automation
       # description : checks directory exists, create it otherwise
       # ########################################################################
       def self.check_directory(directory)
-        returned = -1
         # Log.log_debug("Into check_directory directory=" + directory)
+        #
+        returned = -1
         if !directory.empty?
           #::FileUtils.mkdir_p(directory) unless ::File.directory?(directory)
           cmd = "/bin/mkdir -p #{directory}"
@@ -185,27 +192,24 @@ module Automation
       # ########################################################################
       def self.get_filesets_of_lppsource(lppsource)
         Log.log_debug('Into get_filesets_of_lppsource lppsource=' + lppsource)
+        #
         cmd = "/usr/sbin/nim -o showres #{lppsource}"
         # suppress empty lines, commented lines, and 2 first lines
         stdout, stderr, status = Open3.capture3("#{cmd} | /bin/egrep -v '=====|Fileset Name|#|^$' | /bin/awk '{print $1}'")
         Log.log_debug("cmd   =#{cmd}")
-        if !status.nil?
-          Log.log_debug("status=#{status}")
-        end
+        Log.log_debug("status=#{status}") if !status.nil?
         returned = ''
         if status.success?
           if !stdout.nil? && !stdout.strip.empty?
             Log.log_debug("stdout=#{stdout}")
           end
-
-          # items = []
+          #
           items = stdout.split("\n")
           returned = string_separated(items, ' ')
         else
           if !stderr.nil? && !stderr.strip.empty?
             Log.log_err("stderr=#{stderr}")
           end
-
         end
         Log.log_debug('Ending get_filesets_of_lppsource ' + returned)
         returned
@@ -220,6 +224,7 @@ module Automation
       # ########################################################################
       def self.get_applied_filesets(target)
         Log.log_debug('Into get_applied_filesets target=' + target)
+        #
         remote_cmd = '/bin/lslpp -lcq | /bin/grep -w APPLIED'
         remote_output = []
         remote_cmd_status = Remote.c_rsh(target, remote_cmd, remote_output)
@@ -255,7 +260,8 @@ module Automation
       # description : if status.success, then
       #   returns the list of applied filesets so that we can reject them
       # ########################################################################
-      def self.get_applied_filesets2(target, filesets)
+      def self.get_applied_filesets2(target,
+          filesets)
         Log.log_debug('Into get_applied_filesets2 target=' +
                           target +
                           ' filesets=' +
@@ -325,16 +331,17 @@ module Automation
       # description : takes an array with items, returns a
       #   string with items separated
       # ########################################################################
-      def self.string_separated(array_of_items, separator)
+      def self.string_separated(array_of_items,
+          separator)
         # Log.log_debug("Into string_separated array_of_items=" +
         #   array_of_items.to_s + " separator=" + separator)
+        #
         returned_string_separated = ''
         array_of_items.each do |item|
           returned_string_separated = if returned_string_separated.empty?
                                         item
                                       else
-                                        returned_string_separated +
-                                            separator + item
+                                        returned_string_separated + separator + item
                                       end
         end
         # Log.log_debug("Ending string_separated : " +
@@ -351,9 +358,8 @@ module Automation
       # ########################################################################
       def self.check_install_flrtvc
         Log.log_debug('Into check_install_flrtvc')
-
+        #
         returned = 0
-
         unless ::File.exist?('/usr/bin/flrtvc.ksh')
           Log.log_debug('/usr/bin/flrtvc.ksh does not exist')
           unless ::File.exist?('/tmp/FLRTVC-latest.zip')
@@ -364,8 +370,8 @@ module Automation
               Log.log_debug('downloaded /tmp/FLRTVC-latest.zip')
             end
           end
-
-          command = "/bin/which unzip"
+          #
+          command = '/bin/which unzip'
           returned = Utils.execute(command)
           if returned != 0
             Log.log_debug('downloaded /tmp/FLRTVC-latest.zip')
@@ -379,7 +385,7 @@ module Automation
                 Log.log_debug('downloaded /tmp/unzip-6.0-3.aix6.1.ppc.rpm')
               end
 
-              command = "/bin/rpm -i /tmp/unzip-6.0-3.aix6.1.ppc.rpm"
+              command = '/bin/rpm -i /tmp/unzip-6.0-3.aix6.1.ppc.rpm'
               Log.log_debug('launching command ' + command)
               returned = Utils.execute(command)
               Log.log_debug('command ' + command + ' returns ' + returned.to_s)
@@ -388,9 +394,9 @@ module Automation
               end
             end
           end
-
+          #
           if returned == 0
-            command = "/bin/unzip -o /tmp/FLRTVC-latest.zip -d /usr/bin"
+            command = '/bin/unzip -o /tmp/FLRTVC-latest.zip -d /usr/bin'
             Log.log_debug('launching command ' + command)
             returned = Utils.execute(command)
             Log.log_debug('command ' + command + ' returns ' + returned.to_s)
@@ -398,7 +404,7 @@ module Automation
               Log.log_debug('installed /usr/bin/flrtvc.ksh')
             end
           end
-
+          #
           if returned == 0
             # set execution mode
             File.new('/usr/bin/flrtvc.ksh').chmod(0755)
@@ -409,7 +415,6 @@ module Automation
         returned
       end
 
-
       # ########################################################################
       # name : status
       # param : in:target:string
@@ -418,7 +423,7 @@ module Automation
       # ########################################################################
       def self.status(target)
         Log.log_debug('Into status for ' + target)
-
+        #
         status_output = {}
         remote_cmd1 = '/bin/oslevel -s'
         remote_output1 = []
@@ -426,7 +431,7 @@ module Automation
         if remote_cmd_status1.success?
           status_output['oslevel -s'] = remote_output1[0].chomp
         end
-
+        #
         remote_cmd2 = "/bin/lslpp -e | /bin/sed '/STATE codes/,$ d'"
         remote_output2 = []
         remote_cmd_status2 = Remote.c_rsh(target, remote_cmd2, remote_output2)
@@ -435,7 +440,6 @@ module Automation
         end
         status_output
       end
-    end
+    end # Utils
   end
 end
-

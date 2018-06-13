@@ -12,6 +12,7 @@ Puppet::Type.type(:download).provide(:suma) do
   include Automation::Lib
 
   commands :lsnim => '/usr/sbin/lsnim'
+  commands :nim => '/usr/sbin/nim'
   commands :rm => '/bin/rm'
 
   # ###########################################################################
@@ -29,11 +30,11 @@ Puppet::Type.type(:download).provide(:suma) do
                  \"#{resource[:ensure]}\" for type=\"#{resource[:type]}\" \
 into directory=\"#{resource[:root]}\" \
 from=\"#{resource[:from]}\" to \"#{resource[:to]}\" \
-lpp_source=\"#{resource[:lpp_source]}\".")
+lpp_source=\"#{resource[:lpp_source]}\" force=#{resource[:force]}.")
     creation_done = true
     Log.log_debug('Suma.new')
     @suma = Suma.new([resource[:root],
-                      resource[:clean],
+                      resource[:force],
                       resource[:from],
                       resource[:to],
                       resource[:type],
@@ -43,7 +44,15 @@ lpp_source=\"#{resource[:lpp_source]}\".")
     Log.log_info('dir_lpp_sources=' + @suma.dir_lpp_sources)
     Log.log_info('lpp_source=' + @suma.lpp_source)
 
-    if resource[:ensure].to_s != 'absent'
+    if resource[:force].to_s == 'yes'
+      creation_done = false
+      begin
+        Log.log_info('nim -o remove')
+        nim('-o', 'remove', @suma.lpp_source)
+      rescue Puppet::ExecutionFailure => e
+        Log.log_debug('nim Puppet::ExecutionFailure e=' + e.to_s)
+      end
+    elsif resource[:ensure].to_s != 'absent'
       begin
         Log.log_info('lsnim')
         lsnim('-l', @suma.lpp_source)
@@ -67,9 +76,9 @@ lpp_source=\"#{resource[:lpp_source]}\".")
 
     Log.log_info('dir_metadata=' + @suma.dir_metadata)
     Log.log_info('dir_lpp_sources=' + @suma.dir_lpp_sources)
-    #Log.log_info("to_step=#{@suma.to_step}")
     Log.log_info('lpp_source=' + @suma.lpp_source)
 
+    # TODO : check if preview can be skipped if "step_to => :download"
     Log.log_debug('suma.preview')
     missing = @suma.preview
     Log.log_debug('suma.preview missing=' + missing.to_s)
@@ -84,7 +93,7 @@ lpp_source=\"#{resource[:lpp_source]}\".")
       end
     end
 
-    if !missing or downloaded == 0
+    if !missing || downloaded == 0
       Log.log_debug('Nim.define_lpp_source')
       Nim.define_lpp_source(@suma.lpp_source,
                             @suma.dir_lpp_sources,

@@ -11,8 +11,8 @@ require_relative '../../puppet_x/Automation/Lib/Utils.rb'
 Puppet::Type.newtype(:patchmngt) do
   @doc = 'To manage all simple patchmngt actions \
 (status,install/uninstall,update,reboot).'
-  feature :patchmngt, 'The ability to manage actions on remote targets.', \
-methods: [:patchmngt]
+
+  include Automation::Lib
 
   # ############################################################################
   #
@@ -37,7 +37,7 @@ methods: [:patchmngt]
   # ############################################################################
   # :targets is a parameter giving the LPARs on which to apply action
   #
-  # Only valid targets are kept, targets nedd to be pingable,
+  # Only valid targets are kept, targets need to be pingable,
   #  accessible thru c_rsh, in a proper NIM state
   # ############################################################################
   newparam(:targets) do
@@ -45,6 +45,8 @@ methods: [:patchmngt]
     kept = []
     suppressed = []
     validate do |values|
+      kept = []
+      suppressed = []
       Utils.check_input_targets(values, kept, suppressed)
       raise('"targets" is empty, but must not be empty') \
         if kept.empty?
@@ -63,7 +65,7 @@ methods: [:patchmngt]
     desc '"action" parameter: simple action to perform on target : \
 either "status", "update", "install", or "reboot"'
     defaultto :status
-    newvalues(:status, :update, :install, :reboot,)
+    newvalues(:status, :update, :install, :reboot)
   end
 
   # ############################################################################
@@ -94,11 +96,14 @@ or "reject", or "commit"". Useful only for "action=update"'
   # Perform global consistency checks between parameters
   # ############################################################################
   validate do
-    if ((self[:action] == :install) ||
-        ((self[:action] == :update) &&
-            ((self[:mode] == :update) ||
-                (self[:mode] == :apply)))) &&
-        (self[:lpp_source].nil?)
+    # what is done here : if targets==null then failure
+    raise('"targets" needs to be set') \
+ if self[:targets].nil? || self[:targets].empty?
+    #
+    # what is done here :
+    if ((self[:action] == :install) || ((self[:action] == :update) &&
+        ((self[:mode] == :update) || (self[:mode] == :apply)))) &&
+        self[:lpp_source].nil?
       raise('"lpp_source" parameter: required when action is "install" or \
 when action is "update"" and mode is "update" or "apply"')
     end

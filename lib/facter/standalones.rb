@@ -41,9 +41,9 @@ Facter.add('standalones') do
       #   next
       # end
       #
-      # # To shorten execution, skip some standalone, manage black list
-      # # To only keep standalones which are listed
-      # # Take model on perform same logic
+      # To shorten execution, skip some standalone, manage black list
+      # To only keep standalones which are listed
+      # Take model on perform same logic
       # if standalone != 'quimby03'
       #   Log.log_info('Please note, to shorten execution ' + standalone + ' standalone is not kept.')
       #   standalone_hash['WARNING']='Standalone system skipped in aixautomation/lib/facter/standalones.rb'

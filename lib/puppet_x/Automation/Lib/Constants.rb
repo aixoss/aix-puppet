@@ -6,9 +6,6 @@
 module Automation
   module Lib
     class Constants
-
-      #
-      #
       #
       def self.debug_level
         hash = Facter.value(:props)
@@ -16,9 +13,6 @@ module Automation
       rescue StandardError
         4
       end
-
-      #
-      #
       #
       def self.inst_dir
         hash = Facter.value(:props)
@@ -26,9 +20,6 @@ module Automation
       rescue StandardError
         '/etc/puppetlabs/code/environments/production/modules'
       end
-
-      #
-      #
       #
       def self.output_dir
         hash = Facter.value(:props)
@@ -36,7 +27,6 @@ module Automation
       rescue StandardError
         '/etc/puppetlabs/code/environments/production/modules/aixautomation/output'
       end
-
-    end
+    end # Constants
   end
 end
