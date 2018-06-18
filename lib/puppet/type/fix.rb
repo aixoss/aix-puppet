@@ -100,12 +100,9 @@ Puppet::Type.newtype(:fix) do
     #
     # what is done here : if ensure=absent and clean==yes and root==null then failure
     raise('"root" needs to be set if "ensure=>absent" and "clean=>yes"') \
-      if self[:ensure] == 'absent' && self[:clean] == 'yes' &&
-        (self[:root].nil? || self[:root].empty?)
+      if self[:ensure] == 'absent' && self[:clean] == 'yes' && (self[:root].nil? || self[:root].empty?)
     #
     # what is done here : if clean, than clean yml files and nim resources
-    if self[:clean] == 'yes'
-      clean
-    end
+    clean if self[:clean] == 'yes'
   end
 end

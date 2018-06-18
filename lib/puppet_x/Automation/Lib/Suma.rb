@@ -193,7 +193,7 @@ parameter. Cannot continue!')
           #
           # Everything should be cleaned at the beginning
           #
-          FileUtils.rm_rf(@dir_lpp_sources)
+          FileUtils.rm_rf Dir.glob("#{@dir_lpp_sources}/*")
           Log.log_info('Cleaning everything as "force"="yes", not necessary to run preview.')
           missing = true
         end
@@ -378,8 +378,8 @@ fixes (~ #{download_dl.to_f.round(2)} GB).")
                                yml_file)
             end
           rescue StandardError
-            Log.log_warning('Service Packs per Technical Level ' + yml_file + ' not found ' +
-                                ' : compute it by downloading Suma Metadata')
+            Log.log_warning('Service Packs per Technical Level ' + yml_file +
+                                ' not found : compute it by downloading Suma Metadata')
             mine_metadata = true
           end
         end
@@ -412,9 +412,8 @@ fixes (~ #{download_dl.to_f.round(2)} GB).")
                                         technical_level,
                                         'installp',
                                         'ppc')
-                  list_of_files =
-                      Dir.glob(::File.join(dirmeta,
-                                           technical_level + '*.xml'))
+                  list_of_files = Dir.glob(::File.join(dirmeta,
+                                                       technical_level + '*.xml'))
                   list_of_files.collect! do |file|
                     ::File.open(file) do |f|
                       servicepack = nil
@@ -424,9 +423,8 @@ fixes (~ #{download_dl.to_f.round(2)} GB).")
                       # ######### END #############
                       servicepack = Regexp.last_match(1) \
 if s.to_s =~ /^<SP name="([0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4})">/
-                      unless servicepack.nil?
-                        sps_of_tl.push(servicepack)
-                      end
+                      #
+                      sps_of_tl.push(servicepack) unless servicepack.nil?
                     end
                   end
                   sp_per_tl[technical_level] = sps_of_tl

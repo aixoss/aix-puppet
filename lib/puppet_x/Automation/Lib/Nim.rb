@@ -169,7 +169,7 @@ target + ' lpp_source=' + lpp_source)
           cmd = "/bin/echo \"#{remote_output[0]}\" | /bin/awk '{print $3}' | /bin/sort -u"
           stdout, stderr, status = Open3.capture3(cmd)
           Log.log_debug("cmd   =#{cmd}")
-          Log.log_debug("status=#{status}") if !status.nil?
+          Log.log_debug("status=#{status}") unless status.nil?
           if status.success?
             if !stdout.nil? && !stdout.strip.empty?
               nb_of_ifixes = stdout.lines.count
@@ -300,6 +300,30 @@ above error!" unless exit_status.success?
         Utils.execute(nim_command)
       end
 
+
+      # #######################################################################
+      # name : get_location_of_lpp_source
+      # param : input:lpp_source:string
+      # return : string containing the location sorted
+      # description : get location of NIM lpp_source resource
+      # #######################################################################
+      def self.get_location_of_lpp_source(lpp_source)
+        Log.log_info('Nim.get_location_of_lpp_source')
+        #
+        returned = ''
+        nim_command = "/usr/sbin/lsnim -a location #{lpp_source} | /bin/grep -w location | /bin/awk '{print $3}'"
+        nim_command_output = []
+        Utils.execute2(nim_command, nim_command_output)
+        unless nim_command_output.nil?
+          if nim_command_output[0].to_s =~ /^0042-053 lsnim: there is no NIM object named.$/
+            #
+          else
+            returned = "#{nim_command_output[0].chomp}"
+          end
+        end
+        returned
+      end
+
       # #######################################################################
       # name : sort_ifixes
       # param : input:lpp_source:string
@@ -311,17 +335,15 @@ above error!" unless exit_status.success?
         Log.log_info('Nim.sort_ifixes')
         #
         returned = ''
-        nim_command1 = "/usr/sbin/lsnim -a location #{lpp_source} | /bin/grep -w location | /bin/awk '{print $3}'"
-        nim_command_output1 = []
-        Utils.execute2(nim_command1, nim_command_output1)
+        location = Nim.get_location_of_lpp_source(lpp_source)
         #
-        unless nim_command_output1.nil?
-          nim_command2 = "/bin/ls #{nim_command_output1[0].chomp} | /bin/sort -ru"
-          nim_command_output2 = []
-          Utils.execute2(nim_command2, nim_command_output2)
-          unless nim_command_output2.nil?
-            Log.log_info('Nim.sort_ifixes returned=' + nim_command_output2[0].to_s)
-            returned = nim_command_output2[0].gsub('\n', ' ')
+        unless location.nil? || location.empty?
+          nim_command = "/bin/ls #{location} | /bin/sort -ru"
+          nim_command_output = []
+          Utils.execute2(nim_command, nim_command_output)
+          unless nim_command_output.nil?
+            Log.log_info('Nim.sort_ifixes returned=' + nim_command_output[0].to_s)
+            returned = nim_command_output[0].gsub('\n', ' ')
           end
         end
         returned

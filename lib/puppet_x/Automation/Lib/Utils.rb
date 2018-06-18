@@ -113,8 +113,8 @@ module Automation
           kept,
           suppressed)
         Log.log_debug('Into check_input_targets targets=' + targets.to_s +
-                          " kept=" + kept.to_s +
-                          " suppressed=" + suppressed.to_s)
+                          ' kept=' + kept.to_s +
+                          ' suppressed=' + suppressed.to_s)
         #
         targets_list = targets.to_s.split(/\W+/)
         Log.log_debug("targets_list=#{targets_list}")
@@ -197,7 +197,7 @@ module Automation
         # suppress empty lines, commented lines, and 2 first lines
         stdout, stderr, status = Open3.capture3("#{cmd} | /bin/egrep -v '=====|Fileset Name|#|^$' | /bin/awk '{print $1}'")
         Log.log_debug("cmd   =#{cmd}")
-        Log.log_debug("status=#{status}") if !status.nil?
+        Log.log_debug("status=#{status}") unless status.nil?
         returned = ''
         if status.success?
           if !stdout.nil? && !stdout.strip.empty?
@@ -206,10 +206,8 @@ module Automation
           #
           items = stdout.split("\n")
           returned = string_separated(items, ' ')
-        else
-          if !stderr.nil? && !stderr.strip.empty?
+        elsif !stderr.nil? && !stderr.strip.empty?
             Log.log_err("stderr=#{stderr}")
-          end
         end
         Log.log_debug('Ending get_filesets_of_lppsource ' + returned)
         returned
@@ -233,9 +231,7 @@ module Automation
           cmd = "/bin/echo \"#{remote_output[0]}\" | /bin/awk '{print $1}' | /bin/sort -u"
           stdout, stderr, status = Open3.capture3(cmd)
           Log.log_debug("cmd   =#{cmd}")
-          if !status.nil?
-            Log.log_debug("status=#{status}")
-          end
+          Log.log_debug("status=#{status}") unless status.nil?
           if status.success?
             if !stdout.nil? && !stdout.strip.empty?
               Log.log_debug("stdout=#{stdout}")
@@ -275,9 +271,7 @@ module Automation
           # here is the remote command output parsing method
           stdout, stderr, status =
               Open3.capture3("/bin/echo \"#{remote_output[0]}\" | /bin/awk -F ':' '{print $2}' | /bin/sort -u")
-          if !status.nil?
-            Log.log_debug("status=#{status}")
-          end
+          Log.log_debug("status=#{status}") unless status.nil?
           if status.success?
             if !stdout.nil? && !stdout.strip.empty?
               Log.log_debug("stdout=#{stdout}")
@@ -285,10 +279,8 @@ module Automation
             # items = []
             items = stdout.split("\n")
             filesets[0] = string_separated(items, ' ')
-          else
-            if !stderr.nil? && !stderr.strip.empty?
-              Log.log_err("stderr=#{stderr}")
-            end
+          elsif !stderr.nil? && !stderr.strip.empty?
+            Log.log_err("stderr=#{stderr}")
           end
           Log.log_debug('Ending get_applied_filesets2 : ' +
                             status.to_s)

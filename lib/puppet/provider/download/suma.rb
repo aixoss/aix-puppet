@@ -47,6 +47,13 @@ lpp_source=\"#{resource[:lpp_source]}\" force=#{resource[:force]}.")
     if resource[:force].to_s == 'yes'
       creation_done = false
       begin
+        location = Nim.get_location_of_lpp_source(@suma.lpp_source)
+        Log.log_info('Nim.get_location_of_lpp_source' + @suma.lpp_source + ' : ' + location)
+        unless location.nil? || location.empty?
+          Log.log_info('Removing contents of NIM lpp_source' + @suma.lpp_source + ' : ' + location)
+          FileUtils.rm_rf Dir.glob("#{location}/*")
+        end
+        Log.log_info('Removing NIM lpp_source ' + @suma.lpp_source)
         Log.log_info('nim -o remove')
         nim('-o', 'remove', @suma.lpp_source)
       rescue Puppet::ExecutionFailure => e

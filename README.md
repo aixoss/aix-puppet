@@ -86,10 +86,9 @@
 
 ### Beginning with aixautomation
  As far as 'update' operation are concerned :<br> 
-  You can perform download operations from FixCentral separately and see results.<br>
-  You can update in preview mode only (TO BE DONE), just to see the results, 
-   and decide to apply later on.
-  
+  You can perform download operations from FixCentral (suma downloads) and build a NIM 
+  lpp_source resource with results of downloads in a first separate step, then in a second
+   step you can update LPARs using the NIM lpp_source resource which was downloaded.    
  As far as 'efix' operations are concerned :<br>
   You can perform all preparation steps without applying the efix ans see the results.<br>
   You can choose to apply efix later on.<br>
@@ -167,6 +166,49 @@
  All custom-types utilization are documented into ./examples/init.pp<br>
  
  #### Custom type : download (provider : suma)
+ ##### Parameters
+   - <b>provider</b> : this parameter is not mandatory, if mentioned it needs to contain name of 
+   the provider implementing the 'download' custom type, therefore the value needs to be : <b>suma</b>.  
+   - <b>ensure</b> : to control flow of execution, this parameter can take two values, either 
+   <b>present</b> or <b>absent</b>. By default <b>present</b> is assumed. 
+   If set the <b>present</b>, suma command will be attempted so that what is set into parameters is 
+    performed.
+   If set to <b>absent</b>, result of previous <b>present</b> run is clean : NIM lpp_source resource 
+    is cleaned, and results of suma downloads is removed from disks.     
+   - <b>name</b> : to uniquely identify the download to be performed. You can have several 'download' 
+   clauses in your manifests/init.pp, each of them being uniquely identified. 
+   - <b>root</b> : root directory to store results of suma download. This root directory should reside 
+   on a file system separated from the one which hosts the system itself. This root directory needs 
+   to be large enough to contain system updates, and should be a exportable file system, so that NIM 
+   can build NIM lpp_source resource and perform a mount from the remote LPARs.      
+   - <b>type</b> : type of suma downloads. Three possible values : <b>SP</b> to suma download a service 
+   pack, i.e. what allows you to update from a XXXX-YY technical level to any service packs of this 
+   technical level. <b>TL</b> to suma download a technical level, so that you system gets updated 
+   to a new technical level. <b>Latest</b> to suma download the last service pack of a given technical
+    level.  A last possible value is possible : <b>Meta</b> but is reserved for internal use.   
+   - <b>from</b> : parameter used to launch suma download command, containing the starting level 
+   of desired updates. For example by indicating <b>7100-01</b>, it means download contains everything 
+   to update from this <b>7100-01</b> technical level, or  by indicating <b>100-01-02-1150</b>, it 
+   means download contains everything to update from this <b>7100-01-02-1150</b> service pack.
+   - <b>to</b> : parameter used to launch suma download command, containing the level of updates 
+   desired. For example by indicating <b>7100-03</b>, it means download contains everything to 
+   update up to this <b>7100-03</b> technical level, or  by indicating <b>7100-01-08-1642</b>, it 
+   means download contains everything to update up to this <b>7100-01-08-1642</b> service pack.
+   - <b>lpp_source</b> : name of the NIM lpp_source resource built containing results of suma 
+   downloads. If ever this lpp_source name is not provided, a naming convention is used to build 
+   this name, by using a prefix ('PAA'), and by concatenating 'type', 'from', and 'to' parameters. 
+   The name of this lpp_source is reused when performing updates of system (using 'nimpush' clause).  
+   - <b>to_step</b> : to control flow of execution up to a given step. Two possible steps : 
+   <b>preview</b> and <b>download</b>. By default, <b>download</b> is assumed. You can perform 
+   only <b>preview</b> suma download, by setting this parameter to <b>preview</b>, in that case 
+   download is not done.
+   - <b>force</b> : to force suma download again. Two possible values for this parameter : 
+   <b>yes</b> and <b>no</b>. By default, <b>no</b> is assumed, meaning that suma download won't be 
+   done again if expected results of suma download can be found under <b>root</b> directory. 
+   If set to <b>yes</b>, this parameter can force a new suma download (even if this suma download 
+   was already done, and can be found under <b>root</b> directory) and can force the building of a 
+   new NIM lpp_source resource (even if this NIM lpp_source resource already exists). 
+##### Explanations
  The aim of this provider is to provide download services using suma functionality.<br>
  Suma requests are generated so that updates are downloaded from Fix Central.<br>
  "root" parameter is used as download directory : it should be an ad-hoc file system dedicated to 
@@ -202,6 +244,31 @@
    By default 'force is set to 'no', meaning all previous downloads are kept and reused, this 
    can spare a lot of time.   
  #### Custom type : patchmngt (provider : nimpush)
+ ##### Parameters
+   - <b>provider</b> : this parameter is not mandatory, if mentioned it needs to contain name of 
+   the provider implementing the 'patchmngt' custom type, therefore the value needs to be : 
+   <b>nimpush</b>.  
+   - <b>ensure</b> : to control flow of execution, this parameter can take two values, either 
+   <b>present</b> or <b>absent</b>. By default <b>present</b> is assumed. 
+   If set the <b>present</b>, nim push command will be attempted so that what is set 
+   into parameters is performed.
+   If set to <b>absent</b>, .     
+   - <b>name</b> : to uniquely identify the download to be performed. You can have 
+   several 'patchmngt' clauses in your manifests/init.pp, each of them being uniquely 
+   identified. 
+  - action : action to be performed. This parameter can take several values : <b>install</b>, 
+   <b>update</b>, <b>reboot</b>, <b>status</b>. By default, <b>status</b> is assumed.
+   <b>install</b> action enables installation (or un-installation) of a lpp_source, <b>update</b> 
+   action enables update of a system (installation of a service pack or installation of a technical
+   level), <b>reboot</b> action enables to launch reboot of LPARs. <b>status</b> action displays
+   version level and efix information related to LPARs.       
+  - lpp_source : name of the NIM lpp_source resource to be installed/un-installed or which needs to be 
+  used to performed system update. In case of update, this lpp_source is the one which was built by 
+  a previous 'download' clause (results of suma downloads). 
+  - targets : names of the LPARs on which to perform action
+  - sync : if action needs to be done synchronously or asynchronously. Two possible values for this 
+  parameter : <b>yes</b> and <b>no</b>. By default, <b>no</b> is assumed.  
+ ##### Explanations
  The aim of this provider is to provide software maintenance operations on a list of LPARs 
   using NIM push mode. Everything is performed from the NIM server on which this aixautomation 
   Puppet module runs.<br>   
@@ -212,6 +279,39 @@
   
     
  #### Custom type : fix (provider : flrtvc)
+ ##### Parameters
+   - <b>provider</b> : this parameter is not mandatory, if mentioned it needs to contain name of 
+   the provider implementing the 'fix' custom type, therefore the value needs to be : 
+   <b>flrtvc</b>.  
+   - <b>ensure</b> : to control flow of execution, this parameter can take two values, either 
+   <b>present</b> or <b>absent</b>. By default <b>present</b> is assumed. 
+   If set the <b>present</b>, efix are installed by running all steps. If set to <b>absent</b>, 
+   efix are removed.     
+   - <b>name</b> : to uniquely identify the fix to be performed. You can have 
+   several 'fix' clauses in your manifests/init.pp, each of them being uniquely 
+   identified. 
+   - to_step : : to control flow of execution up to a given step. Possible values : 
+   <b>installFlrtvc</b>, <b>runFlrtvc</b>, <b>parseFlrtvc</b>, <b>downloadFixes</b>, 
+   <b>checkFixes</b>, <b>buildResource</b>, <b>installResource</b>. All these steps are 
+   performed in the provided order, but you can interrupt execution afetr any given step. 
+   By default, <b>installResource</b> is assumed, meaning all steps are done. You can 
+   perform flrtvc execution until the step you choose, by setting this parameter to 
+   the desired step. 
+   - targets : names of the LPARs on which to perform flrtvc steps.
+   - clean  : if clean needs to be done before running or not. Two possible values for this 
+   parameter : <b>yes</b> and <b>no</b>. By default, <b>yes</b> is assumed, meaning all previous 
+   results of any flrtvc runs (which are persited into yaml files) are not kept, and 
+   computed again. If ever you want to spare time, and reuse previous flrtvc results, or if you 
+   want or run flrtvc step by step (refer to 'to_step' parameter), you can keep previous results 
+   by setting this parameter to 'no'. 
+   - <b>root</b> : root directory to store results of flrtvc download. This root directory should 
+   reside on a file system separated from the one which hosts the system itself. This root 
+   directory needs to be large enough to contain efix updates, and should be a exportable file 
+   system, so that NIM can build NIM lpp_source resource and perform a mount from the remote LPARs.
+   By default <b>/tmp</b> is assumed. 
+   - type : type of desired efix. Possible values : <b>hiper</b>, <b>sec</b>, <b>all</b>. By default,
+   <b>all</b> is assumed, meaning all possible efix are installed.       
+ ##### Explanations
  The aim of this provider is to provide appropriate eFix installations using flrtvc 
   functionality to compute eFix to be installable, and NIM push functionality to install eFix.<br> 
  "root" parameter is used as download directory : it should be an ad-hoc file system dedicated to 
@@ -287,7 +387,7 @@
        so that these files are taken as input at beginning of flrtvc processings
        (only if clean='no') : listoffixes_per_url.yml, lppminmax_of_fixes.yml      
    - 'nimpush' targets are now reset between each 'nimpush' clause info manifests/init.pp
-      this was not teh case previously, and brought a lot of confusion when several 'nimpush'
+      this was not the case previously, and brought a lot of confusion when several 'nimpush'
       clauses, applying on different sets of targets, existed into manifests/init.pp.
  #### 0.5.7
    - Rubocop warnings removal 

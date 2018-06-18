@@ -29,9 +29,7 @@ module Automation
         if !stderr.nil? && !stderr.strip.empty?
           Log.log_err("c_rsh stderr=#{stderr}")
         end
-        unless status.nil?
-          Log.log_debug("c_rsh status=#{status}")
-        end
+        Log.log_debug("c_rsh status=#{status}") unless status.nil?
         output[0] = if status
                       stdout
                     else

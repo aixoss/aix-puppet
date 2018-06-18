@@ -31,7 +31,7 @@ Facter.add('standalones') do
       # # To shorten execution, skip some standalone, manage white list
       # # To only keep standalones which are listed
       # # Take model on perform same logic
-      # if standalone == "quimby06" || standalone == "quimby10"
+      # if standalone == "quimby01"
       #   #  && standalone != "quimby03" \
       #   #  && standalone != "quimby04" && standalone != "quimby05" \
       #   #  && standalone != "quimby07" && standalone != "quimby08" \
@@ -44,12 +44,12 @@ Facter.add('standalones') do
       # To shorten execution, skip some standalone, manage black list
       # To only keep standalones which are listed
       # Take model on perform same logic
-      # if standalone != 'quimby03'
-      #   Log.log_info('Please note, to shorten execution ' + standalone + ' standalone is not kept.')
-      #   standalone_hash['WARNING']='Standalone system skipped in aixautomation/lib/facter/standalones.rb'
-      #   standalones_skipped[standalone] = standalone_hash
-      #   next
-      # end
+      if standalone != 'quimby03'
+        Log.log_info('Please note, to shorten execution ' + standalone + ' standalone is not kept.')
+        standalone_hash['WARNING'] = 'Standalone system skipped in aixautomation/lib/facter/standalones.rb'
+        standalones_skipped[standalone] = standalone_hash
+        next
+      end
 
       #### ping
       ping_cmd = '/usr/sbin/ping -c1 -w5 ' + standalone
@@ -138,7 +138,7 @@ Facter.add('standalones') do
                                           'facter',
                                           'standalones_skipped.yml')
     File.write(skipped_result_yml_file, standalones_skipped.to_yaml)
-    Log.log_debug('Refer to "' + skipped_result_yml_file + '" to have results of skipped "standalones" facter.')
+    Log.log_info('Refer to "' + skipped_result_yml_file + '" to have results of skipped "standalones" facter.')
 
     # Kept
     # persist to yaml
@@ -146,7 +146,7 @@ Facter.add('standalones') do
                                        'facter',
                                        'standalones_kept.yml')
     File.write(kept_result_yml_file, standalones_kept.to_yaml)
-    Log.log_debug('Refer to "' + kept_result_yml_file + '" to have results of kept "standalones" facter.')
+    Log.log_info('Refer to "' + kept_result_yml_file + '" to have results of kept "standalones" facter.')
     standalones_kept
   end
 end

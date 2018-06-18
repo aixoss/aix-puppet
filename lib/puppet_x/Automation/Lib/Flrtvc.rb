@@ -94,11 +94,17 @@ module Automation
           lppminmax_of_fixes_yml_file = get_flrtvc_name(:YML,
                                                         'all',
                                                         'lppminmax_of_fixes')
-          @lppminmax_of_fixes = YAML.load_file(lppminmax_of_fixes_yml_file)
-          Log.log_debug('Reading from ' +
-                            lppminmax_of_fixes_yml_file +
-                            ' @lppminmax_of_fixes.length=' +
-                            @lppminmax_of_fixes.length.to_s)
+          if File.exist?(lppminmax_of_fixes_yml_file)
+            @lppminmax_of_fixes = YAML.load_file(lppminmax_of_fixes_yml_file)
+            Log.log_debug('Reading from ' +
+                              lppminmax_of_fixes_yml_file +
+                              ' @lppminmax_of_fixes.length=' +
+                              @lppminmax_of_fixes.length.to_s)
+          else
+            @lppminmax_of_fixes = {}
+            Log.log_debug(' @lppminmax_of_fixes.length=' +
+                              @lppminmax_of_fixes.length.to_s)
+          end
           #
           # to keep in memory the list of fixes per url
           #  so that we can build the list of fix for each target,
@@ -107,11 +113,17 @@ module Automation
           listoffixes_per_url_yml_file = get_flrtvc_name(:YML,
                                                          'all',
                                                          'listoffixes_per_url')
-          @listoffixes_per_url = YAML.load_file(listoffixes_per_url_yml_file)
-          Log.log_debug('Reading from ' +
-                            listoffixes_per_url_yml_file +
-                            ' @listoffixes_per_url.length=' +
-                            @listoffixes_per_url.length.to_s)
+          if File.exist?(listoffixes_per_url_yml_file)
+            @listoffixes_per_url = YAML.load_file(listoffixes_per_url_yml_file)
+            Log.log_debug('Reading from ' +
+                              listoffixes_per_url_yml_file +
+                              ' @listoffixes_per_url.length=' +
+                              @listoffixes_per_url.length.to_s)
+          else
+            @listoffixes_per_url = {}
+            Log.log_debug(' @listoffixes_per_url.length=' +
+                              @listoffixes_per_url.length.to_s)
+          end
         end
       end
 
@@ -214,7 +226,11 @@ module Automation
           returned = if name_suffix == 'lppminmax_of_fixes'
                        ::File.join(@root_dir,
                                    'common_efixes',
-                                   "#{target}_#{name_suffix}.yml")
+                                   "#{name_suffix}.yml")
+                     elsif name_suffix == 'all_listoffixes_per_url'
+                       ::File.join(@root_dir,
+                                   'common_efixes',
+                                   "#{name_suffix}.yml")
                      else
                        ::File.join(@root_dir,
                                    "#{target}_#{name_suffix}.yml")
@@ -326,7 +342,7 @@ module Automation
         Log.log_debug('status output=' + status_output.to_s)
         Log.log_debug('yaml_file_name=' + yaml_file_name.to_s)
         if !status_output.nil? && !status_output.empty?  \
-                              && !yaml_file_name.nil? && !yaml_file_name.empty?
+                                     && !yaml_file_name.nil? && !yaml_file_name.empty?
           # Persist to yml
           status_yml_file = ::File.join(Constants.output_dir,
                                         'logs',
@@ -581,9 +597,9 @@ and #{filesets.size} filesets.")
                                 ' efixes_and_status_of_url=' +
                                 efixes_and_status_of_url.to_s)
             end
-            efixes_and_downloadstatus =
-                efixes_and_downloadstatus.merge(efixes_and_status_of_url)
+            efixes_and_downloadstatus = efixes_and_downloadstatus.merge(efixes_and_status_of_url)
           end
+          #
           # persist @listoffixes_per_url
           listoffixes_per_url_yml_file = get_flrtvc_name(:YML,
                                                          'all',
@@ -625,7 +641,6 @@ and #{filesets.size} filesets.")
                          ' (' + listoffixes.length.to_s + ')')
         listoffixes
       end
-
 
       # ########################################################################
       # name : step_check_fixes
@@ -699,7 +714,7 @@ lppminmax_of_fixes_hash.to_s)
             unless lpps_minmax_of_fix.empty?
               lpps_minmax_of_fix.keys.each do |lpp|
                 (min, max) = lpps_minmax_of_fix[lpp]
-                if is_level_prereq_ok?(target, lpp, min, max)
+                if level_prereq_ok?(target, lpp, min, max)
                 else
                   Log.log_info(' Into step_check_fixes target=' + target +
                                    ' fix=' + fix +
@@ -1008,8 +1023,8 @@ lppminmax_of_fixes_hash.to_s)
                 response.body.each_line do |response_line|
                   next unless response_line =~ %r{<a href="(.*?.epkg.Z)">(.*?.epkg.Z)</a>}
                   url_of_file_to_download = ::File.join(url_to_download, Regexp.last_match(1))
-                  local_path_of_file_to_download =
-                      ::File.join(common_efixes_dirname, Regexp.last_match(1))
+                  local_path_of_file_to_download = \
+                    ::File.join(common_efixes_dirname, Regexp.last_match(1))
                   Log.log_debug(' consider downloading ' +
                                     url_of_file_to_download +
                                     ' into ' +
@@ -1038,9 +1053,6 @@ lppminmax_of_fixes_hash.to_s)
                                   ', subcount=' +
                                   subcount.to_s)
               end
-            rescue StandardError => std_error
-              Log.log_err("error sending event to server: #{std_error}")
-              raise 'standard error'
             rescue Timeout::Error => error
               Log.log_err("timeout sending event to server: #{error}")
               raise 'timeout error'
@@ -1492,8 +1504,8 @@ when untarring!")
             #
             year = Regexp.last_match(6)
             #
-            packaging_date = year + '_' + s_month + '_' + s_day + '_' +
-                hour.to_s + '_' + minute.to_s + '_' + second.to_s
+            packaging_date = year + '_' + s_month + '_' + s_day + '_'
+            +hour.to_s + '_' + minute.to_s + '_' + second.to_s
             Log.log_debug('  packaging_date=' + packaging_date)
           else
             Log.log_debug('  No PACKAGING DATE set on this fix')
@@ -1507,7 +1519,7 @@ when untarring!")
       end
 
       # #######################################################################
-      # name : is_level_prereq_ok?
+      # name : level_prereq_ok?
       # param : input:target:string
       # param : input:lpp:string
       # param : input:min:string
@@ -1531,11 +1543,11 @@ when untarring!")
       #    one PREREQ is not satisfied.
       #
       # #######################################################################
-      def is_level_prereq_ok?(target,
-                              lpp,
-                              min,
-                              max)
-        Log.log_debug('  Into is_level_prereq_ok? target=' +
+      def level_prereq_ok?(target,
+                           lpp,
+                           min,
+                           max)
+        Log.log_debug('  Into level_prereq_ok? target=' +
                           target +
                           ', lpp=' +
                           lpp +
@@ -1555,7 +1567,7 @@ when untarring!")
           lvl_a = command_output[0].split('.')
           lvl = SpLevel.new(lvl_a[0], lvl_a[1], lvl_a[2], lvl_a[3])
           #
-          Log.log_debug('   Into is_level_prereq_ok? target=' +
+          Log.log_debug('   Into level_prereq_ok? target=' +
                             target +
                             ' lvl=' +
                             lvl.to_s +

@@ -84,7 +84,7 @@ class aixautomation {
     to         => "7100-05",
   }
   # This rule allows to perform cleaning of download directory
-  #  "/export/extra/puppet/suma/lpp_dource/SP/7100-037100-03-07-1614""
+  #  "/export/extra/puppet/suma/lpp_dource/SP/7100-037100-03-07-1614"
   #  Moreover the NIM resource "PAA_SP_7100-03_7100-03-07-1614" is removed.
   download { "my_clean_3":
     provider   => suma,

@@ -10,7 +10,7 @@ require_relative '../../../puppet_x/Automation/Lib/Log.rb'
 Puppet::Type.type(:patchmngt).provide(:nimpush) do
   include Automation::Lib
 
-  commands nim: '/usr/sbin/nim'
+  commands :nim => '/usr/sbin/nim'
 
   # ###########################################################################
   # exists?
@@ -50,8 +50,6 @@ lpp_source.")
       else
         raise('"mode" must be either "update", "commit", or "apply"')
       end
-    else
-      # type code here
     end
 
     # Depending on the action param, interpretation of ensure is not the same
