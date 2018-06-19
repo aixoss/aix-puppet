@@ -125,15 +125,13 @@ module Automation
       # #######################################################################
       def self.validate_sp(key, value)
         returned = true
-        Log.log_debug('validating ' + key)
         lvl = Regexp.last_match(1) \
 if value.to_s =~ /^([0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4})/
         if lvl.nil?
-          Log.log_err('"' + key +
-                          '" parameter must be under the WWWW-XX-YY-ZZZZ format')
+          Log.log_err('validating "' + key + '" : parameter must be under the WWWW-XX-YY-ZZZZ format')
           returned = false
         else
-          Log.log_debug(value + ' respects the WWW-XX-YY-ZZZZ format')
+          Log.log_debug('validating ' + key + ':' + value + ' respects the WWW-XX-YY-ZZZZ format')
         end
         returned
       end
@@ -147,13 +145,12 @@ if value.to_s =~ /^([0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4})/
       # #######################################################################
       def self.validate_tl(key, value)
         returned = true
-        Log.log_debug('validating ' + key)
         lvl = Regexp.last_match(1) if value.to_s =~ /^([0-9]{4}-[0-9]{2})/
         if lvl.nil?
-          Log.log_err('"' + key + '" parameter must be under the WWWW-XX format')
+          Log.log_err('validating "' + key + '" : parameter must be under the WWWW-XX format')
           returned = false
         else
-          Log.log_debug(value + ' respects the WWW-XX format')
+          Log.log_debug('validating ' + key + ':' + value + ' respects the WWW-XX format')
         end
         returned
       end
@@ -168,17 +165,16 @@ if value.to_s =~ /^([0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4})/
       # #######################################################################
       def self.validate_sp_tl(key, value)
         returned = true
-        Log.log_debug('validating ' + key)
         lvl1 = Regexp.last_match(1) if value.to_s =~ /^([0-9]{4}-[0-9]{2})/
         lvl2 = Regexp.last_match(1) if value.to_s =~ /^([0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4})/
         if lvl1.nil? && lvl2.nil?
-          Log.log_err('"' + key + '" parameter must be either under the WWWW-XX \
+          Log.log_err('validating "' + key + '" : parameter must be either under the WWWW-XX \
 format or under the WWWW-XX-YY-ZZZZ format')
           returned = false
         else
-          Log.log_debug(value + ' respects the WWW-XX format') unless lvl1.nil?
+          Log.log_debug('validating ' + key + ':' + value + ' respects the WWW-XX format') unless lvl1.nil?
           unless lvl2.nil?
-            Log.log_debug(value + ' respects the WWW-XX-YY-ZZZZ format')
+            Log.log_debug('validating ' + key + ':' + value + ' respects the WWW-XX-YY-ZZZZ format')
           end
         end
         returned

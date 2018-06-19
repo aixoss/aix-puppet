@@ -97,7 +97,7 @@
 ## Usage
 ### Sample of manifest : init.pp
  Some commented samples are provided in ./examples/init.pp, and should be 
-  used as a starting point, to customize your ./manifests/init.pp 
+  used as a starting point, to customize ./manifests/init.pp 
 
 ### Logs
  The Puppet.debug('message') method is used in Puppet framework and as well in aixautomation 
@@ -121,11 +121,11 @@
    /etc/puppetlabs/code/environments/production/modules/aixautomation, and all relative paths in this README 
    are relative to /etc/puppetlabs/code/environments/production/modules/aixautomation.<br>
   The aixautomation module generates all outputs under this directory, except downloads of updates and ifixes 
-   which are performed under 'root' directories mentionned into ./manifests/init.pp file, (ou have one 'root'
+   which are performed under 'root' directories mentioned into ./manifests/init.pp file, (ou have one 'root'
    parameter for 'download' and one 'root' directory for 'fix').  
  
 ### Command line    
-  You can test your ./manifests/init.pp manifest by using following command lines :<br>
+  You can test ./manifests/init.pp manifest by using following command lines :<br>
         puppet apply --noop --modulepath=/etc/puppetlabs/code/environments/production/modules \
           -e "include aixautomation"<br>
      or apply it without debug messages : <br>
@@ -175,8 +175,10 @@
     performed.
    If set to <b>absent</b>, result of previous <b>present</b> run is clean : NIM lpp_source resource 
     is cleaned, and results of suma downloads is removed from disks.     
-   - <b>name</b> : to uniquely identify the download to be performed. You can have several 'download' 
-   clauses in your manifests/init.pp, each of them being uniquely identified. 
+   - <b>name</b> : not a mandatory property if you have only one 'download' clause in 
+   ./manifests/init.pp. Otherwise (multiple 'download' clauses), this property is necessary  
+   to uniquely identify the download to be performed : you can have several 'download' 
+   clauses in ./manifests/init.pp, each of them being uniquely identified. 
    - <b>root</b> : root directory to store results of suma download. This root directory should reside 
    on a file system separated from the one which hosts the system itself. This root directory needs 
    to be large enough to contain system updates, and should be a exportable file system, so that NIM 
@@ -254,7 +256,7 @@
    into parameters is performed.
    If set to <b>absent</b>, .     
    - <b>name</b> : to uniquely identify the download to be performed. You can have 
-   several 'patchmngt' clauses in your manifests/init.pp, each of them being uniquely 
+   several 'patchmngt' clauses in your ./manifests/init.pp, each of them being uniquely 
    identified. 
   - action : action to be performed. This parameter can take several values : <b>install</b>, 
    <b>update</b>, <b>reboot</b>, <b>status</b>. By default, <b>status</b> is assumed.
@@ -288,7 +290,7 @@
    If set the <b>present</b>, efix are installed by running all steps. If set to <b>absent</b>, 
    efix are removed.     
    - <b>name</b> : to uniquely identify the fix to be performed. You can have 
-   several 'fix' clauses in your manifests/init.pp, each of them being uniquely 
+   several 'fix' clauses in your ./manifests/init.pp, each of them being uniquely 
    identified. 
    - to_step : : to control flow of execution up to a given step. Possible values : 
    <b>installFlrtvc</b>, <b>runFlrtvc</b>, <b>parseFlrtvc</b>, <b>downloadFixes</b>, 
@@ -300,7 +302,7 @@
    - targets : names of the LPARs on which to perform flrtvc steps.
    - clean  : if clean needs to be done before running or not. Two possible values for this 
    parameter : <b>yes</b> and <b>no</b>. By default, <b>yes</b> is assumed, meaning all previous 
-   results of any flrtvc runs (which are persited into yaml files) are not kept, and 
+   results of any flrtvc runs (which are persisted into yaml files) are not kept, and 
    computed again. If ever you want to spare time, and reuse previous flrtvc results, or if you 
    want or run flrtvc step by step (refer to 'to_step' parameter), you can keep previous results 
    by setting this parameter to 'no'. 
@@ -320,12 +322,12 @@
   against constraints and a short list of eFix of installable eFix is computed, a NIM resource 
   is then built and then applied, so that eFix are installed.<br>
  These several steps necessary to achieve this efix installation task, are performed 
-  following this order : "installFlrtvc", "runFlrtvc", "parseFlrtvc", "downloadFixes", "checkFixes", 
-  "buildResource", "installResource". <br>
+  following this order : "installFlrtvc", "runFlrtvc", "parseFlrtvc", "downloadFixes", 
+  "checkFixes", "buildResource", "installResource". <br>
  Executions can be stopped after any step, and this is controlled thru the 'to_step' parameter 
   into ./manifests/init.pp.<br>
- Each step persists its results into a yaml file, which can be found into 'root' directory 
-  used for storing downloaded iFix.<br> 
+ Each step persists its results into a yaml file, which can be found into 
+  ./aixautomation/output/flrtvc directory.<br> 
  All yaml files can be reused between two executions, to spare time if ever the external 
   conditions have not changed, this is controlled thru the 'clean' parameter which needs 
   then to be set to 'no'. By default it is set to 'true', meaning the previously computed 
@@ -334,8 +336,10 @@
   occur that one particular eFix prevents another one (less recent) from being installed if 
   they touch the same file.<br>
  At the end of execution of this provider, you'll find into : <br>
-  - ./output/logs/PuppetAix_StatusBefore.yml : how were the LPARs before eFix installation.<br> 
-  - ./output/logs/PuppetAix_StatusAfter.yml : how are the LPARs after eFix installation.<br>
+  - ./aixautomation/output/logs/PuppetAix_StatusBefore_<target>.yml : how were the <target> 
+    LPAR before eFix installation.<br> 
+  - ./aixautomation/output/logs/PuppetAix_StatusAfter_<target>.yml : how are the <target> 
+    LPARs after eFix installation.<br>
         
 ## Limitations
  List of missing things to be documented.<br> 
@@ -349,7 +353,8 @@
  ### Last changes documented
  #### 0.5.1:
    - fix the automatic installation of "/usr/bin/flrtvc.ksh" if this file is missing 
-   - renaming of "./output/facter/sp_per_tl.yml" file to "./output/facter/sp_per_tl.yml.June_2018", 
+   - renaming of "./aixautomation/output/facter/sp_per_tl.yml" file to 
+     "./aixautomation/output/facter/sp_per_tl.yml.June_2018", 
      so that this file is generated at least once after installation. This file contains
      the matches between Technical Levels and Service Packs for all releases.<br>      
  #### 0.5.2:
@@ -358,11 +363,11 @@
     "preview" is performed. By default "download" is performed.<br> 
  #### 0.5.3:
    - validation messages of custom type contain contextual messages<br> 
-   - move all outputs into ./output directory : logs are now into ./output/logs, facter results are 
-     now into ./output/facter.    <br>
+   - move all outputs into ./aixautomation/output directory : logs are now into 
+   ./aixautomation/output/logs, facter results are now into ./aixautomation/output/facter.<br>
  #### 0.5.4:
    - add status before and after ifix removal, as these status exist before and after ifix 
-    installation. Commonlize status output persistance into Flrtvc.step_status
+    installation. Commonnalize status output persistance into Flrtvc.step_status
     method.<br>
     These files can be found:<br> 
      ./aixautomation/output/logs/PuppetAix_StatusAfterInstall.yml<br>
@@ -386,15 +391,21 @@
    - Persistence of flrtvc information commmon to all targets into two files
        so that these files are taken as input at beginning of flrtvc processings
        (only if clean='no') : listoffixes_per_url.yml, lppminmax_of_fixes.yml      
-   - 'nimpush' targets are now reset between each 'nimpush' clause info manifests/init.pp
+   - 'nimpush' targets are now reset between each 'nimpush' clause info ./manifests/init.pp
       this was not the case previously, and brought a lot of confusion when several 'nimpush'
-      clauses, applying on different sets of targets, existed into manifests/init.pp.
+      clauses, applying on different sets of targets, existed into ./manifests/init.pp.
  #### 0.5.7
    - Rubocop warnings removal 
    - fix custom type 'clean' parameter is changed to 'force' parameter
      If force is set to 'yes', all downloads are forced again, even if the downloads 
       existed before and were available. By default force is set to 'no', meaning we keep 
-      everything.  
+      everything.
+ #### 0.5.8
+   - Again Rubocop warnings removal 
+   - Robustify suma error paths: better flow of exceptions and errors
+   - Change the path where flrtvc yaml files are stored. They were into 'root' directory indicated
+     into ./manifests/init.pp, they are now under ./aixautomation/output/flrtvc direcory.   
+        
  ### Debugguing tips
  If ever you have in your environment this variable set : 'ENV=/.kshrc', this can lead to abnormal 
  behaviour, not well explained. In that case, perform 'unset ENV' before retrying.

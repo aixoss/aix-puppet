@@ -166,6 +166,8 @@ module Automation
                           target = '',
                           name_suffix = '')
         returned = ''
+        Log.log_debug('get_flrtvc_name type=' + type.to_s + ' target=' + target.to_s + ' name_suffix=' + name_suffix
+                                                                                                             .to_s)
         case type
         when :temp_dir
           returned = ::File.join(@root_dir,
@@ -174,41 +176,47 @@ module Automation
           Utils.check_directory(returned)
           # clean it
           FileUtils.rm_rf Dir.glob("#{returned}/*")
-          returned
         when :tar_dir
           returned = ::File.join(@root_dir,
                                  'tar_dir')
-          # check it exist
           Utils.check_directory(returned)
-          returned
         when :tempftp_download
           returned = ::File.join(@root_dir,
                                  'tempftp_download')
-          # check it exist
           Utils.check_directory(returned)
-          returned
         when :common_efixes
           returned = ::File.join(@root_dir,
                                  'common_efixes')
           Utils.check_directory(returned)
-          returned
         when :efixes
-          returned = ::File.join(@root_dir,
-                                 'efixes',
-                                 "#{target}_#{name_suffix}")
+          returned = ::File.join(Constants.output_dir,
+                                 'flrtvc')
           Utils.check_directory(returned)
-          returned
+          returned = ::File.join(returned,
+                                 "#{target}_#{name_suffix}")
         when :emgr
-          returned = ::File.join(@root_dir,
+          returned = ::File.join(Constants.output_dir,
+                                 'flrtvc')
+          Utils.check_directory(returned)
+          returned = ::File.join(returned,
                                  "#{target}_emgr.txt")
         when :filesets
-          returned = ::File.join(@root_dir,
+          returned = ::File.join(Constants.output_dir,
+                                 'flrtvc')
+          Utils.check_directory(returned)
+          returned = ::File.join(returned,
                                  "#{target}_filesets.txt")
         when :flrtvc
-          returned = ::File.join(@root_dir,
+          returned = ::File.join(Constants.output_dir,
+                                 'flrtvc')
+          Utils.check_directory(returned)
+          returned = ::File.join(returned,
                                  "#{target}_flrtvc.csv")
         when :lslpp
-          returned = ::File.join(@root_dir,
+          returned = ::File.join(Constants.output_dir,
+                                 'flrtvc')
+          Utils.check_directory(returned)
+          returned = ::File.join(returned,
                                  "#{target}_lslpp.txt")
         when :NIM_dir
           returned = ::File.join(@root_dir,
@@ -216,30 +224,36 @@ module Automation
                                  'emgr',
                                  'ppc')
           Utils.check_directory(returned)
-          returned
         when :NIM_res
           returned = "PAA_FLRTVC_#{target}"
         when :URL
-          returned = ::File.join(@root_dir,
+          returned = ::File.join(Constants.output_dir,
+                                 'flrtvc')
+          Utils.check_directory(returned)
+          returned = ::File.join(returned,
                                  "#{target}_URL.txt")
         when :YML
+          returned = ::File.join(Constants.output_dir,
+                                 'flrtvc')
+          Utils.check_directory(returned)
           returned = if name_suffix == 'lppminmax_of_fixes'
-                       ::File.join(@root_dir,
-                                   'common_efixes',
+                       ::File.join(returned,
                                    "#{name_suffix}.yml")
                      elsif name_suffix == 'all_listoffixes_per_url'
-                       ::File.join(@root_dir,
-                                   'common_efixes',
+                       ::File.join(returned,
                                    "#{name_suffix}.yml")
                      else
-                       ::File.join(@root_dir,
+                       ::File.join(returned,
                                    "#{target}_#{name_suffix}.yml")
                      end
-          returned
         else
-          returned = ::File.join(@root_dir,
+          returned = ::File.join(Constants.output_dir,
+                                 'flrtvc')
+          Utils.check_directory(returned)
+          returned = ::File.join(returned,
                                  type + "_#{target}.txt")
         end
+        Log.log_debug('get_flrtvc_name returned = ' + returned)
         returned
       end
 
@@ -342,7 +356,7 @@ module Automation
         Log.log_debug('status output=' + status_output.to_s)
         Log.log_debug('yaml_file_name=' + yaml_file_name.to_s)
         if !status_output.nil? && !status_output.empty?  \
-                                     && !yaml_file_name.nil? && !yaml_file_name.empty?
+                                        && !yaml_file_name.nil? && !yaml_file_name.empty?
           # Persist to yml
           status_yml_file = ::File.join(Constants.output_dir,
                                         'logs',

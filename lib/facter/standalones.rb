@@ -44,12 +44,12 @@ Facter.add('standalones') do
       # To shorten execution, skip some standalone, manage black list
       # To only keep standalones which are listed
       # Take model on perform same logic
-      if standalone != 'quimby03'
-        Log.log_info('Please note, to shorten execution ' + standalone + ' standalone is not kept.')
-        standalone_hash['WARNING'] = 'Standalone system skipped in aixautomation/lib/facter/standalones.rb'
-        standalones_skipped[standalone] = standalone_hash
-        next
-      end
+      # if standalone != 'quimby03'
+      #   Log.log_info('Please note, to shorten execution ' + standalone + ' standalone is not kept.')
+      #   standalone_hash['WARNING'] = 'Standalone system skipped in aixautomation/lib/facter/standalones.rb'
+      #   standalones_skipped[standalone] = standalone_hash
+      #   next
+      # end
 
       #### ping
       ping_cmd = '/usr/sbin/ping -c1 -w5 ' + standalone

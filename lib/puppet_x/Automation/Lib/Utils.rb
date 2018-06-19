@@ -122,7 +122,13 @@ module Automation
         standalones = Facter.value(:standalones)
         standalones_keys = []
         unless standalones.nil?
-          Log.log_debug('standalones=' + standalones.to_s)
+          for key1 in standalones.keys
+            Log.log_debug('standalone:' + key1)
+            values = standalones[key1]
+            for key2 in values.keys
+              Log.log_debug(' ' + key2 + '=>' + values[key2])
+            end
+          end
           standalones_keys = standalones.keys
           Log.log_debug('standalones_keys=' + standalones_keys.to_s)
           # Facter.value(:standalones).each do |standalone|

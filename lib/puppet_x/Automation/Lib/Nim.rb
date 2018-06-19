@@ -308,7 +308,7 @@ above error!" unless exit_status.success?
       # description : get location of NIM lpp_source resource
       # #######################################################################
       def self.get_location_of_lpp_source(lpp_source)
-        Log.log_info('Nim.get_location_of_lpp_source')
+        Log.log_debug('Nim.get_location_of_lpp_source')
         #
         returned = ''
         nim_command = "/usr/sbin/lsnim -a location #{lpp_source} | /bin/grep -w location | /bin/awk '{print $3}'"
