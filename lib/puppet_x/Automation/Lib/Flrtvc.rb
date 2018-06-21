@@ -351,16 +351,18 @@ module Automation
                       target,
                       yaml_file_name = '')
         Log.log_debug('Into step ' + step.to_s + ' target=' + target)
-        # status_output = {}
         status_output = Utils.status(target)
-        Log.log_debug('status output=' + status_output.to_s)
-        Log.log_debug('yaml_file_name=' + yaml_file_name.to_s)
+        Log.log_info(' target ' + target)
+        for key in status_output.keys
+          Log.log_info(' ' + key + '=>' + status_output[key])
+        end
         if !status_output.nil? && !status_output.empty?  \
                                         && !yaml_file_name.nil? && !yaml_file_name.empty?
           # Persist to yml
           status_yml_file = ::File.join(Constants.output_dir,
                                         'logs',
                                         yaml_file_name)
+          #Log.log_debug('yaml_file_name=' + yaml_file_name.to_s)
           File.write(status_yml_file, status_output.to_yaml)
           Log.log_info('Refer to "' + status_yml_file + '" to have status of "fix" ("flrtvc" provider)')
         end

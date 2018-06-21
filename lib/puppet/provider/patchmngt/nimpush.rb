@@ -66,13 +66,15 @@ on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lpp_sourc
       # set the default values
       returned = resource[:ensure].to_s == 'present'
 
-      # check the presence or the absence of all filesets on each verified target
+      # check the presence or the absence of filesets on each target
       filesets = Utils.get_filesets_of_lppsource(lpp_source)
+      Log.log_debug('Checking the presence or the absence of filesets on each target. Takes some time ... ')
 
       # nim -o lslpp -a filesets="openssl.base openssh.base.server"
       #   -a lslpp_flags=La quimby05
       targets_array.each do |target|
         begin
+          Log.log_debug('Checking the presence or the absence of filesets on ' + target + '. Takes some time ... ')
           nim('-o', 'lslpp', '-a', "filesets=\"#{filesets}\"", \
               '-a', 'lslpp_flags=La', target.to_s)
           if resource[:ensure].to_s == 'present'
@@ -134,14 +136,15 @@ on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lpp_sourc
           # to do update
         elsif resource[:ensure].to_s == 'absent'
           returned = false
-          Log.log_debug('To remove update')
+          #Log.log_debug('To remove update')
           # to do nothing
+          Log.log_info('Nothing to be done')
         end
       elsif mode == 'reject'
         if resource[:ensure].to_s == 'present'
           returned = true
-          Log.log_debug('To do nothing')
           # to do nothing
+          Log.log_info('Nothing to be done')
         elsif resource[:ensure].to_s == 'absent'
           returned = true
           Log.log_debug('To remove update : perform reject')
@@ -195,7 +198,10 @@ action on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lp
       results_status = {}
       targets_array.each do |target|
         status_output = Utils.status(target)
-        Log.log_debug('target=' + target + ' ' + status_output.to_s)
+        Log.log_debug('target=' + target)
+        for key in status_output.keys
+          Log.log_debug(' ' + key + '=>' + status_output[key])
+        end
         results_status[target] = status_output
       end
       # persist to yaml
@@ -365,7 +371,7 @@ targets with \"#{resource[:lpp_source]}\" lpp_source.")
       end
 
     when :reboot.to_s
-      Log.log_debug('Nothing to be done : not supported')
+      Log.log_info('Nothing to be done : not supported')
 
     else
       raise('"action" must be either "status", install", "update", or "reboot"')

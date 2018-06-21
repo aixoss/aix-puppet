@@ -126,20 +126,18 @@ for type=\"#{resource[:type]}\" into directory=\"#{resource[:root]}\" \
 from=\"#{resource[:from]}\" to \"#{resource[:to]}\" \
 lpp_source=.\"#{resource[:lpp_source]}\".")
 
-    Log.log_info('dir_metadata=' + @suma.dir_metadata)
-    Log.log_info('dir_lpp_sources=' + @suma.dir_lpp_sources)
-    Log.log_info('lpp_source=' + @suma.lpp_source)
+    Log.log_debug('dir_metadata=' + @suma.dir_metadata)
+    Log.log_debug('dir_lpp_sources=' + @suma.dir_lpp_sources)
+    Log.log_debug('lpp_source=' + @suma.lpp_source)
 
-    Log.log_debug('Cleaning directories')
-    # TO BE DONE ON OPTION ?
+    Log.log_info('Cleaning directories' + @suma.dir_lpp_sources + ' and ' + @suma.dir_metadata)
     rm('-r', '-f', @suma.dir_lpp_sources)
     rm('-r', '-f', @suma.dir_metadata)
+    Log.log_debug('Cleaning directories done')
 
-    Log.log_debug('Cleaning directories')
-
-    Log.log_debug('Nim.remove_lpp_source')
+    Log.log_info('Removing NIM lpp_source resource ' + @suma.lpp_source)
     Nim.remove_lpp_source(@suma.lpp_source)
-    Log.log_debug('Nim.remove_lpp_source')
+    Log.log_debug('Removing NIM lpp_source resource done')
 
     Log.log_debug('End of suma.destroy')
   end

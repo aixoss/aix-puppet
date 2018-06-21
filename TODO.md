@@ -27,7 +27,7 @@
 ** In case of updates of several LPARs, launch these updates in parallel, as each update is quite 
  long
 ** Update in preview mode only to see what would be done.
-  
+** Display manifests/init.pp at the beginning of the log, so that we can know what is being applied.  
   
   
 

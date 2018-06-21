@@ -126,16 +126,20 @@
  
 ### Command line    
   You can test ./manifests/init.pp manifest by using following command lines :<br>
-        puppet apply --noop --modulepath=/etc/puppetlabs/code/environments/production/modules \
+        /opt/puppetlabs/puppet/bin/puppet apply \ 
+          --noop --modulepath=/etc/puppetlabs/code/environments/production/modules \
           -e "include aixautomation"<br>
      or apply it without debug messages : <br>
-        puppet apply --modulepath=/etc/puppetlabs/code/environments/production/modules \
+        /opt/puppetlabs/puppet/bin/puppet apply \
+          --modulepath=/etc/puppetlabs/code/environments/production/modules \
           -e "include aixautomation"<br>
      or apply it with debug messages : <br>
-        puppet apply  --debug --modulepath=/etc/puppetlabs/code/environments/production/modules \
+        /opt/puppetlabs/puppet/bin/puppet apply  --debug \ 
+        --modulepath=/etc/puppetlabs/code/environments/production/modules \
           -e "include aixautomation"<br>
      or apply it with debug message and Puppet logs into a file : <br>
-        puppet apply --logdest=/etc/puppetlabs/code/environments/production/modules/output/logs/PuppetApply.log \
+        /opt/puppetlabs/puppet/bin/puppet apply \ 
+         --logdest=/etc/puppetlabs/code/environments/production/modules/output/logs/PuppetApply.log \
          --debug --modulepath=/etc/puppetlabs/code/environments/production/modules \
          -e "include aixautomation"<br>   
         Please note that if you use "--logdest" parameter, you won't see any output on the 
