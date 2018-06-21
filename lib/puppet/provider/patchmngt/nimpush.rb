@@ -23,11 +23,9 @@ Puppet::Type.type(:patchmngt).provide(:nimpush) do
   #      false       absent    do nothing               n/a
   # ###########################################################################
   def exists?
-    Log.log_info("Provider 'nimpush' exists! We want to realize : \
-                 \"#{resource[:ensure]}\" for \"#{resource[:action]}\" action \
-sync=\"#{resource[:sync]}\" mode=\"#{resource[:mode]}\" \
-on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" \
-lpp_source.")
+    Log.log_info("Provider nimpush 'exists?' method : we want to realize : \"#{resource[:ensure]}\" for \
+\"#{resource[:action]}\" action sync=\"#{resource[:sync]}\" mode=\"#{resource[:mode]}\" \
+on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lpp_source.")
     #
     targets = resource[:targets].to_s
     Log.log_debug('targets=' + targets)
@@ -173,10 +171,8 @@ lpp_source.")
   #
   # ###########################################################################
   def create
-    Log.log_info("Provider nimpush create.\
- Doing : \"#{resource[:ensure]}\" for \"#{resource[:action]}\" \
-action on \"#{resource[:targets]}\" targets \
-with \"#{resource[:lpp_source]}\" lpp_source.")
+    Log.log_info("Provider nimpush 'create' method : doing : \"#{resource[:ensure]}\" for \"#{resource[:action]}\" \
+action on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lpp_source.")
     #
     action = resource[:action].to_s
     sync = resource[:sync].to_s
@@ -294,7 +290,7 @@ with \"#{resource[:lpp_source]}\" lpp_source.")
   #
   # ###########################################################################
   def destroy
-    Log.log_info("Provider nimpush destroy. Doing : \"#{resource[:ensure]}\" \
+    Log.log_info("Provider nimpush 'destroy' method : doing : \"#{resource[:ensure]}\" \
 for \"#{resource[:action]}\" action on \"#{resource[:targets]}\" \
 targets with \"#{resource[:lpp_source]}\" lpp_source.")
     #

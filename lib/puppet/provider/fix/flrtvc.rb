@@ -21,8 +21,7 @@ Puppet::Type.type(:fix).provide(:flrtvc) do
   #      false       absent    do nothing               n/a
   # ###########################################################################
   def exists?
-    Log.log_info("Provider flrtvc exists! We want to realize up to \
-                 \"#{resource[:to_step]}\" : \"#{resource[:ensure]}\" \
+    Log.log_info("Provider flrtvc 'exists?' method : w want to realize up to \"#{resource[:to_step]}\" : \"#{resource[:ensure]}\" \
 for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
     #
     returned = true
@@ -37,7 +36,7 @@ if resource[:ensure].to_s == 'present' || resource[:to_step].to_s == 'status'
   # rubocop:disable Metrics/BlockNesting
   # ###########################################################################
   def create
-    Log.log_info("Provider flrtvc create : doing up \
+    Log.log_info("Provider flrtvc 'create' method : doing up \
 to \"#{resource[:to_step]}\" : \"#{resource[:ensure]}\" \
 for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
     #
@@ -150,7 +149,7 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
   #
   # ###########################################################################
   def destroy
-    Log.log_info("Provider flrtvc destroy : doing \"#{resource[:ensure]}\" \
+    Log.log_info("Provider flrtvc 'destroy' method : doing \"#{resource[:ensure]}\" \
 for targets=\"#{resource[:targets]}\" and clean=\"#{resource[:clean]}\" \
 directory=\"#{resource[:root]}\"")
     #

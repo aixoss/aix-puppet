@@ -26,11 +26,9 @@ Puppet::Type.type(:download).provide(:suma) do
   #      false       absent    do nothing               n/a
   # ###########################################################################
   def exists?
-    Log.log_info("Provider suma exists! We want to realize : \
-                 \"#{resource[:ensure]}\" for type=\"#{resource[:type]}\" \
-into directory=\"#{resource[:root]}\" \
-from=\"#{resource[:from]}\" to \"#{resource[:to]}\" \
-lpp_source=\"#{resource[:lpp_source]}\" force=#{resource[:force]}.")
+    Log.log_info("Provider suma 'exists?' method : we want to realize : \"#{resource[:ensure]}\" for \
+type=\"#{resource[:type]}\" into directory=\"#{resource[:root]}\" from=\"#{resource[:from]}\" \
+to \"#{resource[:to]}\" lpp_source=\"#{resource[:lpp_source]}\" force=#{resource[:force]}.")
     creation_done = true
     Log.log_debug('Suma.new')
     @suma = Suma.new([resource[:root],
@@ -78,7 +76,7 @@ lpp_source=\"#{resource[:lpp_source]}\" force=#{resource[:force]}.")
   #
   # ###########################################################################
   def create
-    Log.log_info("Provider suma create. Doing \"#{resource[:ensure]}\" \
+    Log.log_info("Provider suma 'create' method : doing \"#{resource[:ensure]}\" \
 for type=\"#{resource[:type]}\" into directory=\"#{resource[:root]}\" \
 from=\"#{resource[:from]}\" to \"#{resource[:to]}\" \
 lpp_source=\"#{resource[:lpp_source]}\".")
@@ -123,7 +121,7 @@ lpp_source=\"#{resource[:lpp_source]}\".")
   #
   # ###########################################################################
   def destroy
-    Log.log_info("Provider suma destroy. Doing \"#{resource[:ensure]}\" \
+    Log.log_info("Provider suma 'destroy' method : doing \"#{resource[:ensure]}\" \
 for type=\"#{resource[:type]}\" into directory=\"#{resource[:root]}\" \
 from=\"#{resource[:from]}\" to \"#{resource[:to]}\" \
 lpp_source=.\"#{resource[:lpp_source]}\".")

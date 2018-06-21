@@ -9,13 +9,24 @@
 #     targets  => "quimby01 quimby02 quimby03 quimby04 quimby05 quimby06 quimby07 quimby08 quimby09 quimby10 quimby11 quimby12",
 #   }
 # }
+class aixautomation {
+  patchmngt { "update castor8 to 7100-04-01-1543":
+    # provider   => nimpush,
+    ensure     => present,
+    # name       => "update quimby01/02 to 7100-04-01-1543",
+    #  action     => "update",
+    targets    => "castor8",
+    sync       => "yes",
+    lpp_source => "PAA_SP_7100-04_7100-04-01-1543",
+  }
+}
 # class aixautomation {
 #   fix { "ifix_install":
 #     provider => flrtvc,
 #     name     => "ifix_install",
-#     ensure   => present,
-#     to_step  => "installResource",
-#     targets  => "quimby01",
+#     ensure   =>  present,
+#     to_step  => "installResources",
+#     targets  => "quimby01 quimby02 quimby03 quimby04 quimby05 quimby06 quimby07 quimby08 quimby09 quimby10 quimby11 quimby12",
 #     clean    => "yes",
 #     root     => "/export/extra/puppet/flrtvc",
 #   }
@@ -37,20 +48,30 @@
 #   - 7100-04-03-1643
 #   - 7100-04-04-1717
 #   - 7100-04-05-1720
-class aixautomation {
-  download { "test PAA_SP_7100-04_7100-04-01-1543":
-    provider   => suma,
-    ensure     => present,
-    name       => "test PAA_SP_7100-04_7100-04-01-1543",
-    type       => "SP",
-    root       => "/exports/extra/puppet/suma",
-    from       => "7100-04",
-    to         => "7100-04-01-1543",
-    to_step    => "download",
-    force      => "yes",
-    lpp_source => "PAA_SP_7100-04_7100-04-01-1543",
-  }
-}
+# class aixautomation {
+#   download { "test PAA_SP_7100-04_7100-04-01-1543":
+#     provider   => suma,
+#     ensure     => present,
+#     name => '1',
+#     type       => "SP",
+#     root       => "/exports/extra/puppet/suma",
+#     from       => "7100-04",
+#     to         => "7100-04-01-1543",
+#     to_step    => "download",
+#     lpp_source => "PAA_SP_7100-04_7100-04-01-1543",
+#   }
+#   download { "tes2t PAA_SP_7100-04_7100-04-01-1543":
+#     provider   => suma,
+#     ensure     => present,
+#     name => '2',
+#     type       => "SP",
+#     root       => "/exports/extra/puppet/suma",
+#     from       => "7100-04",
+#     to         => "7100-04-01-1543",
+#     to_step    => "download",
+#     lpp_source => "PAA_SP_7100-04_7100-04-01-1543",
+#   }
+# }
 # download { "test PAA_SP_7100-04_7100-04-02-1614":
 #   provider => suma,
 #   ensure => present,
