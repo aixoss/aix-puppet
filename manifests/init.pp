@@ -74,28 +74,28 @@ class aixautomation {
     lpp_source => "PAA_SP_7100-04-02-1614_7100-04-05-1720",
   }
   # quimby05
-  download { "test PAA_SP_7100-04-03-1642_7100-04-04-1717":
+  download { "test PAA_SP_7100-04-03-1643_7100-04-04-1717":
     provider   => suma,
     ensure     => present,
-    name       => "test PAA_SP_7100-04-03-1642_7100-04-04-1717",
+    name       => "test PAA_SP_7100-04-03-1643_7100-04-04-1717",
     type       => "SP",
     root       => "/exports/extra/puppet/suma",
-    from       => "7100-04-03-1642",
+    from       => "7100-04-03-1643",
     to         => "7100-04-04-1717",
     to_step    => "download",
-    lpp_source => "PAA_SP_7100-04-03-1642_7100-04-04-1717",
+    lpp_source => "PAA_SP_7100-04-03-1643_7100-04-04-1717",
   }
   # quimby06
-  download { "test PAA_SP_7100-04-03-1642_7100-04-05-1720":
+  download { "test PAA_SP_7100-04-03-1643_7100-04-05-1720":
     provider   => suma,
     ensure     => present,
-    name       => "test PAA_SP_7100-04-03-1642_7100-04-05-1720",
+    name       => "test PAA_SP_7100-04-03-1643_7100-04-05-1720",
     type       => "SP",
     root       => "/exports/extra/puppet/suma",
-    from       => "7100-04-03-1642",
+    from       => "7100-04-03-1643",
     to         => "7100-04-05-1720",
     to_step    => "download",
-    lpp_source => "PAA_SP_7100-04-03-1642_7100-04-05-1720",
+    lpp_source => "PAA_SP_7100-04-03-1643_7100-04-05-1720",
   }
   # quimby07
   download { "test PAA_SP_7100-05_7100-05-01-1731":
@@ -142,24 +142,24 @@ class aixautomation {
     lpp_source => "PAA_SP_7100-04-02-1614_7100-04-05-1720",
   }
   # quimby05
-  patchmngt { "update quimby05 to PAA_SP_7100-04-03-1642_7100-04-04-1717":
+  patchmngt { "update quimby05 to PAA_SP_7100-04-03-1643_7100-04-04-1717":
     provider   => nimpush,
     ensure     => present,
-    name       => "update quimby05 to PAA_SP_7100-04-03-1642_7100-04-04-1717",
+    name       => "update quimby05 to PAA_SP_7100-04-03-1643_7100-04-04-1717",
     action     => "update",
     targets    => "quimby05",
     sync       => "yes",
-    lpp_source => "PAA_SP_7100-04-03-1642_7100-04-04-1717",
+    lpp_source => "PAA_SP_7100-04-03-1643_7100-04-04-1717",
   }
   # quimby06
-  patchmngt { "update quimby06 to PAA_SP_7100-04-03-1642_7100-04-05-1720":
+  patchmngt { "update quimby06 to PAA_SP_7100-04-03-1643_7100-04-05-1720":
     provider   => nimpush,
     ensure     => present,
-    name       => "update quimby06 to PAA_SP_7100-04-03-1642_7100-04-05-1720",
+    name       => "update quimby06 to PAA_SP_7100-04-03-1643_7100-04-05-1720",
     action     => "update",
     targets    => "quimby06",
     sync       => "yes",
-    lpp_source => "PAA_SP_7100-04-03-1642_7100-04-05-1720",
+    lpp_source => "PAA_SP_7100-04-03-1643_7100-04-05-1720",
   }
   # quimby07
   patchmngt { "update quimby07 to PAA_SP_7100-05_7100-05-01-1731":

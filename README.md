@@ -20,17 +20,17 @@
  By software maintenance operations we mean : updates of AIX levels, updates of efix.<br>   
  Necessary AIX level updates are automatically downloaded from FixCentral using 'suma' 
   functionalities, and are locally kept and shared between LPARs if possible.<br>
- Updates can be automatically applied on a list of LPARs, through 'nim push' operation, 
-  therefore everything runs from the NIM server, and nothing needs to be installed on 
-  LPARs themselves.<br>
- List of necessary efix is computed (per each LPAR) and retrieved using 'flrtvc', 
-  downloaded, kept locally (in a local repository on the system where this Puppet module 
+ Downloaded updates can then be automatically applied on a list of LPARs, through 'nim push' 
+  operations, therefore everything (i.e. all aixautomation logic) runs from the NIM server, 
+  and nothing needs to be installed on LPARs themselves.<br>
+ List of necessary efix is computed (for each LPAR) and retrieved using 'flrtvc', 
+  downloaded, kept locally (in a local repository of the system where this Puppet module 
   runs), and they are kept in a way they can be shared between LPARs. Each LPAR has its 
-  own list of efix to be applied, depending on its level, the current list of efix already 
-  applied. Theses efix are then applied on each LPAR of the list (after being sorted 
-  by 'PACKAGING DATE' : so that most recent are applied first), by using NIM push mode : 
-  updates are performed from the NIM server without performing any operation on the 
-  LPARs themselves, therefore without installing anything on these LPARs. 
+  own list of efix to be applied, depending on its level and depending on the current list 
+  of efix already applied. Theses efix are then applied on each LPAR of the list 
+  (after being sorted by 'PACKAGING DATE' : so that most recent ones are applied first). 
+  This operation is done by using NIM push mode (therefore as already said without performing 
+  any operation on the LPARs themselves, therefore without installing anything on these LPARs). 
 
 ## Setup
 ### Setup Requirements 
@@ -51,34 +51,41 @@
     "/opt/puppetlabs/puppet/bin/ruby -version" returns "ruby 2.4.2p198 (2017-09-14 revision 59899)" 
   
 ### Setup aixautomation module
- Module aixautomation (aixautomation.tar) needs to be untarred into 
+#### Clone into AIX_AUTOMATION_DIR directory 
+ Module aixautomation needs to be installed into 
   /etc/puppetlabs/code/environments/production/modules, which is the install directory
-  referred as INST_DIR below.<br>
- By untarring aixautomation.tar, you'll build INST_DIR/aixautomation directory, which is 
-  referred as AIX_AUTOMATION_DIR below. 
+  referred as <b>INST_DIR</b> below.<br>
+ You can do this by performing:<br>  
+   - (current) git clone https://github.com/aix-puppet/aixautomation.git<br> 
+   - (future) git clone https://github.com/aixoss/aix-puppet/aixautomation.git<br>
+ into INST_DIR repository.
+ This creates INST_DIR/aixautomation directory, which is referred as <b>AIX_AUTOMATION_DIR</b> 
+  below. <br> 
  <b>All relative paths below are related to this AIX_AUTOMATION_DIR directory.</b><br>
-  
+#### ./manifests/init.pp file  
  All aixautomation module setups are done through the ./manifests/init.pp file.<br>
+#### Prerequisites 
  As a prerequisites of aixautomation Puppet module, NIM configuration between NIM server
   (on which this Puppet module runs), and the LPARs (on which software maintenance 
   operations are performed) needs to be properly set : all LPARs which can either 
   not be accessible thru a simple 'ping -c1 -w5 <lpar>' command or thru a 
   simple 'c_rsh' command will be excluded from the list of targets on which 
   ./manifests/init.pp will be applied. <br>
-      
+     
  List of LPARs on which rules can be applied is retrieved thru NIM server by 
   getting list of standalones.<br>
  For advanced users who know 'ruby' language : if this list of standalones 
   is too large, and to spare time, you can skip some standalones by manually 
-  editing ./aixautomation/lib/factor/standalones.rb : search for 'To shorten 
-  execution', and use sample of code to perform the same logic of white list,
-  or black list.  
+  editing ./lib/factor/standalones.rb : search for 'To shorten 
+  execution', and use the two samples of code which are provided, one sample 
+  to work on white list, and one sample to work on black list.  
  
 ### What aixautomation module affects 
  This module requires available disk space to store updates downloaded from FixCentral, 
   and to store downloaded eFix. By default downloads are performed into '/tmp', but a 
-  more appropriate directory needs to be set into ./manifests/init.pp ('root' parameter 
-  of 'download' clause for AIX updates, and 'root' parameter of 'fix' clause for efix). 
+  more appropriate file system definitely needs to be chosen and then set into 
+  ./manifests/init.pp ('root' parameter of 'download' clause for AIX updates, and 'root' 
+  parameter of 'fix' clause for efix).  
   File system on which downloads are performed is automatically increased (100 MB each 
   time) if necessary (if system allows).<br>
  This module will perform AIX software updates of your systems, and install (or remove) 
@@ -97,15 +104,16 @@
 ## Usage
 ### Sample of manifest : init.pp
  Some commented samples are provided in ./examples/init.pp, and should be 
-  used as a starting point, to customize ./manifests/init.pp 
+  used as a starting point, to customize ./manifests/init.pp which is the manifest file
+   used by the puppet apply command. 
 
 ### Logs
- The Puppet.debug('message') method is used in Puppet framework and as well in aixautomation 
-  and these debug messages can be seen with the use of Puppet "--debug" flag on 
-  the command line.<br> 
-  All other level ("info", "warning", "error") are displayed without condition.<br>   
+ The "Puppet.debug('message')" method is used in Puppet framework and as well in 
+  aixautomation module and debug messages can only be seen with the use of Puppet 
+  "--debug" flag on the command line.<br> 
+ All other levels ("info", "warning", "error") are displayed without condition.<br>   
  These Puppet log messages are displayed on console output.<br> 
- You can redirect all Puppet output to one file with the use of Puppet 
+ You can redirect Puppet framework outputs to one file with the use of this option :  
   "--logdest=/etc/puppetlabs/code/environments/production/modules/output/logs/logfile.txt" on 
   the command line. 
  
@@ -117,12 +125,14 @@
    in any case.
  
 ### Installation directory 
-  As said already, aixautomation module is installed into /etc/puppetlabs/code/environments/production/modules :<br> 
-   /etc/puppetlabs/code/environments/production/modules/aixautomation, and all relative paths in this README 
-   are relative to /etc/puppetlabs/code/environments/production/modules/aixautomation.<br>
-  The aixautomation module generates all outputs under this directory, except downloads of updates and ifixes 
-   which are performed under 'root' directories mentioned into ./manifests/init.pp file, (ou have one 'root'
-   parameter for 'download' and one 'root' directory for 'fix').  
+  As said already, aixautomation module is installed into /etc/puppetlabs/code/environments/production/modules 
+  (called INST_DIR) :<br> 
+   /etc/puppetlabs/code/environments/production/modules/aixautomation (called AIXAUTOMATION_DIR), 
+   and all relative paths in this README are relative to this AIXAUTOMATION_DIR directory.<br>
+  The aixautomation module generates all outputs under this directory (under ./output), 
+  except downloads of updates and ifixes which are performed under 'root' directories mentioned 
+  into ./manifests/init.pp file, (ou have one 'root' parameter for 'download' and one 'root' directory 
+  for 'fix').  
  
 ### Command line    
   You can test ./manifests/init.pp manifest by using following command lines :<br>
@@ -155,19 +165,19 @@
        white list or black list of standalones to shorten execution.<br>
     - (preparation for) vios  : you'll find results on this factor into ./output/facter/vios_kept.yml file, 
        and into ./output/facter/vios_skipped.yml file.<br> 
-    - servicepacks : you'll find results on this factor into ./output/facter/sp_per_tl.yml file, if this 
-       file does not exist, it is computed by automatically downloading Suma metadata files, all 
-       Suma metadata files are temporarily downloaded under ./output/facter/suma, but are removed at the end, 
-       when new ./output/facter/sp_per_tl.yml file is generated. Please note that as part of this computing,
-       metadata downloads are attempted for SP of each TL until repeatedly errors occur, meaning that the last 
-       SP do not exist. Therefore it is normal to have errors when we reach non-existing SP, this is the way 
-       which is used to go until last existing SP.  
+    - servicepacks : you'll find results on this factor into ./output/facter/sp_per_tl.yml file. If this 
+       file does not exist when "Puppet apply" is launched, it is computed by automatically downloading 
+       Suma metadata files, all Suma metadata files are temporarily downloaded under ./output/facter/suma, 
+       but are removed at the end, when new ./output/facter/sp_per_tl.yml file is generated. 
+       Please note that as part of this computing, metadata downloads are attempted for SP of each TL until 
+       repeatedly errors occur, meaning that the last SP do not exist. Therefore it is normal to have errors 
+       when we reach non-existing SP, this is the way which is used to go until last existing SP.  
         
     
  
 ### Custom types and providers
  Three custom type and their providers constitute the aixautomation module.<br>
- All custom-types utilization are documented into ./examples/init.pp<br>
+ All custom types utilizations are documented into ./examples/init.pp<br>
  
  #### Custom type : download (provider : suma)
  ##### Parameters
@@ -176,27 +186,28 @@
    - <b>ensure</b> : to control flow of execution, this parameter can take two values, either 
    <b>present</b> or <b>absent</b>. By default <b>present</b> is assumed. 
    If set the <b>present</b>, suma command will be attempted so that what is set into parameters is 
-    performed.
+    performed : suma downloads accrding to prameters values. <br> 
    If set to <b>absent</b>, result of previous <b>present</b> run is clean : NIM lpp_source resource 
     is cleaned, and results of suma downloads is removed from disks.     
    - <b>name</b> : not a mandatory property if you have only one 'download' clause in 
    ./manifests/init.pp. Otherwise (multiple 'download' clauses), this property is necessary  
-   to uniquely identify the download to be performed : you can have several 'download' 
+   to uniquely identify the suma download to be performed : you can have several 'download' 
    clauses in ./manifests/init.pp, each of them being uniquely identified. 
    - <b>root</b> : root directory to store results of suma download. This root directory should reside 
-   on a file system separated from the one which hosts the system itself. This root directory needs 
-   to be large enough to contain system updates, and should be a exportable file system, so that NIM 
-   can build NIM lpp_source resource and perform a mount from the remote LPARs.      
-   - <b>type</b> : type of suma downloads. Three possible values : <b>SP</b> to suma download a service 
+   on a file system separated from the one which hosts the system itself, and preferably different from /tmp. 
+   This root directory needs to be large enough to contain system updates, and should be a exportable file 
+   system, so that NIM can build NIM lpp_source resource and perform a mount from the remote LPARs. 
+   <i>Note : jfs jfs2 and others considerations to be added</i>  
+   - <b>type</b> : type of suma downloads. Three possible values : <b>SP</b> to suma-download a service 
    pack, i.e. what allows you to update from a XXXX-YY technical level to any service packs of this 
-   technical level. <b>TL</b> to suma download a technical level, so that you system gets updated 
-   to a new technical level. <b>Latest</b> to suma download the last service pack of a given technical
-    level.  A last possible value is possible : <b>Meta</b> but is reserved for internal use.   
-   - <b>from</b> : parameter used to launch suma download command, containing the starting level 
+   technical level. <b>TL</b> to suma-download a technical level, so that you system gets updated 
+   to a new technical level. <b>Latest</b> to suma-download the last service pack of a given technical
+    level. A last value is possible : <b>Meta</b> but is reserved for internal use.   
+   - <b>from</b> : parameter used to launch suma-download command, indicating the starting level 
    of desired updates. For example by indicating <b>7100-01</b>, it means download contains everything 
-   to update from this <b>7100-01</b> technical level, or  by indicating <b>100-01-02-1150</b>, it 
+   to update from this <b>7100-01</b> technical level, or by indicating <b>100-01-02-1150</b>, it 
    means download contains everything to update from this <b>7100-01-02-1150</b> service pack.
-   - <b>to</b> : parameter used to launch suma download command, containing the level of updates 
+   - <b>to</b> : parameter used to launch suma-download command, indicating the level of updates 
    desired. For example by indicating <b>7100-03</b>, it means download contains everything to 
    update up to this <b>7100-03</b> technical level, or  by indicating <b>7100-01-08-1642</b>, it 
    means download contains everything to update up to this <b>7100-01-08-1642</b> service pack.
@@ -212,8 +223,8 @@
    <b>yes</b> and <b>no</b>. By default, <b>no</b> is assumed, meaning that suma download won't be 
    done again if expected results of suma download can be found under <b>root</b> directory. 
    If set to <b>yes</b>, this parameter can force a new suma download (even if this suma download 
-   was already done, and can be found under <b>root</b> directory) and can force the building of a 
-   new NIM lpp_source resource (even if this NIM lpp_source resource already exists). 
+   was already done, and if it can be found under <b>root</b> directory) and can force the building 
+   of a new NIM lpp_source resource (even if this NIM lpp_source resource already exists). 
 ##### Explanations
  The aim of this provider is to provide download services using suma functionality.<br>
  Suma requests are generated so that updates are downloaded from Fix Central.<br>
@@ -221,13 +232,15 @@
   download updates, keep this file system separated from the system so prevent saturation.<br>   
  At a preliminary step, suma <b>metadata</b> are downloaded if ever they are not locally 
   present into './output/facter/sp_per_tl.yml' file : this file gives for each possible technical 
-  level the list of available service packs.<br> 
- It is a good practice to consider that the './output/facter/sp_per_tl.yml' delivered is maybe
-  not up-to-date, and therefore let 'suma' provider downloads metadata 'in live' 
-  and compute a more recent version of './output/facter/sp_per_tl.yml'. To perform this, you can rename 
-  './output/facter/sp_per_tl.yml' to './output/facter/sp_per_tl.yml.saved' so that this 
-  './output/facter/sp_per_tl.yml' is computed again. You should perform this operation once in a 
-  while (every month or so).<br>
+  level the list of available service packs.<br>
+ You have as a reference a './output/facter/sp_per_tl.yml.June_2018' delivered file which is the 
+  file computed from Metadata in June 2018.<br>  
+ Regularly, is a good practice to consider that the './output/facter/sp_per_tl.yml' 
+  is maybe not up-to-date, and therefore let 'suma' provider downloads metadata 'in live' 
+  and compute a more recent version of './output/facter/sp_per_tl.yml'. To perform this, you can 
+  rename existing './output/facter/sp_per_tl.yml' to './output/facter/sp_per_tl.yml.saved' 
+  so that this './output/facter/sp_per_tl.yml' is computed again. You should perform this operation 
+  once in a while (every month or so).<br>
  Various types of suma downloads can be performed : either "SP", or "TL", or "Latest" :<br>
   - "SP" contains everything update system on a given Technical Level.<br>
   - "TL" contains everything to update system from a Technical Level to another 
@@ -248,7 +261,9 @@
    the results of downloads are available. Set this 'force' parameter to 'yes' to force 
    downloads again. In that case 'preview' is done only if explicitly required. 
    By default 'force is set to 'no', meaning all previous downloads are kept and reused, this 
-   can spare a lot of time.   
+   can spare a lot of time. <br>  
+ You'll find samples of suma downloads into ./examples/init.pp.<br>
+  
  #### Custom type : patchmngt (provider : nimpush)
  ##### Parameters
    - <b>provider</b> : this parameter is not mandatory, if mentioned it needs to contain name of 
@@ -256,32 +271,33 @@
    <b>nimpush</b>.  
    - <b>ensure</b> : to control flow of execution, this parameter can take two values, either 
    <b>present</b> or <b>absent</b>. By default <b>present</b> is assumed. 
-   If set the <b>present</b>, nim push command will be attempted so that what is set 
-   into parameters is performed.
-   If set to <b>absent</b>, .     
-   - <b>name</b> : to uniquely identify the download to be performed. You can have 
-   several 'patchmngt' clauses in ./manifests/init.pp, each of them being uniquely 
-   identified. 
+   If set the <b>present</b>, nim push operation will be attempted so that what is set 
+   into parameters is performed.<br>
+   If set to <b>absent</b>,  <i> missing </i>.     
+   - <b>name</b> : not a mandatory property if you have only one 'patchmngt' clause in 
+   ./manifests/init.pp. Otherwise (multiple 'patchmngt' clauses), this property is necessary  
+   to uniquely identify the nim push operation to be performed : you can have several 'patchmngt' 
+   clauses in ./manifests/init.pp, each of them being uniquely identified.<br> 
   - <b>action</b> : action to be performed. This parameter can take several values : <b>install</b>, 
    <b>update</b>, <b>reboot</b>, <b>status</b>. By default, <b>status</b> is assumed.
-   <b>install</b> action enables installation (or un-installation) of a lpp_source, <b>update</b> 
-   action enables update of a system (installation of a service pack or installation of a technical
-   level), <b>reboot</b> action enables to launch reboot of LPARs. <b>status</b> action displays
-   version level and efix information related to LPARs.       
-  - <b>lpp_source</b> : name of the NIM lpp_source resource to be installed/un-installed or which needs to be 
-  used to performed system update. In case of update, this lpp_source is the one which was built by 
-  a previous 'download' clause (results of suma downloads). 
-  - <b>targets</b> : names of the LPARs on which to perform action
+   <b>install</b> action enables installation (or un-installation depending on the <b>ensure</b> value) 
+   of a lpp_source, <b>update</b> action enables update of a system (installation of a service pack or 
+   installation of a technical level), <b>reboot</b> action enables to launch reboot of LPARs. 
+   <b>status</b> action displays version level and efix information related to LPARs.       
+  - <b>lpp_source</b> : name of the NIM lpp_source resource to be installed/un-installed or which 
+  needs to be used to performed system update. In case of update, this lpp_source is the one which 
+  was built by a previous 'download' clause (results of suma downloads). 
+  - <b>targets</b> : names of the LPARs on which to perform action.
   - <b>sync</b> : if action needs to be done synchronously or asynchronously. Two possible values for this 
   parameter : <b>yes</b> and <b>no</b>. By default, <b>no</b> is assumed.  
  ##### Explanations
  The aim of this provider is to provide software maintenance operations on a list of LPARs 
   using NIM push mode. Everything is performed from the NIM server on which this aixautomation 
   Puppet module runs.<br>   
- This NIM push mode can use Suma downloads performed by Suma provider, as preliminary step, 
+ This NIM push mode can use suma downloads performed by suma provider, as preliminary step, 
   by using into 'lpp_source' parameter the lpp_source which was created by 'suma' provider.<br>
  Software maintenance operations include : install and updates.<br>
- You'll find samples of install and update into ./manifests/init.pp.<br> 
+ You'll find samples of install and update into ./examples/init.pp.<br> 
   
     
  #### Custom type : fix (provider : flrtvc)
@@ -293,23 +309,23 @@
    <b>present</b> or <b>absent</b>. By default <b>present</b> is assumed. 
    If set the <b>present</b>, efix are installed by running all steps. If set to <b>absent</b>, 
    efix are removed.     
-   - <b>name</b> : to uniquely identify the fix to be performed. You can have 
-   several 'fix' clauses in ./manifests/init.pp, each of them being uniquely 
-   identified. 
+   - <b>name</b> : not a mandatory property if you have only one 'fix' clause in 
+   ./manifests/init.pp. Otherwise (multiple 'fix' clauses), this property is necessary  
+   to uniquely identify the flrtvc operation to be performed : you can have several 'fix' 
+   clauses in ./manifests/init.pp, each of them being uniquely identified.<br> 
    - <b>to_step</b> : : to control flow of execution up to a given step. Possible values : 
    <b>installFlrtvc</b>, <b>runFlrtvc</b>, <b>parseFlrtvc</b>, <b>downloadFixes</b>, 
    <b>checkFixes</b>, <b>buildResource</b>, <b>installResource</b>. All these steps are 
-   performed in the provided order, but you can interrupt execution afetr any given step. 
-   By default, <b>installResource</b> is assumed, meaning all steps are done. You can 
-   perform flrtvc execution until the step you choose, by setting this parameter to 
-   the desired step. 
+   performed in the given order above, but you can interrupt execution after any given step, 
+   by using this <b>to_step</b> parameter. <br>
+   By default, <b>installResource</b> is assumed, meaning all steps are done.<br> 
    - <b>targets</b> : names of the LPARs on which to perform flrtvc steps.
-   - <b>force</b>  : to force all flrtvc steps to be done again. Two possible values for this 
-   parameter : <b>yes</b> and <b>no</b>. By default, <b>yes</b> is assumed, meaning all previous 
-   results of any flrtvc runs (which are persisted into yaml files) are not kept, and 
-   computed again. If ever you want to spare time, and reuse previous flrtvc results, or if you 
-   want or run flrtvc step by step (refer to <b>to_step</b> parameter), you can keep previous results 
-   by setting this parameter to <b>no</b>. 
+   - <b>force</b>  : to force all flrtvc steps to be done again without exploiting any 
+   persisted information. Two possible values for this parameter : <b>yes</b> and <b>no</b>. 
+   By default, <b>yes</b> is assumed, meaning all previous results of any flrtvc runs (which are 
+   persisted into yaml files) are not kept, and computed again. If ever you want to spare time, 
+   and reuse previous flrtvc results, or if you want or run flrtvc step by step (refer to 
+   <b>to_step</b> parameter), you can keep previous results by setting this parameter to <b>no</b>. 
    - <b>root</b> : root directory to store results of flrtvc download. This root directory should 
    reside on a file system separated from the one which hosts the system itself. This root 
    directory needs to be large enough to contain efix updates, and should be a exportable file 
@@ -331,18 +347,18 @@
  Executions can be stopped after any step, and this is controlled thru the 'to_step' parameter 
   into ./manifests/init.pp.<br>
  Each step persists its results into a yaml file, which can be found into 
-  ./aixautomation/output/flrtvc directory.<br> 
+  ./output/flrtvc directory.<br> 
  All yaml files can be reused between two executions, to spare time if ever the external 
-  conditions have not changed, this is controlled thru the 'clean' parameter which needs 
-  then to be set to 'no'. By default it is set to 'true', meaning the previously computed 
+  conditions have not changed, this is controlled thru the 'force' parameter which needs 
+  then to be set to 'no'. By default it is set to 'yes', meaning the previously computed 
   yaml files are not used.<br>
  eFix are sorted by 'Packaging Date' before being applied, i.e. most recent first. It could 
   occur that one particular eFix prevents another one (less recent) from being installed if 
   they touch the same file.<br>
  At the end of execution of this provider, you'll find into : <br>
-  - ./aixautomation/output/logs/PuppetAix_StatusBefore_<target>.yml : how were the <target> 
+  - ./output/logs/PuppetAix_StatusBefore_<target>.yml : how were the <target> 
     LPAR before eFix installation.<br> 
-  - ./aixautomation/output/logs/PuppetAix_StatusAfter_<target>.yml : how are the <target> 
+  - ./output/logs/PuppetAix_StatusAfter_<target>.yml : how are the <target> 
     LPARs after eFix installation.<br>
         
 ## Limitations
@@ -357,8 +373,8 @@
  ### Last changes documented
  #### 0.5.1:
    - fix the automatic installation of "/usr/bin/flrtvc.ksh" if this file is missing 
-   - renaming of "./aixautomation/output/facter/sp_per_tl.yml" file to 
-     "./aixautomation/output/facter/sp_per_tl.yml.June_2018", 
+   - renaming of "./output/facter/sp_per_tl.yml" file to 
+     "./output/facter/sp_per_tl.yml.June_2018", 
      so that this file is generated at least once after installation. This file contains
      the matches between Technical Levels and Service Packs for all releases.<br>      
  #### 0.5.2:
@@ -367,17 +383,17 @@
     "preview" is performed. By default "download" is performed.<br> 
  #### 0.5.3:
    - validation messages of custom type contain contextual messages<br> 
-   - move all outputs into ./aixautomation/output directory : logs are now into 
-   ./aixautomation/output/logs, facter results are now into ./aixautomation/output/facter.<br>
+   - move all outputs into ./output directory : logs are now into 
+   ./output/logs, facter results are now into ./output/facter.<br>
  #### 0.5.4:
    - add status before and after ifix removal, as these status exist before and after ifix 
     installation. Commonnalize status output persistance into Flrtvc.step_status
     method.<br>
     These files can be found:<br> 
-     ./aixautomation/output/logs/PuppetAix_StatusAfterInstall.yml<br>
-     ./aixautomation/output/logs/PuppetAix_StatusAfterRemoval.yml<br>
-     ./aixautomation/output/logs/PuppetAix_StatusBeforeInstall.yml<br>
-     ./aixautomation/output/logs/PuppetAix_StatusBeforeRemoval.yml<br>
+     ./output/logs/PuppetAix_StatusAfterInstall.yml<br>
+     ./output/logs/PuppetAix_StatusAfterRemoval.yml<br>
+     ./output/logs/PuppetAix_StatusBeforeInstall.yml<br>
+     ./output/logs/PuppetAix_StatusBeforeRemoval.yml<br>
    - better management of downloads : for example for timeout on ftp download, the failed urls
     are identified as being in failure, and are listed at the end of download phase. If you run
     flrtvc a second time, after a fist time which had download failures, only failed urls
@@ -388,10 +404,10 @@
    Several bugs fixed : 
    - One status file per target is necessary, otherwise if several 'fix' clauses, then last one 
      overrides previous ones. Therefore we'll have these files 
-     ./aixautomation/output/logs/PuppetAix_StatusAfterInstall_<target>.yml<br>
-     ./aixautomation/output/logs/PuppetAix_StatusAfterRemoval_<target>.yml<br>
-     ./aixautomation/output/logs/PuppetAix_StatusBeforeInstall_<target>.yml<br>
-     ./aixautomation/output/logs/PuppetAix_StatusBeforeRemoval_<target>.yml<br>
+     ./output/logs/PuppetAix_StatusAfterInstall_<target>.yml<br>
+     ./output/logs/PuppetAix_StatusAfterRemoval_<target>.yml<br>
+     ./output/logs/PuppetAix_StatusBeforeInstall_<target>.yml<br>
+     ./output/logs/PuppetAix_StatusBeforeRemoval_<target>.yml<br>
    - Persistence of flrtvc information commmon to all targets into two files
        so that these files are taken as input at beginning of flrtvc processings
        (only if clean='no') : listoffixes_per_url.yml, lppminmax_of_fixes.yml      
@@ -408,16 +424,14 @@
    - Again Rubocop warnings removal 
    - Robustify suma error paths: better flow of exceptions and errors
    - Change the path where flrtvc yaml files are stored. They were into 'root' directory indicated
-     into ./manifests/init.pp, they are now under ./aixautomation/output/flrtvc direcory.
+     into ./manifests/init.pp, they are now under ./output/flrtvc direcory.
   #### 0.5.9        
    - flrtvc NIM resource rebuilt each time, and not reused if it exists
    - better logs in flrtvc flow
+   - review of README.md 
+  #### 0.6
+   - commit 
         
  ### Debugguing tips
  If ever you have in your environment this variable set : 'ENV=/.kshrc', this can lead to abnormal 
- behaviour, not well explained. In that case, perform 'unset ENV' before retrying.
- 
-      
-       
-    
-     
+  behaviour, not well explained. In that case, perform 'unset ENV' before retrying.
