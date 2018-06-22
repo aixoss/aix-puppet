@@ -260,19 +260,19 @@
    into parameters is performed.
    If set to <b>absent</b>, .     
    - <b>name</b> : to uniquely identify the download to be performed. You can have 
-   several 'patchmngt' clauses in your ./manifests/init.pp, each of them being uniquely 
+   several 'patchmngt' clauses in ./manifests/init.pp, each of them being uniquely 
    identified. 
-  - action : action to be performed. This parameter can take several values : <b>install</b>, 
+  - <b>action</b> : action to be performed. This parameter can take several values : <b>install</b>, 
    <b>update</b>, <b>reboot</b>, <b>status</b>. By default, <b>status</b> is assumed.
    <b>install</b> action enables installation (or un-installation) of a lpp_source, <b>update</b> 
    action enables update of a system (installation of a service pack or installation of a technical
    level), <b>reboot</b> action enables to launch reboot of LPARs. <b>status</b> action displays
    version level and efix information related to LPARs.       
-  - lpp_source : name of the NIM lpp_source resource to be installed/un-installed or which needs to be 
+  - <b>lpp_source</b> : name of the NIM lpp_source resource to be installed/un-installed or which needs to be 
   used to performed system update. In case of update, this lpp_source is the one which was built by 
   a previous 'download' clause (results of suma downloads). 
-  - targets : names of the LPARs on which to perform action
-  - sync : if action needs to be done synchronously or asynchronously. Two possible values for this 
+  - <b>targets</b> : names of the LPARs on which to perform action
+  - <b>sync</b> : if action needs to be done synchronously or asynchronously. Two possible values for this 
   parameter : <b>yes</b> and <b>no</b>. By default, <b>no</b> is assumed.  
  ##### Explanations
  The aim of this provider is to provide software maintenance operations on a list of LPARs 
@@ -294,28 +294,28 @@
    If set the <b>present</b>, efix are installed by running all steps. If set to <b>absent</b>, 
    efix are removed.     
    - <b>name</b> : to uniquely identify the fix to be performed. You can have 
-   several 'fix' clauses in your ./manifests/init.pp, each of them being uniquely 
+   several 'fix' clauses in ./manifests/init.pp, each of them being uniquely 
    identified. 
-   - to_step : : to control flow of execution up to a given step. Possible values : 
+   - <b>to_step</b> : : to control flow of execution up to a given step. Possible values : 
    <b>installFlrtvc</b>, <b>runFlrtvc</b>, <b>parseFlrtvc</b>, <b>downloadFixes</b>, 
    <b>checkFixes</b>, <b>buildResource</b>, <b>installResource</b>. All these steps are 
    performed in the provided order, but you can interrupt execution afetr any given step. 
    By default, <b>installResource</b> is assumed, meaning all steps are done. You can 
    perform flrtvc execution until the step you choose, by setting this parameter to 
    the desired step. 
-   - targets : names of the LPARs on which to perform flrtvc steps.
-   - clean  : if clean needs to be done before running or not. Two possible values for this 
+   - <b>targets</b> : names of the LPARs on which to perform flrtvc steps.
+   - <b>force</b>  : to force all flrtvc steps to be done again. Two possible values for this 
    parameter : <b>yes</b> and <b>no</b>. By default, <b>yes</b> is assumed, meaning all previous 
    results of any flrtvc runs (which are persisted into yaml files) are not kept, and 
    computed again. If ever you want to spare time, and reuse previous flrtvc results, or if you 
-   want or run flrtvc step by step (refer to 'to_step' parameter), you can keep previous results 
-   by setting this parameter to 'no'. 
+   want or run flrtvc step by step (refer to <b>to_step</b> parameter), you can keep previous results 
+   by setting this parameter to <b>no</b>. 
    - <b>root</b> : root directory to store results of flrtvc download. This root directory should 
    reside on a file system separated from the one which hosts the system itself. This root 
    directory needs to be large enough to contain efix updates, and should be a exportable file 
    system, so that NIM can build NIM lpp_source resource and perform a mount from the remote LPARs.
    By default <b>/tmp</b> is assumed. 
-   - type : type of desired efix. Possible values : <b>hiper</b>, <b>sec</b>, <b>all</b>. By default,
+   - <b>type</b> : type of desired efix. Possible values : <b>hiper</b>, <b>sec</b>, <b>all</b>. By default,
    <b>all</b> is assumed, meaning all possible efix are installed.       
  ##### Explanations
  The aim of this provider is to provide appropriate eFix installations using flrtvc 
@@ -408,7 +408,10 @@
    - Again Rubocop warnings removal 
    - Robustify suma error paths: better flow of exceptions and errors
    - Change the path where flrtvc yaml files are stored. They were into 'root' directory indicated
-     into ./manifests/init.pp, they are now under ./aixautomation/output/flrtvc direcory.   
+     into ./manifests/init.pp, they are now under ./aixautomation/output/flrtvc direcory.
+  #### 0.5.9        
+   - flrtvc NIM resource rebuilt each time, and not reused if it exists
+   - better logs in flrtvc flow
         
  ### Debugguing tips
  If ever you have in your environment this variable set : 'ENV=/.kshrc', this can lead to abnormal 

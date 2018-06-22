@@ -133,7 +133,7 @@ class aixautomation {
   # Possible steps are : runFlrtvc, parseFlrtvc, downloadFixes, checkFixes, buildResource
   #  installResource.
   # Clean is by default set to 'yes', but if you want to spare time and reuse previous
-  #  result of computation for each step, you can set clean to 'no'.
+  #  result of computation for each step, you can set force to 'no'.
   # "/export/extra/puppet/suma" is suggested as root directory of download
   #  It should be an ad hoc file system dedicated to download
   #   data, keep this file system separated from the system so prevent
@@ -144,7 +144,7 @@ class aixautomation {
     ensure   => present,
     to_step  => "installResource",
     targets  => "quimby01 quimby02",
-    clean => "no",
+    force    => "no",
     root     => "/export/extra/puppet/flrtvc",
   }
 */
@@ -238,7 +238,7 @@ class aixautomation {
     ensure   => present,
     to_step  => "installResource",
     targets  => "castor8",
-    clean    => "yes",
+    force    => "yes",
     root     => "/exports/extra/test-puppet/flrtvc",
   }
 }

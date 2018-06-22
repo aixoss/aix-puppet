@@ -18,15 +18,15 @@ module Automation
       #  This method is a convenience used by all other methods.
       # ########################################################################
       def self.execute(command)
-        Log.log_info('Utils.execute command : ' + command)
+        Log.log_debug('Utils.execute command : ' + command)
         #
         exit_status = Open3.popen3({ 'LANG' => 'C' }, command) do |_stdin, stdout, stderr, wait_thr|
           unless exit_status.nil?
-            Log.log_info('exit_status=' + exit_status.to_s)
+            Log.log_debug('exit_status=' + exit_status.to_s)
           end
           #
           stdout.each_line do |line|
-            Log.log_info(line.chomp.to_s)
+            Log.log_debug(line.chomp.to_s)
           end
           #
           stderr.each_line do |line|
@@ -178,7 +178,6 @@ module Automation
             if !stdout.nil? && !stdout.strip.empty?
               Log.log_debug("stdout=#{stdout}")
             end
-
             returned = 0
           end
         else
@@ -221,7 +220,7 @@ module Automation
 
       # ########################################################################
       # name : get_applied_filesets
-      # param : target
+      # param : input:target:string
       # return : stdout or stderr
       # description : returns the list of applied filesets
       #  so that we can either commit them, or reject them
@@ -323,8 +322,8 @@ module Automation
 
       # ########################################################################
       # name : string_separated
-      # param : array_of_items
-      # param : separator, blanck by default
+      # param : input:array_of_items:[]
+      # param : input:separator:strin, blanck by default
       # return : string containing items separated, separator is second param
       # description : takes an array with items, returns a
       #   string with items separated

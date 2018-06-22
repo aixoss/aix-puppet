@@ -44,8 +44,8 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
     root = resource[:root]
     to_step = resource[:to_step]
     level = resource[:level]
-    clean = resource[:clean]
-    @flrtvc = Flrtvc.new([targets_str, root, to_step, level, clean])
+    force = resource[:force]
+    @flrtvc = Flrtvc.new([targets_str, root, to_step, level, force])
     targets_array = targets_str.split(',')
 
     targets_array.each do |target|
@@ -150,7 +150,7 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
   # ###########################################################################
   def destroy
     Log.log_info("Provider flrtvc 'destroy' method : doing \"#{resource[:ensure]}\" \
-for targets=\"#{resource[:targets]}\" and clean=\"#{resource[:clean]}\" \
+for targets=\"#{resource[:targets]}\" and force=\"#{resource[:force]}\" \
 directory=\"#{resource[:root]}\"")
     #
     targets_str = resource[:targets]
@@ -179,11 +179,11 @@ directory=\"#{resource[:root]}\"")
     @flrtvc.remove_nim_resources
     Log.log_debug('flrtvc.removed nim resources')
 
-    if resource[:clean] == 'yes'
-      Log.log_debug('flrtvc.removing downloaded ifix files')
-      @flrtvc.remove_downloaded_files
-      Log.log_debug('flrtvc.removed downloaded ifix files')
-    end
+    #if resource[:clean] == 'yes'
+    Log.log_debug('flrtvc.removing downloaded ifix files')
+    @flrtvc.remove_downloaded_files
+    Log.log_debug('flrtvc.removed downloaded ifix files')
+    #end
 
     Log.log_debug('End of flrtvc.destroy')
   end

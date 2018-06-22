@@ -20,7 +20,7 @@ module Automation
       def self.cust_install(lpp_source,
           sync_option,
           targets_array)
-        Log.log_info('Nim.cust_install operation')
+        Log.log_debug('Nim.cust_install operation')
         #
         targets = Utils.string_separated(targets_array, ' ')
         nim_command = "/usr/sbin/nim -o cust -a lpp_source=#{lpp_source} \
@@ -43,7 +43,7 @@ module Automation
           sync_option,
           installp_flags,
           targets_array)
-        Log.log_info('Nim.cust_update operation')
+        Log.log_debug('Nim.cust_update operation')
         #
         option_installp_flags = ''
         unless installp_flags.empty?
@@ -59,10 +59,9 @@ module Automation
       # #######################################################################
       # name : maint
       # param : input:filesets:string
-      # param : input:filesets:string
-      # param : input:installp_flags:string
       # param : input:sync_option:string
-      # param : input:targets:array of strings
+      # param : input:installp_flags:string
+      # param : input:targets_array:array of strings
       # return :
       # description : prepares the NIM command to be run
       #   and calls Utils.execute().
@@ -73,7 +72,7 @@ module Automation
           sync_option,
           installp_flags,
           targets_array)
-        Log.log_info('Nim.maint operation')
+        Log.log_debug('Nim.maint operation')
         #
         targets = Utils.string_separated(targets_array, ' ')
         nim_command = "/usr/sbin/nim -o maint -a filesets=#{filesets} \
@@ -91,7 +90,7 @@ module Automation
       #  Performs reboot of systems.
       # #######################################################################
       def self.reboot(targets_array)
-        Log.log_info('Nim.reboot operation')
+        Log.log_debug('Nim.reboot operation')
         #
         targets = Utils.string_separated(targets_array, ' ')
         nim_command = '/usr/sbin/nim -o reboot ' + targets + ' &'
@@ -109,7 +108,7 @@ module Automation
       def self.perform_efix(target,
           lpp_source,
           filesets = 'all')
-        Log.log_info('Nim.perform_efix target=' +
+        Log.log_log_debug('Nim.perform_efix target=' +
                          target +
                          ' lpp_source=' +
                          lpp_source)
@@ -157,7 +156,7 @@ do |_stdin, stdout, stderr, wait_thr|
       # #######################################################################
       def self.perform_efix_uncustomization(target,
           lpp_source)
-        Log.log_info('Nim.perform_efix_uncustomization target=' + \
+        Log.log_debug('Nim.perform_efix_uncustomization target=' + \
 target + ' lpp_source=' + lpp_source)
         #
         Log.log_debug('Building list of efixes to be removed')
@@ -216,7 +215,7 @@ target + ' lpp_source=' + lpp_source)
       def perform_efix_vios(lpp_source,
                             vios,
                             _filesets = 'all')
-        Log.log_info('Nim.perform_efix_vios')
+        Log.log_debug('Nim.perform_efix_vios')
         nim_command = "/usr/sbin/nim -o updateios -a preview=no \
 -a lpp_source=#{lpp_source} #{vios}"
         #
@@ -264,7 +263,7 @@ above error!" unless exit_status.success?
       def self.define_lpp_source(lpp_source,
           directory,
           comments = 'Built by Puppet AixAutomation')
-        Log.log_info('Nim.define_lpp_source')
+        Log.log_debug('Nim.define_lpp_source')
         #
         nim_command = "/usr/sbin/nim -o define -t lpp_source -a server=master \
 -a location=#{directory} -a packages=all \
@@ -279,11 +278,11 @@ above error!" unless exit_status.success?
       # description : tests if NIM lpp_source already exists or not
       # #######################################################################
       def self.lpp_source_exists?(lpp_source)
-        Log.log_info('Nim.lpp_source_exists?')
+        Log.log_debug('Nim.lpp_source_exists?')
         #
         nim_command = "/usr/sbin/lsnim | grep -w \"#{lpp_source}\""
         returned = Utils.execute(nim_command)
-        Log.log_info('Nim.lpp_source_exists? returned=' + returned.to_s)
+        Log.log_debug('Nim.lpp_source_exists? returned=' + returned.to_s)
         returned
       end
 
@@ -294,7 +293,7 @@ above error!" unless exit_status.success?
       # description : removes the NIM lpp_source resource.
       # #######################################################################
       def self.remove_lpp_source(lpp_source)
-        Log.log_info('Nim.remove_lpp_source')
+        Log.log_debug('Nim.remove_lpp_source')
         #
         nim_command = '/usr/sbin/nim -o remove ' + lpp_source
         Utils.execute(nim_command)
@@ -332,7 +331,7 @@ above error!" unless exit_status.success?
       # description : sort ifixes of lpp_source in reverse order
       # #######################################################################
       def self.sort_ifixes(lpp_source)
-        Log.log_info('Nim.sort_ifixes')
+        Log.log_debug('Nim.sort_ifixes')
         #
         returned = ''
         location = Nim.get_location_of_lpp_source(lpp_source)
@@ -342,7 +341,7 @@ above error!" unless exit_status.success?
           nim_command_output = []
           Utils.execute2(nim_command, nim_command_output)
           unless nim_command_output.nil?
-            Log.log_info('Nim.sort_ifixes returned=' + nim_command_output[0].to_s)
+            Log.log_debug('Nim.sort_ifixes returned=' + nim_command_output[0].to_s)
             returned = nim_command_output[0].gsub('\n', ' ')
           end
         end
