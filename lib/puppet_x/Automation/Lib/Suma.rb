@@ -178,7 +178,9 @@ parameter. Cannot continue!')
       # description :
       # ########################################################################
       def preview
+        # dl_target : where to download
         dl_target = ' -a DLTarget=' + @dir_lpp_sources
+        # filter_dir : does not download if already here
         filter_dir = ' -a FilterDir=' + @dir_lpp_sources
         action = ' -a Action=Preview'
         preview_suma_command = @suma_command + @display_lpp_sources +
@@ -193,12 +195,8 @@ parameter. Cannot continue!')
           Log.log_info('SUMA preview operation: ' + preview_suma_command)
           Log.log_info('@force=' + @force + ' @to_step=' + @to_step)
           #
-          exit_status = Open3.popen3({ 'LANG' => 'C' }, preview_suma_command) \
+          Open3.popen3({ 'LANG' => 'C' }, preview_suma_command) \
 do |_stdin, stdout, stderr, wait_thr|
-            unless exit_status.nil?
-              Log.log_info('exit_status=' + exit_status.to_s)
-            end
-            #
             stdout.each_line do |line|
               @dl = Regexp.last_match(1).to_f / 1024 / 1024 / 1024 \
 if line =~ /Total bytes of updates downloaded: ([0-9]+)/
@@ -258,7 +256,9 @@ if line =~ /([0-9]+) downloaded/
       # description :
       # #######################################################################
       def download
+        # dl_target : where to download
         dl_target = ' -a DLTarget=' + @dir_lpp_sources
+        # filter_dir : does not download if already here
         filter_dir = ' -a FilterDir=' + @dir_lpp_sources
         action = ' -a Action=Download'
         download_suma_command = @suma_command + @display_lpp_sources +

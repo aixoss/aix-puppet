@@ -1,11 +1,12 @@
-# TODO
+# TODO AND DONE LISTS
+## TODO
 * General
 ** Propose regex in targets parameter so that we can perform operations on a list of targets 
  generated from a regex.
-** Check updates consistency before trying, by looking at the BUILDDATE from the "oslevel-s", and 
+** Check updates consistency before trying, by looking at the BUILDDATE from the "oslevel -s", and 
  by comparing with BUILDDATE of the update.  
 ** Propose 'master' as target so that all operations can be done on NIM master itself.
-** Propose to exploit 'Reboot' needed to inform user when a reboot is needed after an install/update 
+** Propose to exploit 'Reboot needed' to inform user when a reboot is needed after an install/update 
  eFix.
 ** Propose to work with an offline 'apar.csv'. Currently the last 'apar.csv' is downloaded each 
  time. 
@@ -21,14 +22,15 @@
  red:error messages, yellow:warning, blue:info, green:debug. 
  Today this color-code is not enforced everywhere, even if there is a good start.
 ** Propose a nice interface to display SP per TL results to user
-** Suma preview is likely to be unnecessary if 'to_step' is set to 'download'. Consider skipping 
- this preview step in this case.
 ** Verify Idempotence
 ** In case of updates of several LPARs, launch these updates in parallel, as each update is quite 
  long
 ** Update in preview mode only to see what would be done.
-** Display manifests/init.pp at the beginning of the log, so that we can know what is being applied.  
-  
-  
+## DONE  
+** Suma preview is likely to be unnecessary if 'to_step' is set to 'download'. Consider skipping 
+ this preview step in this case.
+** Display manifests/init.pp at the beginning of the log, so that we can know what is being applied.
+ this is done through a new facter : applied_manifest
+   
 
          

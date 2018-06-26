@@ -1,7 +1,5 @@
-require_relative '../puppet_x/Automation/Lib/Constants.rb'
 require_relative '../puppet_x/Automation/Lib/Log.rb'
 require_relative '../puppet_x/Automation/Lib/Suma.rb'
-
 
 # ##########################################################################
 # name : servicepacks factor

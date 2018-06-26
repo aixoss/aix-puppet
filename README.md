@@ -19,7 +19,7 @@
   on a list of AIX LPARs, by running this module on a NIM server managing these LPARs.<br>
  By software maintenance operations we mean : updates of AIX levels, updates of efix.<br>   
  Necessary AIX level updates are automatically downloaded from FixCentral using 'suma' 
-  functionalities, and are locally kept and shared between LPARs if possible.<br>
+  features, and are locally kept and shared between LPARs if possible.<br>
  Downloaded updates can then be automatically applied on a list of LPARs, through 'nim push' 
   operations, therefore everything (i.e. all aixautomation logic) runs from the NIM server, 
   and nothing needs to be installed on LPARs themselves.<br>
@@ -34,8 +34,8 @@
 
 ## Setup
 ### Setup Requirements 
- This aixautomation module requires that the LPARs which are targeted to be updated 
-  are managed by the same NIM server than the one on which Puppet runs. <br>
+ This aixautomation module needs to run a the NIM server which manages LPARs 
+ to be updated, therefore Puppet needs to be installed and run on this NIM server. <br>
  This aixautomation module requires download access to FixCentral, and http/https/ftp 
   access to eFix download server.<br>  
  
@@ -56,8 +56,8 @@
   /etc/puppetlabs/code/environments/production/modules, which is the install directory
   referred as <b>INST_DIR</b> below.<br>
  You can do this by performing:<br>  
-   - (current) git clone https://github.com/aix-puppet/aixautomation.git<br> 
-   - (future) git clone https://github.com/aixoss/aix-puppet/aixautomation.git<br>
+   - (development) git clone https://github.com/aix-puppet/aixautomation.git<br> 
+   - (official) git clone https://github.com/aixoss/aix-puppet.git<br>   
  into INST_DIR repository.
  This creates INST_DIR/aixautomation directory, which is referred as <b>AIX_AUTOMATION_DIR</b> 
   below. <br> 
@@ -371,36 +371,28 @@
 
 ## Release Notes/Contributors/Etc. **Optional**
  ### Last changes documented
- #### 0.5.1:
-   - fix the automatic installation of "/usr/bin/flrtvc.ksh" if this file is missing 
-   - renaming of "./output/facter/sp_per_tl.yml" file to 
-     "./output/facter/sp_per_tl.yml.June_2018", 
-     so that this file is generated at least once after installation. This file contains
-     the matches between Technical Levels and Service Packs for all releases.<br>      
- #### 0.5.2:
-   - add 'to_step' parameter to "download" custom type, to control execution of the two steps 
-    'suma preview' and 'suma download' separately. By setting 'to_step' to "preview", only 
-    "preview" is performed. By default "download" is performed.<br> 
- #### 0.5.3:
-   - validation messages of custom type contain contextual messages<br> 
-   - move all outputs into ./output directory : logs are now into 
-   ./output/logs, facter results are now into ./output/facter.<br>
- #### 0.5.4:
-   - add status before and after ifix removal, as these status exist before and after ifix 
-    installation. Commonnalize status output persistance into Flrtvc.step_status
-    method.<br>
-    These files can be found:<br> 
-     ./output/logs/PuppetAix_StatusAfterInstall.yml<br>
-     ./output/logs/PuppetAix_StatusAfterRemoval.yml<br>
-     ./output/logs/PuppetAix_StatusBeforeInstall.yml<br>
-     ./output/logs/PuppetAix_StatusBeforeRemoval.yml<br>
-   - better management of downloads : for example for timeout on ftp download, the failed urls
-    are identified as being in failure, and are listed at the end of download phase. If you run
-    flrtvc a second time, after a fist time which had download failures, only failed urls
-    downloads are attempted.<br>
- #### 0.5.5:
-   - Rubocop warnings removal 
- #### 0.5.6:
+  #### 0.6.1
+   - NIM resource for update always deleted at beginning so that it is recreated. This to prevents
+   some cases from occurring : location has been moved while NIM resource remains. 
+   - New facter 'applied_manifest' to display in logs teh applied manifest : manifests/init.pp  
+  #### 0.6
+   - commit 
+  #### 0.5.9        
+   - flrtvc NIM resource rebuilt each time, and not reused if it exists
+   - better logs in flrtvc flow
+   - review of README.md 
+ #### 0.5.8
+   - Again Rubocop warnings removal 
+   - Robustify suma error paths: better flow of exceptions and errors
+   - Change the path where flrtvc yaml files are stored. They were into 'root' directory indicated
+     into ./manifests/init.pp, they are now under ./output/flrtvc direcory.
+ #### 0.5.7
+    - Rubocop warnings removal 
+    - fix custom type 'clean' parameter is changed to 'force' parameter
+      If force is set to 'yes', all downloads are forced again, even if the downloads 
+       existed before and were available. By default force is set to 'no', meaning we keep 
+       everything.
+  #### 0.5.6:
    Several bugs fixed : 
    - One status file per target is necessary, otherwise if several 'fix' clauses, then last one 
      overrides previous ones. Therefore we'll have these files 
@@ -414,24 +406,38 @@
    - 'nimpush' targets are now reset between each 'nimpush' clause info ./manifests/init.pp
       this was not the case previously, and brought a lot of confusion when several 'nimpush'
       clauses, applying on different sets of targets, existed into ./manifests/init.pp.
- #### 0.5.7
+ #### 0.5.5:
    - Rubocop warnings removal 
-   - fix custom type 'clean' parameter is changed to 'force' parameter
-     If force is set to 'yes', all downloads are forced again, even if the downloads 
-      existed before and were available. By default force is set to 'no', meaning we keep 
-      everything.
- #### 0.5.8
-   - Again Rubocop warnings removal 
-   - Robustify suma error paths: better flow of exceptions and errors
-   - Change the path where flrtvc yaml files are stored. They were into 'root' directory indicated
-     into ./manifests/init.pp, they are now under ./output/flrtvc direcory.
-  #### 0.5.9        
-   - flrtvc NIM resource rebuilt each time, and not reused if it exists
-   - better logs in flrtvc flow
-   - review of README.md 
-  #### 0.6
-   - commit 
-        
+ #### 0.5.4:
+   - add status before and after ifix removal, as these status exist before and after ifix 
+    installation. Commonnalize status output persistance into Flrtvc.step_status
+    method.<br>
+    These files can be found:<br> 
+     ./output/logs/PuppetAix_StatusAfterInstall.yml<br>
+     ./output/logs/PuppetAix_StatusAfterRemoval.yml<br>
+     ./output/logs/PuppetAix_StatusBeforeInstall.yml<br>
+     ./output/logs/PuppetAix_StatusBeforeRemoval.yml<br>
+   - better management of downloads : for example for timeout on ftp download, the failed urls
+    are identified as being in failure, and are listed at the end of download phase. If you run
+    flrtvc a second time, after a fist time which had download failures, only failed urls
+    downloads are attempted.<br>
+ #### 0.5.3:
+   - validation messages of custom type contain contextual messages<br> 
+   - move all outputs into ./output directory : logs are now into 
+   ./output/logs, facter results are now into ./output/facter.<br>
+ #### 0.5.2:
+   - add 'to_step' parameter to "download" custom type, to control execution of the two steps 
+    'suma preview' and 'suma download' separately. By setting 'to_step' to "preview", only 
+    "preview" is performed. By default "download" is performed.<br> 
+ #### 0.5.1:
+   - fix the automatic installation of "/usr/bin/flrtvc.ksh" if this file is missing 
+   - renaming of "./output/facter/sp_per_tl.yml" file to 
+     "./output/facter/sp_per_tl.yml.June_2018", 
+     so that this file is generated at least once after installation. This file contains
+     the matches between Technical Levels and Service Packs for all releases.<br>      
  ### Debugguing tips
- If ever you have in your environment this variable set : 'ENV=/.kshrc', this can lead to abnormal 
-  behaviour, not well explained. In that case, perform 'unset ENV' before retrying.
+ Shell environments may cause errors with underlying (shell) system commands.  
+ So, it may require an unset of the terminal environment before use. 
+  (For example, if ever you have in your environment this variable set : 'ENV=/.kshrc', 
+   this can lead to abnormal behaviour, not well explained. In that case, perform 
+   'unset ENV' before retrying.)

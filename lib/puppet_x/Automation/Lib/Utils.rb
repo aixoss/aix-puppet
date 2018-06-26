@@ -12,7 +12,7 @@ module Automation
       # ########################################################################
       # name : execute
       # param : input:command:string
-      # return :
+      # return : int return code
       # description : executes (by using Open3.popen3)
       #   command received in parameter.
       #  This method is a convenience used by all other methods.
@@ -20,10 +20,7 @@ module Automation
       def self.execute(command)
         Log.log_debug('Utils.execute command : ' + command)
         #
-        exit_status = Open3.popen3({ 'LANG' => 'C' }, command) do |_stdin, stdout, stderr, wait_thr|
-          unless exit_status.nil?
-            Log.log_debug('exit_status=' + exit_status.to_s)
-          end
+        Open3.popen3({ 'LANG' => 'C' }, command) do |_stdin, stdout, stderr, wait_thr|
           #
           stdout.each_line do |line|
             Log.log_debug(line.chomp.to_s)
@@ -32,7 +29,15 @@ module Automation
           stderr.each_line do |line|
             Log.log_err(line.chomp.to_s)
           end
-          wait_thr.value # Process::Status object returned.
+          Log.log_debug('Utils.execute wait_thr.value(' +
+                            wait_thr.value.class.to_s + ')="' +
+                            wait_thr.value.to_s +
+                            '" wait_thr.value.exitstatus ="' +
+                            wait_thr.value.exitstatus.to_s +
+                            '"')
+          # wait_thr.value : Process::Status object returned.
+          # wait_thr.value.exitstatus : int
+          wait_thr.value.exitstatus
         end
       end
 
@@ -40,7 +45,7 @@ module Automation
       # name : execute2
       # param : input:command:string
       # param : output:command_output: array of strings
-      # return :
+      # return : int return code
       # description : executes (by using Open3.popen3)
       #   command received in parameter,
       #   and set the command_output[0] param as output parameter
@@ -50,10 +55,7 @@ module Automation
           command_output)
         Log.log_debug('Utils.execute2 command : ' + command)
         #
-        exit_status = Open3.popen3({ 'LANG' => 'C' }, command) do |_stdin, stdout, stderr, wait_thr|
-          unless exit_status.nil?
-            Log.log_debug('   exit_status=' + exit_status.to_s)
-          end
+        Open3.popen3({ 'LANG' => 'C' }, command) do |_stdin, stdout, stderr, wait_thr|
           command_output[0] = ''
           stdout.each_line do |line|
             command_output[0] = command_output[0] + line
@@ -62,7 +64,15 @@ module Automation
           stderr.each_line do |line|
             Log.log_err("    #{line.chomp}")
           end
-          wait_thr.value # Process::Status object returned.
+          Log.log_debug('Utils.execute2 wait_thr.value(' +
+                            wait_thr.value.class.to_s + ')="' +
+                            wait_thr.value.to_s +
+                            '" wait_thr.value.exitstatus ="' +
+                            wait_thr.value.exitstatus.to_s +
+                            '"')
+          # wait_thr.value : Process::Status object returned.
+          # wait_thr.value.exitstatus : int
+          wait_thr.value.exitstatus
         end
       end
 
@@ -85,7 +95,7 @@ module Automation
           if !stderr.nil? && !stderr.strip.empty?
             Log.log_err("stderr=#{stderr}")
           end
-          if !status.nil?
+          unless status.nil?
             Log.log_debug("status=#{status}")
           end
           unless status.success?
@@ -212,7 +222,7 @@ module Automation
           items = stdout.split("\n")
           returned = string_separated(items, ' ')
         elsif !stderr.nil? && !stderr.strip.empty?
-            Log.log_err("stderr=#{stderr}")
+          Log.log_err("stderr=#{stderr}")
         end
         Log.log_debug('Ending get_filesets_of_lppsource ' + returned)
         returned

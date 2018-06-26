@@ -1,6 +1,7 @@
 require_relative '../../../puppet_x/Automation/Lib/Utils.rb'
 require_relative '../../../puppet_x/Automation/Lib/Log.rb'
 require_relative '../../../puppet_x/Automation/Lib/Flrtvc.rb'
+require_relative '../../../puppet_x/Automation/Lib/Constants.rb'
 
 # ##########################################################################
 # name : flrtvc provider of the fix type
@@ -21,7 +22,8 @@ Puppet::Type.type(:fix).provide(:flrtvc) do
   #      false       absent    do nothing               n/a
   # ###########################################################################
   def exists?
-    Log.log_info("Provider flrtvc 'exists?' method : w want to realize up to \"#{resource[:to_step]}\" : \"#{resource[:ensure]}\" \
+    Log.log_info("Provider flrtvc 'exists?' method : we want to realize up to \"#{resource[:to_step]}\" :
+\"#{resource[:ensure]}\" \
 for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
     #
     returned = true

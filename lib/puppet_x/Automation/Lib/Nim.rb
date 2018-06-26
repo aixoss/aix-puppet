@@ -108,7 +108,7 @@ module Automation
       def self.perform_efix(target,
           lpp_source,
           filesets = 'all')
-        Log.log_log_debug('Nim.perform_efix target=' +
+        Log.log_debug('Nim.perform_efix target=' +
                          target +
                          ' lpp_source=' +
                          lpp_source)
@@ -268,21 +268,29 @@ above error!" unless exit_status.success?
         nim_command = "/usr/sbin/nim -o define -t lpp_source -a server=master \
 -a location=#{directory} -a packages=all \
 -a comments='#{comments}' #{lpp_source}"
-        Utils.execute(nim_command)
+        return_code = Utils.execute(nim_command)
+        #
+        Log.log_debug('Nim.define_lpp_source return_code=' + return_code.to_s)
+        return_code
       end
 
       # #######################################################################
       # name : lpp_source_exists?
       # param : input:lpp_source:string
-      # return :
+      # return : true if it exists, false otherwise
       # description : tests if NIM lpp_source already exists or not
       # #######################################################################
       def self.lpp_source_exists?(lpp_source)
         Log.log_debug('Nim.lpp_source_exists?')
+        returned = true
         #
         nim_command = "/usr/sbin/lsnim | grep -w \"#{lpp_source}\""
-        returned = Utils.execute(nim_command)
-        Log.log_debug('Nim.lpp_source_exists? returned=' + returned.to_s)
+        return_code = Utils.execute(nim_command)
+        #
+        Log.log_debug('Nim.lpp_source_exists? return_code=' + return_code.to_s)
+        if return_code == 1
+          returned = false
+        end
         returned
       end
 
@@ -297,6 +305,10 @@ above error!" unless exit_status.success?
         #
         nim_command = '/usr/sbin/nim -o remove ' + lpp_source
         Utils.execute(nim_command)
+        return_code = Utils.execute(nim_command)
+        #
+        Log.log_debug('Nim.remove_lpp_source return_code=' + return_code.to_s)
+        return_code
       end
 
 
@@ -312,7 +324,9 @@ above error!" unless exit_status.success?
         returned = ''
         nim_command = "/usr/sbin/lsnim -a location #{lpp_source} | /bin/grep -w location | /bin/awk '{print $3}'"
         nim_command_output = []
-        Utils.execute2(nim_command, nim_command_output)
+        return_code = Utils.execute2(nim_command, nim_command_output)
+        Log.log_debug('Nim.get_location_of_lpp_source return_code=' + return_code.to_s)
+        #
         unless nim_command_output.nil?
           if nim_command_output[0].to_s =~ /^0042-053 lsnim: there is no NIM object named.$/
             #
@@ -339,7 +353,9 @@ above error!" unless exit_status.success?
         unless location.nil? || location.empty?
           nim_command = "/bin/ls #{location} | /bin/sort -ru"
           nim_command_output = []
-          Utils.execute2(nim_command, nim_command_output)
+          return_code = Utils.execute2(nim_command, nim_command_output)
+          Log.log_debug('Nim.sort_ifixes return_code=' + return_code.to_s)
+          #
           unless nim_command_output.nil?
             Log.log_debug('Nim.sort_ifixes returned=' + nim_command_output[0].to_s)
             returned = nim_command_output[0].gsub('\n', ' ')

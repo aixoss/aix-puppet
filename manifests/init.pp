@@ -1,4 +1,4 @@
-# #
+#
 # # TODO : This file needs to be cleaned
 # #
 # class aixautomation {
@@ -26,11 +26,11 @@
 #     name     => "ifix_install",
 #     ensure   => absent,
 #     to_step  => "installResource",
-#     targets  => "quimby03 quimby04 quimby05 quimby06",
+#     targets  => "quimby03 quimby04 quimby05 quimby06 quimby08 quimby09 quimby10 quimby11 quimby12",
 #     force    => "yes",
 #     root     => "/export/extra/test-puppet/flrtvc",
 #   }
-#}
+# }
 # class aixautomation {
 #   fix { "ifix_install":
 #     provider => flrtvc,
@@ -38,9 +38,9 @@
 #     ensure   => absent,
 #     to_step  => "installResource",
 #     #level => "sec",
-#     clean    => "yes",
-#     targets  => "castor8",
-#     root     => "/flrtvc/paul",
+#     force    => "yes",
+#     targets  => "quimby07",
+#     root     => "/export/extra/test-puppet/flrtvc",
 #   }
 # }
 #   - 7100-04-01-1543
@@ -55,7 +55,7 @@ class aixautomation {
     ensure     => present,
     name       => "test PAA_SP_7100-04-02-1614_7100-04-04-1717",
     type       => "SP",
-    root       => "/exports/extra/puppet/suma",
+    root       => "/export/extra/puppet/suma",
     from       => "7100-04-02-1614",
     to         => "7100-04-04-1717",
     to_step    => "download",
@@ -67,7 +67,7 @@ class aixautomation {
     ensure     => present,
     name       => "test PAA_SP_7100-04-02-1614_7100-04-05-1720",
     type       => "SP",
-    root       => "/exports/extra/puppet/suma",
+    root       => "/export/extra/puppet/suma",
     from       => "7100-04-02-1614",
     to         => "7100-04-05-1720",
     to_step    => "download",
@@ -79,7 +79,7 @@ class aixautomation {
     ensure     => present,
     name       => "test PAA_SP_7100-04-03-1643_7100-04-04-1717",
     type       => "SP",
-    root       => "/exports/extra/puppet/suma",
+    root       => "/export/extra/puppet/suma",
     from       => "7100-04-03-1643",
     to         => "7100-04-04-1717",
     to_step    => "download",
@@ -91,7 +91,7 @@ class aixautomation {
     ensure     => present,
     name       => "test PAA_SP_7100-04-03-1643_7100-04-05-1720",
     type       => "SP",
-    root       => "/exports/extra/puppet/suma",
+    root       => "/export/extra/puppet/suma",
     from       => "7100-04-03-1643",
     to         => "7100-04-05-1720",
     to_step    => "download",
@@ -103,7 +103,7 @@ class aixautomation {
     ensure     => present,
     name       => "test PAA_SP_7100-05_7100-05-01-1731",
     type       => "SP",
-    root       => "/exports/extra/puppet/suma",
+    root       => "/export/extra/puppet/suma",
     from       => "7100-05",
     to         => "7100-05-01-1731",
     to_step    => "download",
@@ -115,7 +115,7 @@ class aixautomation {
     ensure     => present,
     name       => "test PAA_SP_7100-05_7100-05-02-1810",
     type       => "SP",
-    root       => "/exports/extra/puppet/suma",
+    root       => "/export/extra/puppet/suma",
     from       => "7100-05",
     to         => "7100-05-02-1810",
     to_step    => "download",
@@ -161,7 +161,7 @@ class aixautomation {
     sync       => "yes",
     lpp_source => "PAA_SP_7100-04-03-1643_7100-04-05-1720",
   }
-  # quimby07
+  quimby07
   patchmngt { "update quimby07 to PAA_SP_7100-05_7100-05-01-1731":
     provider   => nimpush,
     ensure     => present,
@@ -171,7 +171,7 @@ class aixautomation {
     sync       => "yes",
     lpp_source => "PAA_SP_7100-05_7100-05-01-1731",
   }
-  # quimby08
+  quimby08
   patchmngt { "update quimby08 to PAA_SP_7100-05_7100-05-02-1810":
     provider   => nimpush,
     ensure     => present,
@@ -209,108 +209,109 @@ class aixautomation {
     root     => "/export/extra/test-puppet/flrtvc",
   }
 }
+# class aixautomation {
 #   download { "tes2t PAA_SP_7100-04_7100-04-01-1543":
 #     provider   => suma,
 #     ensure     => present,
-#     name => '2',
+#     name       => '2',
 #     type       => "SP",
-#     root       => "/exports/extra/puppet/suma",
+#     root       => "/export/extra/puppet/suma",
 #     from       => "7100-04",
 #     to         => "7100-04-01-1543",
 #     to_step    => "download",
 #     lpp_source => "PAA_SP_7100-04_7100-04-01-1543",
 #   }
-# }
-# download { "test PAA_SP_7100-04_7100-04-02-1614":
-#   provider => suma,
-#   ensure => present,
-#   name => "test PAA_SP_7100-04_7100-04-02-1614",
-#   type => "SP",
-#   root => "/export/extra/puppet/suma",
-#   from => "7100-04",
-#   to => "7100-04-02-1614",
-#   to_step => "download",
-#   lpp_source => "PAA_SP_7100-04_7100-04-02-1614",
-# }
-# download { "test PAA_SP_7100-04_7100-04-03-1643":
-#   provider => suma,
-#   ensure => present,
-#   name => "test PAA_SP_7100-04_7100-04-03-1643",
-#   type => "SP",
-#   root => "/export/extra/puppet/suma",
-#   from => "7100-04",
-#   to => "7100-04-03-1643",
-#   to_step => "download",
-#   lpp_source => "PAA_SP_7100-04_7100-04-03-1643",
-# }
-# class aixautomation {
-#   download { "test PAA_SP_7100-04_7100-04-04-1717":
+#   download { "test PAA_SP_7100-04_7100-04-02-1614":
 #     provider   => suma,
 #     ensure     => present,
-#     name       => "test PAA_SP_7100-04_7100-04-04-1717",
+#     name       => "test PAA_SP_7100-04_7100-04-02-1614",
 #     type       => "SP",
 #     root       => "/export/extra/puppet/suma",
 #     from       => "7100-04",
-#     to         => "7100-04-04-1717",
+#     to         => "7100-04-02-1614",
 #     to_step    => "download",
-#     lpp_source => "PAA_SP_7100-04_7100-04-04-1717",
-#   }
-#   download { "test PAA_SP_7100-04_7100-04-05-1720":
-#     provider   => suma,
-#     ensure     => present,
-#     name       => "test PAA_SP_7100-04_7100-04-05-1720",
-#     type       => "SP",
-#     root       => "/export/extra/puppet/suma",
-#     from       => "7100-04",
-#     to         => "7100-04-05-1720",
-#     to_step    => "download",
-#     lpp_source => "PAA_SP_7100-04_7100-04-05-1720",
-#   }
-#   #patchmngt { "update quimby01/02 to 7100-04-01-1543":
-#   #     provider   => nimpush,
-#   #     ensure     => present,
-#   #     name       => "update quimby01/02 to 7100-04-01-1543",
-#   #     action     => "update",
-#   #     targets    => "quimby01 quimby02",
-#   #     sync       => "yes",
-#   #     lpp_source => "PAA_SP_7100-04_7100-04-01-1543",
-#   #  }
-#   patchmngt { "update quimby03/04 to 7100-04-02-1614":
-#     provider   => nimpush,
-#     ensure     => present,
-#     name       => "update quimby03/04 to 7100-04-02-1614",
-#     action     => "update",
-#     targets    => "quimby03 quimby04",
-#     sync       => "yes",
 #     lpp_source => "PAA_SP_7100-04_7100-04-02-1614",
 #   }
-#   patchmngt { "update quimby05/06 to 7100-04-03-1643":
-#     provider   => nimpush,
+#   download { "test PAA_SP_7100-04_7100-04-03-1643":
+#     provider   => suma,
 #     ensure     => present,
-#     name       => "update quimby05/06 to 7100-04-03-1643",
-#     action     => "update",
-#     targets    => "quimby05 quimby06",
-#     sync       => "yes",
+#     name       => "test PAA_SP_7100-04_7100-04-03-1643",
+#     type       => "SP",
+#     root       => "/export/extra/puppet/suma",
+#     from       => "7100-04",
+#     to         => "7100-04-03-1643",
+#     to_step    => "download",
 #     lpp_source => "PAA_SP_7100-04_7100-04-03-1643",
 #   }
 # }
-# patchmngt { "update quimby07/08 to 7100-04-04-1717":
-#   provider   => nimpush,
-#   ensure     => present,
-#   name       => "update quimby05/06 to 7100-04-04-1717",
-#   action     => "update",
-#   targets    => "quimby07 quimby08",
-#   sync       => "yes",
-#   lpp_source => "PAA_SP_7100-04_7100-04-04-1717",
-# }
-#   patchmngt { "update quimby12 to 7100-04-05-1720":
-#     provider   => nimpush,
-#     ensure     => present,
-#     name       => "update quimby12 to 7100-04-05-1720",
-#     action     => "update",
-#     targets    => "quimby12",
-#     sync       => "yes",
-#     lpp_source => "PAA_SP_7100-04_7100-04-05-1720",
+#   class aixautomation {
+#     download { "test PAA_SP_7100-04_7100-04-04-1717":
+#       provider   => suma,
+#       ensure     => present,
+#       name       => "test PAA_SP_7100-04_7100-04-04-1717",
+#       type       => "SP",
+#       root       => "/export/extra/puppet/suma",
+#       from       => "7100-04",
+#       to         => "7100-04-04-1717",
+#       to_step    => "download",
+#       lpp_source => "PAA_SP_7100-04_7100-04-04-1717",
+#     }
+#     download { "test PAA_SP_7100-04_7100-04-05-1720":
+#       provider   => suma,
+#       ensure     => present,
+#       name       => "test PAA_SP_7100-04_7100-04-05-1720",
+#       type       => "SP",
+#       root       => "/export/extra/puppet/suma",
+#       from       => "7100-04",
+#       to         => "7100-04-05-1720",
+#       to_step    => "download",
+#       lpp_source => "PAA_SP_7100-04_7100-04-05-1720",
+#     }
+#     #patchmngt { "update quimby01/02 to 7100-04-01-1543":
+#     #     provider   => nimpush,
+#     #     ensure     => present,
+#     #     name       => "update quimby01/02 to 7100-04-01-1543",
+#     #     action     => "update",
+#     #     targets    => "quimby01 quimby02",
+#     #     sync       => "yes",
+#     #     lpp_source => "PAA_SP_7100-04_7100-04-01-1543",
+#     #  }
+#     patchmngt { "update quimby03/04 to 7100-04-02-1614":
+#       provider   => nimpush,
+#       ensure     => present,
+#       name       => "update quimby03/04 to 7100-04-02-1614",
+#       action     => "update",
+#       targets    => "quimby03 quimby04",
+#       sync       => "yes",
+#       lpp_source => "PAA_SP_7100-04_7100-04-02-1614",
+#     }
+#     patchmngt { "update quimby05/06 to 7100-04-03-1643":
+#       provider   => nimpush,
+#       ensure     => present,
+#       name       => "update quimby05/06 to 7100-04-03-1643",
+#       action     => "update",
+#       targets    => "quimby05 quimby06",
+#       sync       => "yes",
+#       lpp_source => "PAA_SP_7100-04_7100-04-03-1643",
+#     }
+#     patchmngt { "update quimby07/08 to 7100-04-04-1717":
+#       provider   => nimpush,
+#       ensure     => present,
+#       name       => "update quimby05/06 to 7100-04-04-1717",
+#       action     => "update",
+#       targets    => "quimby07 quimby08",
+#       sync       => "yes",
+#       lpp_source => "PAA_SP_7100-04_7100-04-04-1717",
+#     }
+#     patchmngt { "update quimby12 to 7100-04-05-1720":
+#       provider   => nimpush,
+#       ensure     => present,
+#       name       => "update quimby12 to 7100-04-05-1720",
+#       action     => "update",
+#       targets    => "quimby12",
+#       sync       => "yes",
+#       lpp_source => "PAA_SP_7100-04_7100-04-05-1720",
+#     }
 #   }
 #   fix { "ifix_install_0102":
 #       provider => flrtvc,
@@ -318,7 +319,7 @@ class aixautomation {
 #       ensure   => present,
 #       to_step  => "installResource",
 #       targets  => "quimby01 quimby02",
-#       clean    => "yes",
+#       force    => "yes",
 #       root     => "/export/extra/puppet/flrtvc",
 #     }
 #   fix { "ifix_install_0304":
@@ -327,7 +328,7 @@ class aixautomation {
 #     ensure   => present,
 #     to_step  => "installResource",
 #     targets  => "quimby03 quimby04",
-#     clean    => "yes",
+#     force    => "yes",
 #     root     => "/export/extra/puppet/flrtvc",
 #   }
 #   fix { "ifix_install_0506":
@@ -336,7 +337,7 @@ class aixautomation {
 #     ensure   => present,
 #     to_step  => "installResource",
 #     targets  => "quimby05 quimby06",
-#     clean    => "yes",
+#     force    => "yes",
 #     root     => "/export/extra/puppet/flrtvc",
 #   }
 #   fix { "ifix_install_0708":
@@ -345,7 +346,7 @@ class aixautomation {
 #     ensure   => present,
 #     to_step  => "installResource",
 #     targets  => "quimby07 quimby08",
-#     clean    => "yes",
+#     force    => "yes",
 #     root     => "/export/extra/puppet/flrtvc",
 #   }
 #   fix { "ifix_install_12":
@@ -354,7 +355,7 @@ class aixautomation {
 #     ensure   => present,
 #     to_step  => "installResource",
 #     targets  => "quimby12",
-#     clean    => "yes",
+#     force    => "yes",
 #     root     => "/export/extra/puppet/flrtvc",
 #   }
 # }
@@ -385,42 +386,42 @@ class aixautomation {
 #       ensure   => absent,
 #       to_step  => "installResource",
 #       targets  => "quimby01 quimby02",
-#       clean    => "no",
+#       force    => "no",
 #     }
 #   fix { "ifix_remove_0304":
 #     provider => flrtvc,
 #     name     => "ifix_remove_0304",
 #     ensure   => absent,
 #     targets  => "quimby03 quimby04",
-#     clean    => "no",
+#     force    => "no",
 #   }
 #   fix { "ifix_remove_0506":
 #     provider => flrtvc,
 #     name     => "ifix_remove_0506",
 #     ensure   => absent,
 #     targets  => "quimby05 quimby06",
-#     clean    => "no",
+#     force    => "no",
 #   }
 #   fix { "ifix_remove_0708":
 #     provider => flrtvc,
 #     name     => "ifix_remove_0708",
 #     ensure   => absent,
 #     targets  => "quimby07 quimby08",
-#     clean    => "no",
+#     force    => "no",
 #   }
 #   fix { "ifix_remove_0911":
 #     provider => flrtvc,
 #     name     => "ifix_remove_0911",
 #     ensure   => absent,
 #     targets  => "quimby09 quimby11",
-#     clean    => "no",
+#     force    => "no",
 #   }
 #   fix { "ifix_remove_12":
 #     provider => flrtvc,
 #     name     => "ifix_remove_12",
 #     ensure   => absent,
 #     targets  => "quimby12",
-#     clean    => "yes",
+#     force    => "yes",
 #   }
 # }
 # class aixautomation {
@@ -1100,31 +1101,6 @@ class aixautomation {
 #   sync      => "yes",
 #   lpp_source => "PAA_Latest_7100-05",
 # }
-/*
-"quimby01"=>{"oslevel -s"=>"7100-03-01-1341", "lslpp -e"=>""},
-"quimby02"=>{"oslevel -s"=>"7100-03-09-1717", "lslpp -e"=>""},
-"quimby03"=>{"oslevel -s"=>"7100-03-05-1524", "lslpp -e"=>""},
-"quimby04"=>{"oslevel -s"=>"7100-03-09-1717", "lslpp -e"=>""},
-"quimby05"=>{"oslevel -s"=>"7100-03-07-1614", "lslpp -e"=>""},
-"quimby07"=>{"oslevel -s"=>"7100-01-00-0000", "lslpp -e"=>""},
-"quimby08"=>{"oslevel -s"=>"7100-01-10-1415", "lslpp -e"=>""},
-"quimby09"=>{"oslevel -s"=>"7100-01-10-1415", "lslpp -e"=>""},
-"quimby11"=>{"oslevel -s"=>"7100-00-10-1334", "lslpp -e"=>""},
-"quimby12"=>{"oslevel -s"=>"7100-00-10-1334", "lslpp -e"=>""}
-*/
-/*
-"quimby01"=>{"oslevel -s"=>"7100-03-01-1341", "lslpp -e"=>""},
-"quimby02"=>{"oslevel -s"=>"7100-03-09-1717", "lslpp -e"=>""},
-"quimby03"=>{"oslevel -s"=>"7100-03-05-1524", "lslpp -e"=>""},
-"quimby04"=>{"oslevel -s"=>"7100-03-09-1717", "lslpp -e"=>""},
-"quimby05"=>{"oslevel -s"=>"7100-03-07-1614", "lslpp -e"=>""},
-"quimby07"=>{"oslevel -s"=>"7100-01-10-1415", "lslpp -e"=>""},
-"quimby08"=>{"oslevel -s"=>"7100-01-10-1415", "lslpp -e"=>""},
-"quimby09"=>{"oslevel -s"=>"7100-01-10-1415", "lslpp -e"=>""},
-"quimby11"=>{"oslevel -s"=>"7100-00-10-1334", "lslpp -e"=>""},
-"quimby12"=>{"oslevel -s"=>"7100-00-10-1334", "lslpp -e"=>""}
-*/
-
 # patchmngt { "reboot quimby07 08":
 #   provider  => nimpush,
 #   ensure    => present,
@@ -1341,7 +1317,7 @@ class aixautomation {
 #   targets => "quimby05",
 # }
 #
-# patchmngt { "7100-04-03-1642 => 7100-04-05-1720":
+# patchmngt { "7100-04-03-1643 => 7100-04-05-1720":
 #   provider => nimpush ,
 #   name => "7100-04-05-1720-lpp_source",
 #   action => "update",
@@ -1351,7 +1327,7 @@ class aixautomation {
 #   targets => "quimby05",
 # }
 #
-# patchmngt { "7100-04-03-1642 => 7100-04-05-1720":
+# patchmngt { "7100-04-03-1643 => 7100-04-05-1720":
 #   provider => nimpush ,
 #   name => "7100-04-05-1720-lpp_source",
 #   action => "update",

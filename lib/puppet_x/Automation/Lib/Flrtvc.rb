@@ -334,6 +334,7 @@ module Automation
           returned = step_remove_fixes(step, target)
         else
           Log.log_err('Unknown step ' + step.to_s)
+          returned = ''
         end
         returned
       end
@@ -854,9 +855,8 @@ lppminmax_of_fixes_hash.to_s)
         Log.log_debug('  testing if NIM resource ' +
                           nim_lpp_source_resource + ' exists.')
         exists = Nim.lpp_source_exists?(nim_lpp_source_resource)
-        Log.log_debug('  exists=' + exists.to_s +
-                          ' exists.exitstatus=' + exists.exitstatus.to_s)
-        if exists.exitstatus == 0
+        Log.log_debug('  exists=' + exists.to_s)
+        if exists
           Log.log_debug('  Already built NIM resource ' +
                             nim_lpp_source_resource)
           Nim.remove_lpp_source(nim_lpp_source_resource)
@@ -922,12 +922,10 @@ lppminmax_of_fixes_hash.to_s)
         @targets.each do |target|
           Log.log_debug('  target=' + target)
           nim_lpp_source_resource = get_flrtvc_name(:NIM_res, target)
-          returned = Nim.lpp_source_exists?(nim_lpp_source_resource)
-          Log.log_debug('  returned=' +
-                            returned.to_s +
-                            ' returned.exitstatus=' +
-                            returned.exitstatus.to_s)
-          if returned.exitstatus == 0
+          exists = Nim.lpp_source_exists?(nim_lpp_source_resource)
+          Log.log_debug('  exists=' +
+                            exists.to_s)
+          if exists
             Nim.remove_lpp_source(nim_lpp_source_resource)
             Log.log_debug('  removing NIM resource ' +
                               nim_lpp_source_resource)
@@ -950,7 +948,7 @@ lppminmax_of_fixes_hash.to_s)
       # #######################################################################
       def step_remove_fixes(step,
                             target)
-        Log.log_info('In step_remove_fixes target=' + target)
+        Log.log_info('Flrtvc step : ' + step.to_s + ' (target=' + target + ')')
         nim_lpp_source_resource = get_flrtvc_name(:NIM_res, target)
         begin
           Log.log_debug('  removing ifixes')

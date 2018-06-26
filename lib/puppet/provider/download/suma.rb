@@ -50,21 +50,19 @@ to \"#{resource[:to]}\" lpp_source=\"#{resource[:lpp_source]}\" force=#{resource
         unless location.nil? || location.empty?
           Log.log_info('Removing contents of NIM lpp_source ' + @suma.lpp_source + ' : ' + location)
           FileUtils.rm_rf Dir.glob("#{location}/*")
-
           Log.log_info('Removing NIM lpp_source ' + @suma.lpp_source)
-          nim('-o', 'remove', @suma.lpp_source)
+          Nim.remove_lpp_source(@suma.lpp_source)
         end
       rescue Puppet::ExecutionFailure => e
         Log.log_debug('NIM Puppet::ExecutionFailure e=' + e.to_s)
       end
     elsif resource[:ensure].to_s != 'absent'
-      begin
-        Log.log_debug('lsnim')
-        lsnim('-l', @suma.lpp_source)
+      exists = Nim.lpp_source_exists?(@suma.lpp_source)
+      if exists
         Log.log_info('NIM lpp_source resource ' + @suma.lpp_source + ' already exists, suma steps not necessary.')
         Log.log_info('You can force thru \'force => "yes"\' a new suma download and new creation of NIM lpp_source resource.')
-      rescue Puppet::ExecutionFailure => e
-        Log.log_debug('lsnim Puppet::ExecutionFailure e=' + e.to_s)
+      else
+        Log.log_info('NIM lpp_source resource ' + @suma.lpp_source + ' does not exists.')
         creation_done = false # this will trigger creation
       end
     end
@@ -94,19 +92,23 @@ lpp_source=\"#{resource[:lpp_source]}\".")
         if @suma.to_step.to_s == 'download'
           Log.log_debug('Launching now suma.download')
           downloaded = @suma.download
+          Log.log_debug('downloaded=' + downloaded.to_s)
         else
           Log.log_debug('suma.download not necessary as only preview is required')
         end
       else
         Log.log_debug('suma.download not necessary as preview shows nothing is missing ')
       end
-
-      if !missing || downloaded == 0
+      #
+      exists = Nim.lpp_source_exists?(@suma.lpp_source)
+      if !exists
         Log.log_debug('Nim.define_lpp_source')
         Nim.define_lpp_source(@suma.lpp_source,
                               @suma.dir_lpp_sources,
                               'built by Puppet AixAutomation')
-        Log.log_debug('Nim.define_lpp_source')
+      else
+        Log.log_info('NIM lpp_source resource ' + @suma.lpp_source + ' already exists, creation not done.')
+        Log.log_info('You can force thru \'force => "yes"\' a new suma download and new creation of NIM lpp_source resource.')
       end
 
     rescue SumaPreviewError, SumaDownloadError => e

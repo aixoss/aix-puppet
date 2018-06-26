@@ -1,3 +1,4 @@
+require_relative './Constants.rb'
 require 'logger'
 require 'open3'
 require 'pp'
