@@ -1,6 +1,7 @@
 require_relative './SpLevel.rb'
 require_relative './Constants.rb'
 require_relative './Utils.rb'
+require 'fileutils'
 require 'yaml'
 
 module Automation
@@ -350,6 +351,7 @@ fixes (~ #{download_dl.to_f.round(2)} GB).")
       # #####################################################################
       def self.sp_per_tl
         Log.log_debug('Suma.sp_per_tl')
+        sp_per_tl_from_file = {}
         #
         # If yaml file exists, return its contents
         # otherwise mine metadata to build results

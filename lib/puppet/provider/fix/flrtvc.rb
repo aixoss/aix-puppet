@@ -53,7 +53,7 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
     targets_array.each do |target|
       step = :status
       Log.log_debug('target=' + target + ' doing :' + step.to_s)
-      @flrtvc.run_step(step, target, 'PuppetAix_StatusBeforeInstall_' + target + '.yml')
+      @flrtvc.run_step(step, target, 'PuppetAix_StatusBeforeEfixInstall_' + target + '.yml')
       Log.log_debug('target=' + target + ' done  :' + step.to_s)
 
       #
@@ -123,7 +123,7 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
                 #
                 step = :status
                 Log.log_debug('target=' + target + ' doing :' + step.to_s)
-                @flrtvc.run_step(step, target, 'PuppetAix_StatusAfterInstall_' + target + '.yml')
+                @flrtvc.run_step(step, target, 'PuppetAix_StatusAfterEfixInstall_' + target + '.yml')
                 Log.log_debug('target=' + target + ' done  :' + step.to_s)
 
               else
@@ -147,7 +147,7 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
   end
 
   # ###########################################################################
-  #
+  # rubocop:enable Metrics/BlockNesting
   #
   # ###########################################################################
   def destroy
@@ -162,7 +162,7 @@ directory=\"#{resource[:root]}\"")
     targets_array.each do |target|
       step = :status
       Log.log_debug('target=' + target + ' doing :' + step.to_s)
-      @flrtvc.run_step(step, target, 'PuppetAix_StatusBeforeRemoval_' + target + '.yml')
+      @flrtvc.run_step(step, target, 'PuppetAix_StatusBeforeEfixRemoval_' + target + '.yml')
       Log.log_debug('target=' + target + ' done  :' + step.to_s)
 
       step = :removeFixes
@@ -173,7 +173,7 @@ directory=\"#{resource[:root]}\"")
       #
       step = :status
       Log.log_debug('target=' + target + ' doing :' + step.to_s)
-      @flrtvc.run_step(step, target, 'PuppetAix_StatusAfterRemoval_' + target + '.yml')
+      @flrtvc.run_step(step, target, 'PuppetAix_StatusAfterEfixRemoval_' + target + '.yml')
       Log.log_debug('target=' + target + ' done  :' + step.to_s)
     end
 
@@ -181,11 +181,9 @@ directory=\"#{resource[:root]}\"")
     @flrtvc.remove_nim_resources
     Log.log_debug('flrtvc.removed nim resources')
 
-    #if resource[:clean] == 'yes'
     Log.log_debug('flrtvc.removing downloaded ifix files')
     @flrtvc.remove_downloaded_files
     Log.log_debug('flrtvc.removed downloaded ifix files')
-    #end
 
     Log.log_debug('End of flrtvc.destroy')
   end

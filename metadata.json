@@ -1,6 +1,6 @@
 {
   "name": "aix-aixautomation",
-  "version": "0.6.1",
+  "version": "0.6.3",
   "author": "aix",
   "summary": "This module enables automation of suma/install and update/ifix operations on a list of LPAR",
   "license": "Apache-2.0",

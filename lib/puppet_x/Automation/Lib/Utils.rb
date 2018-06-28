@@ -130,28 +130,13 @@ module Automation
         Log.log_debug("targets_list=#{targets_list}")
         #
         standalones = Facter.value(:standalones)
-        standalones_keys = []
-        unless standalones.nil?
-          for key1 in standalones.keys
-            Log.log_debug('standalone:' + key1)
-            values = standalones[key1]
-            for key2 in values.keys
-              Log.log_debug(' ' + key2 + '=>' + values[key2])
-            end
-          end
-          standalones_keys = standalones.keys
-          Log.log_debug('standalones_keys=' + standalones_keys.to_s)
-          # Facter.value(:standalones).each do |standalone|
-          #   Log.log_debug('standalone=' + standalone.to_s)
-          # end
-        end
-        #
+        standalones_keys = standalones.keys
         targets_list.each do |target|
           if !target.empty?
             if standalones_keys.include? target
               kept.push(target.to_s)
             else
-              Log.log_err("This \"#{target}\" target is not part of standalones \
+              Log.log_warning("This \"#{target}\" target is not part of standalones \
 : cannot be kept.")
               suppressed.push(target.to_s)
             end
@@ -170,15 +155,11 @@ module Automation
       # description : checks directory exists, create it otherwise
       # ########################################################################
       def self.check_directory(directory)
-        # Log.log_debug("Into check_directory directory=" + directory)
         #
         returned = -1
         if !directory.empty?
-          #::FileUtils.mkdir_p(directory) unless ::File.directory?(directory)
           cmd = "/bin/mkdir -p #{directory}"
           stdout, stderr, status = Open3.capture3(cmd.to_s)
-          # Log.log_debug("cmd   =#{cmd}")
-          # Log.log_debug("status=#{status}")
           if !status.success?
             if !stderr.nil? && !stderr.strip.empty?
               Log.log_err("stderr=#{stderr}")
@@ -194,7 +175,6 @@ module Automation
           Log.log_err("This \"#{directory}\" directory parameter is empty.")
         end
 
-        # Log.log_debug("Ending check_directory")
         returned
       end
 
@@ -240,8 +220,8 @@ module Automation
         #
         remote_cmd = '/bin/lslpp -lcq | /bin/grep -w APPLIED'
         remote_output = []
-        remote_cmd_status = Remote.c_rsh(target, remote_cmd, remote_output)
-        if remote_cmd_status.success?
+        remote_cmd_rc = Remote.c_rsh(target, remote_cmd, remote_output)
+        if remote_cmd_rc == 0
           # here is the remote command output parsing method
           cmd = "/bin/echo \"#{remote_output[0]}\" | /bin/awk '{print $1}' | /bin/sort -u"
           stdout, stderr, status = Open3.capture3(cmd)
@@ -279,10 +259,10 @@ module Automation
                           filesets.to_s)
         remote_cmd = '/bin/lslpp -lcq | /bin/grep -w APPLIED'
         remote_output = []
-        remote_cmd_status = Remote.c_rsh(target,
-                                         remote_cmd,
-                                         remote_output)
-        if remote_cmd_status.success?
+        remote_cmd_rc = Remote.c_rsh(target,
+                                     remote_cmd,
+                                     remote_output)
+        if remote_cmd_rc == 0
           # here is the remote command output parsing method
           stdout, stderr, status =
               Open3.capture3("/bin/echo \"#{remote_output[0]}\" | /bin/awk -F ':' '{print $2}' | /bin/sort -u")
@@ -434,15 +414,15 @@ module Automation
         status_output = {}
         remote_cmd1 = '/bin/oslevel -s'
         remote_output1 = []
-        remote_cmd_status1 = Remote.c_rsh(target, remote_cmd1, remote_output1)
-        if remote_cmd_status1.success?
+        remote_cmd_rc1 = Remote.c_rsh(target, remote_cmd1, remote_output1)
+        if remote_cmd_rc1 == 0
           status_output['oslevel -s'] = remote_output1[0].chomp
         end
         #
         remote_cmd2 = "/bin/lslpp -e | /bin/sed '/STATE codes/,$ d'"
         remote_output2 = []
-        remote_cmd_status2 = Remote.c_rsh(target, remote_cmd2, remote_output2)
-        if remote_cmd_status2.success?
+        remote_cmd_rc2 = Remote.c_rsh(target, remote_cmd2, remote_output2)
+        if remote_cmd_rc2 == 0
           status_output['lslpp -e'] = remote_output2[0].chomp
         end
         status_output

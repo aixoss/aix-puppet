@@ -50,7 +50,7 @@ module Automation
           Puppet.debug(log_item)
           LoggerSingleton.instance.debug { log_item }
         rescue StandardError
-          p 'DEBUG Stack Trace=' + caller.inspect
+          print('DEBUG Stack Trace=' + caller.inspect)
         end if Constants.debug_level >= FULL_DEBUG_LEVEL
 
         begin
@@ -58,7 +58,7 @@ module Automation
           Puppet.debug(message)
           LoggerSingleton.instance.debug { message }
         rescue StandardError
-          p 'DEBUG ' + message
+          print ('DEBUG ' + message + "\n")
         end if Constants.debug_level >= DEBUG_LEVEL
       end
 
@@ -75,7 +75,7 @@ module Automation
           Puppet.info(message)
           LoggerSingleton.instance.info { message }
         rescue StandardError
-          p 'INFO ' + message
+          print ('INFO ' + message + "\n")
         end if Constants.debug_level >= INFO_LEVEL
       end
 
@@ -91,7 +91,7 @@ module Automation
         Puppet.warning(message)
         LoggerSingleton.instance.debug { 'WARNING ' + message }
       rescue StandardError
-        p 'WARNING ' + message
+        print('WARNING ' + message + "\n")
       end
 
       # #######################################################################
@@ -109,7 +109,7 @@ module Automation
           # system/
           LoggerSingleton.instance.error { "\033[0;31m#{message}\033[0m" }
         rescue StandardError
-          p 'ERROR ' + message
+          print ('ERROR ' + message + "\n")
         end
 
         begin

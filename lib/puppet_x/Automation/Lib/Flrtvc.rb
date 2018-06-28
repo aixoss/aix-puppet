@@ -1,5 +1,6 @@
 require 'pathname'
 require 'open-uri'
+require 'openssl'
 require 'fileutils'
 require 'net/http'
 require 'net/https'
@@ -165,7 +166,7 @@ module Automation
       def get_flrtvc_name(type,
                           target = '',
                           name_suffix = '')
-        returned = ''
+        #
         Log.log_debug('get_flrtvc_name type=' + type.to_s + ' target=' + target.to_s + ' name_suffix=' + name_suffix
                                                                                                              .to_s)
         case type
@@ -355,17 +356,18 @@ module Automation
                       yaml_file_name = '')
         Log.log_info('Flrtvc step : ' + step.to_s + ' (target=' + target + ')')
         status_output = Utils.status(target)
-        #Log.log_debug(' target ' + target)
-        for key in status_output.keys
+        status_output.keys.each do |key|
           Log.log_info(' ' + key + '=>' + status_output[key])
         end
-        if !status_output.nil? && !status_output.empty?  \
-                                          && !yaml_file_name.nil? && !yaml_file_name.empty?
+
+        if !status_output.nil? &&
+            !status_output.empty? &&
+            !yaml_file_name.nil? &&
+            !yaml_file_name.empty?
           # Persist to yml
           status_yml_file = ::File.join(Constants.output_dir,
                                         'logs',
                                         yaml_file_name)
-          #Log.log_debug('yaml_file_name=' + yaml_file_name.to_s)
           File.write(status_yml_file, status_output.to_yaml)
           Log.log_info('Refer to "' + status_yml_file + '" to have status of "fix" ("flrtvc" provider)')
         end
@@ -425,16 +427,16 @@ module Automation
             #
             cmd1 = '/usr/bin/lslpp -Lcq'
             lslpp_output = ''
-            returned = Automation::Lib::Remote.c_rsh(target, cmd1, lslpp_output)
-            if returned.success?
+            remote_cmd_rc = Remote.c_rsh(target, cmd1, lslpp_output)
+            if remote_cmd_rc == 0
               File.open(lslpp_file, 'w') { |file| file.write(lslpp_output) }
               Log.log_debug(' lslpp_file ' + lslpp_file + ' written')
             end
             #
             cmd2 = '/usr/sbin/emgr -lv3'
             emgr_output = ''
-            returned = Automation::Lib::Remote.c_rsh(target, cmd2, emgr_output)
-            if returned.success?
+            remote_cmd_rc = Remote.c_rsh(target, cmd2, emgr_output)
+            if remote_cmd_rc == 0
               File.open(emgr_file, 'w') { |file| file.write(emgr_output) }
               Log.log_debug(' emgr_file ' + emgr_file + ' written')
             end
@@ -442,10 +444,10 @@ module Automation
           #
           cmd = if @level != :all
                   "/usr/bin/flrtvc.ksh -l #{lslpp_file} -e #{emgr_file} \
-      -t #{@level}" # {apar_s} {filesets_s} {csv_s}
+-t #{@level}" # {apar_s} {filesets_s} {csv_s}
                 else
                   "/usr/bin/flrtvc.ksh -l #{lslpp_file} -e #{emgr_file}" \
-                  # {apar_s} {filesets_s} {csv_s}
+ # {apar_s} {filesets_s} {csv_s}
                 end
           #
           flrtvc_command_output = []
@@ -654,8 +656,7 @@ and #{filesets.size} filesets.")
           listoffixes = mine_this_step_hash[false]
         end
         Log.log_info('Flrtvc step end : ' + step.to_s + ' (target=' + target + ')' +
-                         ' listoffixes=' + listoffixes.to_s +
-                         ' (' + listoffixes.length.to_s + ')')
+                         ' listoffixes=' + listoffixes.to_s + ' (' + listoffixes.length.to_s + ')')
         listoffixes
       end
 
@@ -713,7 +714,6 @@ lppminmax_of_fixes_hash.to_s)
               lpps_minmax_of_fix = min_max_level_prereq_of(::File.join(common_efixes_dirname,
                                                                        fix))
               if !lpps_minmax_of_fix.nil? && !lpps_minmax_of_fix.empty?
-                #Log.log_debug('new lpps_minmax_of_fixes=' + lpps_minmax_of_fix.to_s)
                 Log.log_debug('  before @lppminmax_of_fixes.length=' + @lppminmax_of_fixes.length.to_s)
                 @lppminmax_of_fixes[fix] = lpps_minmax_of_fix
                 Log.log_debug('  after @lppminmax_of_fixes.length=' + @lppminmax_of_fixes.length.to_s)
@@ -813,7 +813,7 @@ lppminmax_of_fixes_hash.to_s)
         returned = {}
         #
         target_nimresource_dir_name = get_flrtvc_name(:NIM_dir, target)
-        Log.log_debug('  target_nimresource_dir_name=' +
+        Log.log_debug('Target_nimresource_dir_name=' +
                           target_nimresource_dir_name)
         #
         # first sort the hash by their value which is packaging_date
@@ -827,15 +827,15 @@ lppminmax_of_fixes_hash.to_s)
           fixes << hfixes_dates[packaging_date]
         end
         #
-        Log.log_debug('  fixes sorted by packaging date=' +
+        Log.log_debug('Fixes sorted by packaging date=' +
                           fixes.to_s)
 
         # Now fixes are sorted by packaging date
         fixes.each do |fix|
           Log.log_debug('  fix=' + fix)
           fix_filename = ::File.join(get_flrtvc_name(:common_efixes), fix)
-          Log.log_debug('  fix_filename=' + fix_filename)
-          Log.log_debug('  copying ' +
+          Log.log_debug('Fix_filename=' + fix_filename)
+          Log.log_debug('Copying ' +
                             fix_filename +
                             ' into ' +
                             target_nimresource_dir_name)
@@ -846,29 +846,29 @@ lppminmax_of_fixes_hash.to_s)
             Flrtvc.increase_filesystem(target_nimresource_dir_name)
             FileUtils.cp(fix_filename, target_nimresource_dir_name)
           end
-          Log.log_debug('  copied ' + fix_filename +
+          Log.log_debug('Copied ' + fix_filename +
                             ' into ' + target_nimresource_dir_name)
         end
         #
         # return hash with lpp_source as key and sorted ifix as value
         nim_lpp_source_resource = get_flrtvc_name(:NIM_res, target)
-        Log.log_debug('  testing if NIM resource ' +
+        Log.log_debug('Testing if NIM resource ' +
                           nim_lpp_source_resource + ' exists.')
         exists = Nim.lpp_source_exists?(nim_lpp_source_resource)
-        Log.log_debug('  exists=' + exists.to_s)
+        Log.log_debug('Exists=' + exists.to_s)
         if exists
-          Log.log_debug('  Already built NIM resource ' +
+          Log.log_debug('Already built NIM resource ' +
                             nim_lpp_source_resource)
           Nim.remove_lpp_source(nim_lpp_source_resource)
-          Log.log_debug('  removing already built NIM resource ' +
+          Log.log_debug('Removing already built NIM resource ' +
                             nim_lpp_source_resource)
         end
 
-        Log.log_debug('  building NIM resource ' +
+        Log.log_debug('Building NIM resource ' +
                           nim_lpp_source_resource)
         Nim.define_lpp_source(nim_lpp_source_resource,
                               target_nimresource_dir_name)
-        Log.log_debug('  built NIM resource ' +
+        Log.log_debug('End building NIM resource ' +
                           nim_lpp_source_resource)
         #
         returned[nim_lpp_source_resource] = fixes
@@ -901,9 +901,9 @@ lppminmax_of_fixes_hash.to_s)
           ifixes_string = Utils.string_separated(ifixes, ' ')
           #
           # efixes are applied
-          Log.log_debug('  performing ifix customization')
+          Log.log_debug('Performing ifix customization')
           Nim.perform_efix(target, nim_resource, ifixes_string)
-          Log.log_debug('  performed ifix customization')
+          Log.log_debug('End performing ifix customization')
         rescue StandardError => e
           Log.log_err('Exception e=' + e.to_s)
         end
@@ -920,17 +920,17 @@ lppminmax_of_fixes_hash.to_s)
       def remove_nim_resources
         Log.log_info('In remove_nim_resources')
         @targets.each do |target|
-          Log.log_debug('  target=' + target)
+          Log.log_debug('target=' + target)
           nim_lpp_source_resource = get_flrtvc_name(:NIM_res, target)
           exists = Nim.lpp_source_exists?(nim_lpp_source_resource)
-          Log.log_debug('  exists=' +
+          Log.log_debug('exists=' +
                             exists.to_s)
           if exists
             Nim.remove_lpp_source(nim_lpp_source_resource)
-            Log.log_debug('  removing NIM resource ' +
+            Log.log_debug('Removing NIM resource ' +
                               nim_lpp_source_resource)
           else
-            Log.log_debug('  already removed NIM resource ' +
+            Log.log_debug('Already removed NIM resource ' +
                               nim_lpp_source_resource)
           end
         end
@@ -951,9 +951,9 @@ lppminmax_of_fixes_hash.to_s)
         Log.log_info('Flrtvc step : ' + step.to_s + ' (target=' + target + ')')
         nim_lpp_source_resource = get_flrtvc_name(:NIM_res, target)
         begin
-          Log.log_debug('  removing ifixes')
+          Log.log_debug('Removing ifixes')
           Nim.perform_efix_uncustomization(target, nim_lpp_source_resource)
-          Log.log_debug('  removed ifixes')
+          Log.log_debug('End removing ifixes')
         rescue StandardError => e
           Log.log_err('Exception e=' + e.to_s)
         end
@@ -969,9 +969,9 @@ lppminmax_of_fixes_hash.to_s)
       def remove_downloaded_files
         Log.log_info('In remove_downloaded_files')
         begin
-          Log.log_debug('  removing downloaded files')
+          Log.log_debug('Removing downloaded files')
           #  TBI
-          Log.log_debug('  removed downloaded files')
+          Log.log_debug('End removing downloaded files')
         rescue StandardError => e
           Log.log_err('Exception e=' + e.to_s)
         end
@@ -1280,7 +1280,7 @@ as Exception e=' + e.to_s)
                           ' ftp_dir=' + ftp_dir +
                           ' destination_dir=' + destination_dir + ')')
         returned_downloaded_filenames = {}
-        files_on_ftp_server = []
+        #
         Net::FTP.open(ftp_server) do |ftp|
           ftp.login
           ftp.read_timeout = 300
@@ -1492,9 +1492,9 @@ when untarring!")
           # We get something like that : PACKAGING DATE:   Fri Apr  1 04:14:10 CDT 2016
           # We match it                                         0   1  2  3  4      5
           if !command_output[0].nil? && !command_output[0].empty?
-            output_to_regex = command_output[0].chomp
-            Log.log_debug('output_to_regex=' + output_to_regex + '|')
-            output_to_regex =~ /PACKAGING DATE:\s+\w+\s+(\w+)\s+(\d+)\s+(\d+):(\d+):(\d+)\s+\w+\s+(\d+)\s*/
+            to_regex = command_output[0].chomp
+            Log.log_debug('to_regex=|' + to_regex + '|')
+            to_regex =~ /PACKAGING DATE:\s+\w+\s+(\w+)\s+(\d+)\s+(\d+):(\d+):(\d+)\s+\w+\s+(\d+)\s*/
             #                                             0       1       2     3    4              5
             hash_months = { 'Jan' => '01', 'Feb' => '02', 'Mar' => '03',
                             'Apr' => '04', 'May' => '05', 'Jun' => '06',
@@ -1518,9 +1518,9 @@ when untarring!")
             #
             year = Regexp.last_match(6)
             #
-            packaging_date = year + '_' + s_month + '_' + s_day + '_'
-            +hour.to_s + '_' + minute.to_s + '_' + second.to_s
-            Log.log_debug('  packaging_date=' + packaging_date)
+            packaging_date = year + '_' + s_month + '_' + s_day + '_' + \
+hour.to_s + '_' + minute.to_s + '_' + second.to_s
+            Log.log_debug('  Packaging_date=' + packaging_date)
           else
             Log.log_debug('  No PACKAGING DATE set on this fix')
           end
@@ -1576,9 +1576,15 @@ when untarring!")
           lslpp_file = get_flrtvc_name(:lslpp, target)
           command_output = []
           # environment: {'LANG' => 'C'}
-          Utils.execute2("/bin/cat #{lslpp_file} | /bin/grep -w #{lpp} | /bin/cut -d: -f3",
+          command = '/bin/cat ' + lslpp_file + ' | /bin/grep ":' + lpp + ':" | /bin/cut -d: -f3'
+          Utils.execute2(command,
                          command_output)
-          lvl_a = command_output[0].split('.')
+          # Sometimes added to . we can find - as separator
+          lvl_a = command_output[0].split(/[.-]/)
+          # Fill with 0 any missing field
+          (lvl_a.length..3).each { |i|
+            lvl_a[i] = 0
+          }
           lvl = SpLevel.new(lvl_a[0], lvl_a[1], lvl_a[2], lvl_a[3])
           #
           Log.log_debug('   Into level_prereq_ok? target=' +

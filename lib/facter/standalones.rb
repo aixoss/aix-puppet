@@ -1,7 +1,7 @@
 require_relative '../puppet_x/Automation/Lib/Constants.rb'
 require_relative '../puppet_x/Automation/Lib/Log.rb'
 require_relative '../puppet_x/Automation/Lib/Remote/c_rsh.rb'
-
+#
 # ##########################################################################
 # name : standalones factor
 # param : none
@@ -12,7 +12,7 @@ require_relative '../puppet_x/Automation/Lib/Remote/c_rsh.rb'
 # ##########################################################################
 include Automation::Lib
 include Automation::Lib::Remote
-
+#
 Facter.add('standalones') do
   setcode do
     Log.log_info('Computing "standalones" facter')
@@ -28,15 +28,15 @@ Facter.add('standalones') do
     #
     standalones_array.each do |standalone|
       standalone_hash = {}
-      # # To shorten execution, skip some standalone, manage white list
-      # # To only keep standalones which are listed
-      # # Take model on perform same logic
+      # To shorten execution, skip some standalone, manage white list
+      # To only keep standalones which are listed
+      # Take model on what is below to perform same logic
       # if standalone == "quimby01"
-      #   #  && standalone != "quimby03" \
-      #   #  && standalone != "quimby04" && standalone != "quimby05" \
-      #   #  && standalone != "quimby07" && standalone != "quimby08" \
-      #   #  && standalone != "quimby09" && standalone != "quimby11"  \
-      #   #  && standalone != "quimby12"
+      #     && standalone != "quimby03" \
+      #     && standalone != "quimby04" && standalone != "quimby05" \
+      #     && standalone != "quimby07" && standalone != "quimby08" \
+      #     && standalone != "quimby09" && standalone != "quimby11"  \
+      #     && standalone != "quimby12"
       #   Log.log_info("Please note, to shorten execution " + standalone + " standalone is not kept.")
       #   next
       # end
@@ -44,12 +44,12 @@ Facter.add('standalones') do
       # To shorten execution, skip some standalone, manage black list
       # To only keep standalones which are listed
       # Take model on perform same logic
-      #if standalone != 'quimby03' && standalone != 'quimby04' && standalone != 'quimby05' && standalone != 'quimby06'
-      # if standalone != 'quimby04' && standalone != 'quimby05' && standalone != 'quimby06'
-      #   Log.log_info('Please note, to shorten execution ' + standalone + ' standalone is not kept.')
-      #   standalone_hash['WARNING'] = 'Standalone system skipped in aixautomation/lib/facter/standalones.rb'
-      #   standalones_skipped[standalone] = standalone_hash
-      #   next
+      # if standalone != 'quimby03' && standalone != 'quimby04' && standalone != 'quimby05' && standalone != 'quimby06'
+      # if standalone != 'quimby07'
+      #  Log.log_info('Please note, to shorten execution ' + standalone + ' standalone is not kept.')
+      #  standalone_hash['WARNING'] = 'Standalone system skipped in aixautomation/lib/facter/standalones.rb'
+      #  standalones_skipped[standalone] = standalone_hash
+      #  next
       # end
 
       #### ping
@@ -62,19 +62,20 @@ Facter.add('standalones') do
         ##### oslevel
         oslevel = ''
         oslevel_cmd = '/usr/bin/oslevel -s '
-        returned = Automation::Lib::Remote.c_rsh(standalone,
-                                                 oslevel_cmd,
-                                                 oslevel)
-        if returned.success?
+        remote_cmd_rc = Remote.c_rsh(standalone,
+                                     oslevel_cmd,
+                                     oslevel)
+        # Log.log_debug('remote_cmd_rc=' + remote_cmd_rc.to_s + ' ' + remote_cmd_rc.class.to_s)
+        if remote_cmd_rc == 0
           standalone_hash['oslevel'] = oslevel.strip
 
           # #### /etc/niminfo
           niminfo_str = ''
           nim_cmd = "/bin/cat /etc/niminfo | /bin/grep '=' | /bin/sed 's/export //g'"
-          returned = Automation::Lib::Remote.c_rsh(standalone,
-                                                   nim_cmd,
-                                                   niminfo_str)
-          if returned.success?
+          remote_cmd_rc = Remote.c_rsh(standalone,
+                                       nim_cmd,
+                                       niminfo_str)
+          if remote_cmd_rc == 0
             niminfo_lines = niminfo_str.split("\n")
             niminfo_lines.each do |envvar|
               key, val = envvar.split('=')
@@ -96,12 +97,11 @@ Facter.add('standalones') do
             end
 
             if keep_it
-
               # Get status of efix on this standalone
               remote_cmd = "/bin/lslpp -e | /bin/sed '/STATE codes/,$ d'"
               remote_output = []
-              remote_cmd_status = Remote.c_rsh(standalone, remote_cmd, remote_output)
-              if remote_cmd_status.success?
+              remote_cmd_rc = Remote.c_rsh(standalone, remote_cmd, remote_output)
+              if remote_cmd_rc == 0
                 standalone_hash['lslpp -e'] = remote_output[0].chomp
               end
 
@@ -114,18 +114,18 @@ Facter.add('standalones') do
               standalones_skipped[standalone] = standalone_hash
             end
           else
-            standalone_hash['WARNING'] = 'Standalone ' + standalone + ' does not "' + nim_cmd + '"'
+            standalone_hash['WARNING'] = 'Standalone ' + standalone + ' cannot "' + nim_cmd + '"'
             Log.log_warning('error while doing "' + nim_cmd + '" on "' + standalone + '"')
             standalones_skipped[standalone] = standalone_hash
           end
         else
-          standalone_hash['WARNING'] = 'Standalone ' + standalone + ' does not "' + oslevel_cmd + '"'
+          standalone_hash['WARNING'] = 'Standalone ' + standalone + ' cannot "' + oslevel_cmd + '"'
           Log.log_warning('error while doing "' + oslevel_cmd + '" on "' + standalone + '"')
           Log.log_warning("stderr=#{stderr}")
           standalones_skipped[standalone] = standalone_hash
         end
       else
-        standalone_hash['WARNING'] = 'Standalone ' + standalone + ' does not "' + ping_cmd + '"'
+        standalone_hash['WARNING'] = 'Standalone ' + standalone + ' cannot "' + ping_cmd + '"'
         Log.log_warning('error while doing "' + ping_cmd + '"')
         Log.log_warning("ping_stderr=#{stderr}")
         standalones_skipped[standalone] = standalone_hash

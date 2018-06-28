@@ -60,7 +60,7 @@ to \"#{resource[:to]}\" lpp_source=\"#{resource[:lpp_source]}\" force=#{resource
       exists = Nim.lpp_source_exists?(@suma.lpp_source)
       if exists
         Log.log_info('NIM lpp_source resource ' + @suma.lpp_source + ' already exists, suma steps not necessary.')
-        Log.log_info('You can force thru \'force => "yes"\' a new suma download and new creation of NIM lpp_source resource.')
+        Log.log_info('You can force through \'force => "yes"\' a new suma download and new creation of NIM lpp_source resource.')
       else
         Log.log_info('NIM lpp_source resource ' + @suma.lpp_source + ' does not exists.')
         creation_done = false # this will trigger creation
@@ -99,18 +99,20 @@ lpp_source=\"#{resource[:lpp_source]}\".")
       else
         Log.log_debug('suma.download not necessary as preview shows nothing is missing ')
       end
-      #
-      exists = Nim.lpp_source_exists?(@suma.lpp_source)
-      if !exists
-        Log.log_debug('Nim.define_lpp_source')
-        Nim.define_lpp_source(@suma.lpp_source,
-                              @suma.dir_lpp_sources,
-                              'built by Puppet AixAutomation')
-      else
-        Log.log_info('NIM lpp_source resource ' + @suma.lpp_source + ' already exists, creation not done.')
-        Log.log_info('You can force thru \'force => "yes"\' a new suma download and new creation of NIM lpp_source resource.')
-      end
 
+      #
+      if @suma.to_step.to_s == 'download'
+        exists = Nim.lpp_source_exists?(@suma.lpp_source)
+        if !exists
+          Log.log_debug('Nim.define_lpp_source')
+          Nim.define_lpp_source(@suma.lpp_source,
+                                @suma.dir_lpp_sources,
+                                'built by Puppet AixAutomation')
+        else
+          Log.log_info('NIM lpp_source resource ' + @suma.lpp_source + ' already exists, creation not done.')
+          Log.log_info('You can force through \'force => "yes"\' a new suma download and new creation of NIM lpp_source resource.')
+        end
+      end
     rescue SumaPreviewError, SumaDownloadError => e
       Log.log_err('Exception ' + e.to_s)
     end

@@ -1,12 +1,12 @@
 require_relative '../puppet_x/Automation/Lib/Log.rb'
 #
-# # ##########################################################################
-# # name : apply factor
-# # param : none
-# # return :
-# # description : to display contents of manifests/init.pp being applied
-# # ##########################################################################
-include Automation::Lib
+# ##########################################################################
+# name : apply factor
+# param : none
+# return :
+# description : to display contents of manifests/init.pp being applied,
+#  commented lines are not displayed.
+# ##########################################################################
 #
 Facter.add('applied_manifest') do
   setcode do
@@ -18,7 +18,7 @@ Facter.add('applied_manifest') do
       Log.log_info('Contents of manifests/init.pp')
       while (line = init_pp_file_handler.gets)
         next unless !line.nil? && !line.strip.empty?
-        contents += line unless line.to_s =~ /^#.*/
+        contents += line unless line.to_s =~ /^\s*#.*/
       end
       applied_manifest['manifest'] = contents
       init_pp_file_handler.close

@@ -42,8 +42,8 @@
 #     vioss_array = vioss_str.split(' ')
 #     vioss_array.each do |vios|
 #       oslevel = ""
-#       returned = Automation::Lib::Remote.c_rsh(vios, "/usr/bin/oslevel -s", oslevel)
-#       if returned.success?
+#       remote_cmd_rc = Remote.c_rsh(vios, "/usr/bin/oslevel -s", oslevel)
+#       if remote_cmd_rc == 0
 #         vios_hash['oslevel'] = oslevel.strip
 #       end
 #
@@ -57,8 +57,8 @@
 #
 #         ##### oslevel
 #         oslevel = ""
-#         returned = Automation::Lib::Remote.c_rsh(vios, "/usr/bin/oslevel -s", oslevel)
-#         if returned.success?
+#         remote_cmd_rc =Remote.c_rsh(vios, "/usr/bin/oslevel -s", oslevel)
+#         if remote_cmd_rc == 0
 #           vios_hash['oslevel'] = oslevel.strip
 #
 #           full_facter = true
@@ -66,9 +66,9 @@
 #
 #             ##### /etc/niminfo
 #             niminfo_str = ""
-#             returned = Automation::Lib::Remote.c_rsh(vios, "/bin/cat /etc/niminfo |\
+#             remote_cmd_rc = Remote.c_rsh(vios, "/bin/cat /etc/niminfo |\
 #  /bin/grep '=' | /bin/sed 's/export //g'", niminfo_str)
-#             if returned.success?
+#             if remote_cmd_rc == 0
 #               niminfo_lines = niminfo_str.split("\n")
 #               niminfo_lines.each do |envvar|
 #                 key, val = envvar.split('=')

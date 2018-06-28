@@ -28,7 +28,7 @@
 */
 /*
 class aixautomation {
-  # This rule allows to perform download thru suma provider
+  # This rule allows to perform download through suma provider
   #  to get update of 7100-03-07-1614 SP into /export/extra/puppet/suma
   #  for a system which is currently in 7100-03
   # lpp_source created is named : PAA_SP_7100-03_7100-03-07-1614
@@ -47,7 +47,7 @@ class aixautomation {
     to         => "7100-03-07-1614",
     lpp_source => "PAA_SP_7100-03_7100-03-07-1614",
   }
-  # This rule allows to perform download thru suma provider
+  # This rule allows to perform download through suma provider
   #  to get update of 7100-04 TL into /export/extra/puppet/suma
   #  for a system which is currently in 7100-03
   # lpp_source created is named : PAA_TM_7100-03_7100-04
@@ -65,7 +65,7 @@ class aixautomation {
     from       => "7100-03",
     to         => "7100-04",
   }
-  # This rule allows to perform download thru suma provider
+  # This rule allows to perform download through suma provider
   #  to get update of 7100-05 TL into /export/extra/puppet/suma
   #  for a system which is currently in 7100-03
   # lpp_source created is named : PAA_TM_7100-03_7100-05
@@ -104,7 +104,7 @@ class aixautomation {
 */
 /*
 class aixautomation {
-  # This rule allows to perform update thru nimpush provider
+  # This rule allows to perform update through nimpush provider
   #  of the quimby07 system so that it is updated to the
   #  7100-03-07-1614 SP
   # The lpp_source is the one built by download rule
@@ -126,7 +126,7 @@ class aixautomation {
 */
 /*
 class aixautomation {
-  # This rule allows to install iFix thru flrtvc provider,
+  # This rule allows to install iFix through flrtvc provider,
   #  on the quimby01 and quimby02 systems so that they are fixed as best as possible.
   # Setting ensure to 'present'
   # List of appropriate eFix is computed for each system, and then applied.
@@ -150,7 +150,7 @@ class aixautomation {
 */
 /*
 class aixautomation {
-  # This rule allows to remove iFix thru flrtvc provider
+  # This rule allows to remove iFix through flrtvc provider
   #  from the quimby03 and quimby04 systems
   # Setting ensure to 'absent'
   # All iFix are removed.
@@ -169,7 +169,7 @@ class aixautomation {
 */
 /*
 class aixautomation {
-  # This rule allows to install lpp_source thru nimpush provider,
+  # This rule allows to install lpp_source through nimpush provider,
   #  on the quimby01 and quimby02 systems.
   # Setting ensure to 'present'
   # Action to be done is 'install'.
@@ -188,7 +188,7 @@ class aixautomation {
 */
 /*
 class aixautomation {
-  # This rule allows to remove lpp_source thru nimpush provider,
+  # This rule allows to remove lpp_source through nimpush provider,
   #  on the quimby01 and quimby02 systems.
   # Setting ensure to 'absent'
   # Action to be done is 'install'.

@@ -56,6 +56,10 @@ Puppet::Type.newtype(:download) do
   newparam(:lpp_source) do
     desc '"lpp_source" parameter: optional parameter, \
 name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
+    validate do |values|
+      raise('"lpp_source" name \"' + values + '\" is too long (' + values.length.to_s + '), max is 39 characters') \
+        if values.length > 39
+    end
     defaultto ''
   end
 
@@ -130,29 +134,45 @@ name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
       result = SpLevel.sp_exists(to)
       raise('"' + to + '" "to" parameter is not a known SP. Check ' + yml_file + ' file.') unless result
 
+      Log.log_debug('Validation of type=SP from=' + from + ' to=' + to + ' OK.')
     elsif self[:type] == :TL
 
-      result = SpLevel.validate_tl('from', from)
-      raise('"' + from + '" "from" parameter is invalid. Check ' + yml_file + ' file.') unless result
+      # All these suma TL requests are legitimate
+      # suma -x -a RqType=TL -a RqName=6100-06-00-1036 -a FilterML=6100-05-09-1228 -a Action=Preview -a DLTarget=/tmp/lpp_sources/TL/6100-05-09-1228/6100-06-00-1036
+      # suma -x -a RqType=TL -a RqName=6100-06         -a FilterML=6100-05 -a Action=Preview -a DLTarget=/tmp/lpp_sources/TL/6100-05/6100-06
+      # suma -x -a RqType=TL -a RqName=6100-06         -a FilterML=6100-05-09-1228 -a Action=Preview -a DLTarget=/tmp/lpp_sources/TL/6100-05-09-1228/6100-06
+      # suma -x -a RqType=TL -a RqName=6100-06-00-1036 -a FilterML=6100-05 -a Action=Preview -a DLTarget=/tmp/lpp_sources/TL/6100-05/6100-06-00-1036
+      result = SpLevel.validate_tl('from', from) && SpLevel.validate_tl('to', to)
+      unless result
+        result = SpLevel.validate_sp('from', from) && SpLevel.validate_tl('to', to)
+        unless result
+          result = SpLevel.validate_tl('from', from) && SpLevel.validate_sp('to', to)
+        end
+      end
+      raise('"' + from + '" "from" parameter and "' + to + '" "to" parameter are not consistent for a TL request. Check ' + yml_file + ' file.') unless result
 
       # result = SpLevel.validate_sp_tl("to", to)
-      result = SpLevel.validate_tl('to', to)
-      raise('"' + to + '" "to" parameter is invalid. Check ' + yml_file + ' file.') unless result
+      # result = SpLevel.validate_tl('to', to)
+      # raise('"' + to + '" "to" parameter is invalid. Check ' + yml_file + ' file.') unless result
 
-      result = SpLevel.tl_exists(from)
-      raise('"' + from + '" "from" parameter is not a known TL. Check ' + yml_file + ' file.') unless result
-      result = SpLevel.tl_exists(to)
-      raise('"' + to + '" "to" parameter is not a known TL. Check ' + yml_file + ' file.') unless result
+      result = SpLevel.sp_tl_exists(from)
+      raise('"' + from + '" "from" parameter is neither a known TL nor a known SP. Check ' + yml_file + ' file.') unless result
 
+      result = SpLevel.sp_tl_exists(to)
+      raise('"' + to + '" "to" parameter is neither a known TL nor a known SP. Check ' + yml_file + ' file.') unless result
+
+      Log.log_debug('Validation of type=TL from=' + from + ' to=' + to + ' OK.')
     elsif self[:type] == :Latest
 
       result = SpLevel.validate_tl('from', from)
       raise('"' + from + '" "from" parameter is invalid. Check ' + yml_file + ' file.') unless result
 
-      raise('"' + to + '" "to" parameter must not be specified for Latest') if to != ''
+      raise('"' + to + '" "to" parameter must not be specified if type is set to "Latest"') if to != ''
 
       result = SpLevel.tl_exists(from)
       raise('"' + from + '" "from" parameter is not a known TL. Check ' + yml_file + ' file.') unless result
+
+      Log.log_debug('Validation of type=Latest from=' + from + ' OK.')
     end
   end
 end

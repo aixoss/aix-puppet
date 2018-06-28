@@ -1,6 +1,6 @@
 require_relative '../puppet_x/Automation/Lib/Log.rb'
 require_relative '../puppet_x/Automation/Lib/Suma.rb'
-
+#
 # ##########################################################################
 # name : servicepacks factor
 # param : none
@@ -9,7 +9,7 @@ require_relative '../puppet_x/Automation/Lib/Suma.rb'
 #  a hash with all technical levels as keys and services packs as values.
 # ##########################################################################
 include Automation::Lib
-
+#
 Facter.add('servicepacks') do
   setcode do
     Log.log_info('Computing "servicepacks" facter')

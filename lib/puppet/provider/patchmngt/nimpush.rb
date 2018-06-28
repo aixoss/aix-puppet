@@ -26,6 +26,11 @@ Puppet::Type.type(:patchmngt).provide(:nimpush) do
     Log.log_info("Provider nimpush 'exists?' method : we want to realize : \"#{resource[:ensure]}\" for \
 \"#{resource[:action]}\" action sync=\"#{resource[:sync]}\" mode=\"#{resource[:mode]}\" \
 on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lpp_source.")
+
+    # default value for returned, depends on 'ensure'
+    returned = true
+    returned = false if resource[:ensure] == absent
+
     #
     targets = resource[:targets].to_s
     Log.log_debug('targets=' + targets)
@@ -48,6 +53,8 @@ on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lpp_sourc
       else
         raise('"mode" must be either "update", "commit", or "apply"')
       end
+    else
+      # type code here
     end
 
     # Depending on the action param, interpretation of ensure is not the same
@@ -136,7 +143,6 @@ on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lpp_sourc
           # to do update
         elsif resource[:ensure].to_s == 'absent'
           returned = false
-          #Log.log_debug('To remove update')
           # to do nothing
           Log.log_info('Nothing to be done')
         end
@@ -199,9 +205,9 @@ action on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lp
       targets_array.each do |target|
         status_output = Utils.status(target)
         Log.log_debug('target=' + target)
-        for key in status_output.keys
+        status_output.keys.each { |key|
           Log.log_debug(' ' + key + '=>' + status_output[key])
-        end
+        }
         results_status[target] = status_output
       end
       # persist to yaml
@@ -231,7 +237,7 @@ action on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lp
       if mode.to_s == 'update'
         begin
           Log.log_debug('Nim.cust_update')
-          Nim.cust_update(lpp_source, sync_option, '', targets_array)
+          Nim.cust_update(lpp_source, sync_option, 'agXY', targets_array)
           Log.log_debug('Nim.cust_update')
         rescue Nim::NimCustOpError => e
           Log.log_err("NimCustOpError #{e} " + e.to_s)

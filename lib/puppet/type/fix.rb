@@ -26,7 +26,7 @@ Puppet::Type.newtype(:fix) do
 
   # ###########################################################################
   # Only valid targets are kept, targets need to be pingable,
-  #  accessible thru c_rsh, in a proper NIM state
+  #  accessible through c_rsh, in a proper NIM state
   # ###########################################################################
   newparam(:targets) do
     desc '"targets" parameter: list of lpar or vios on which to perform action'

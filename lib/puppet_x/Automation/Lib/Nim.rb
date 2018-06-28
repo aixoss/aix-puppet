@@ -109,9 +109,9 @@ module Automation
           lpp_source,
           filesets = 'all')
         Log.log_debug('Nim.perform_efix target=' +
-                         target +
-                         ' lpp_source=' +
-                         lpp_source)
+                          target +
+                          ' lpp_source=' +
+                          lpp_source)
         #
         # nim -o cust -a filesets=E:IZ12345.epkg.Z -a lpp_source=lpp1 spot1
         nim_command = "/usr/sbin/nim -o cust -a lpp_source=#{lpp_source} \
@@ -160,10 +160,12 @@ do |_stdin, stdout, stderr, wait_thr|
 target + ' lpp_source=' + lpp_source)
         #
         Log.log_debug('Building list of efixes to be removed')
-        remote_cmd = '/usr/sbin/emgr -P  | /usr/bin/tail -n +4'
+        remote_cmd = '/usr/sbin/emgr -P | /usr/bin/tail -n +4'
         remote_output = []
-        remote_cmd_status = Remote.c_rsh(target, remote_cmd, remote_output)
-        if remote_cmd_status.success? && !remote_output[0].nil? && !remote_output[0].empty?
+        remote_cmd_rc = Remote.c_rsh(target, remote_cmd, remote_output)
+        if remote_cmd_rc == 0 &&
+            !remote_output[0].nil? &&
+            !remote_output[0].empty?
           # here is the remote command output parsing method
           cmd = "/bin/echo \"#{remote_output[0]}\" | /bin/awk '{print $3}' | /bin/sort -u"
           stdout, stderr, status = Open3.capture3(cmd)
@@ -178,13 +180,14 @@ target + ' lpp_source=' + lpp_source)
               index_ifix = 1
               stdout.each_line.each do |efix|
                 next unless !efix.nil? && !efix.strip.empty?
+                efix = efix.chomp
                 Log.log_debug('Removing (' + index_ifix.to_s + '/' +
                                   nb_of_ifixes.to_s + ') ' + efix)
                 remote_cmd = '/usr/sbin/emgr -r -L ' + efix
-                remote_cmd_status = Remote.c_rsh(target,
-                                                 remote_cmd,
-                                                 remote_output)
-                if remote_cmd_status.success?
+                remote_cmd_rc = Remote.c_rsh(target,
+                                             remote_cmd,
+                                             remote_output)
+                if remote_cmd_rc == 0
                   Log.log_debug(" ok stdout = #{remote_output[0]}")
                 else
                   Log.log_err("ko stderr=#{remote_output[0]}")
@@ -304,13 +307,11 @@ above error!" unless exit_status.success?
         Log.log_debug('Nim.remove_lpp_source')
         #
         nim_command = '/usr/sbin/nim -o remove ' + lpp_source
-        Utils.execute(nim_command)
         return_code = Utils.execute(nim_command)
         #
         Log.log_debug('Nim.remove_lpp_source return_code=' + return_code.to_s)
         return_code
       end
-
 
       # #######################################################################
       # name : get_location_of_lpp_source
@@ -331,7 +332,7 @@ above error!" unless exit_status.success?
           if nim_command_output[0].to_s =~ /^0042-053 lsnim: there is no NIM object named.$/
             #
           else
-            returned = "#{nim_command_output[0].chomp}"
+            returned = nim_command_output[0].chomp.to_s
           end
         end
         returned
@@ -368,17 +369,6 @@ above error!" unless exit_status.success?
     # ############################
     #     E X C E P T I O N      #
     # ############################
-    class NimHmcInfoError < StandardError
-    end
-    #
-    class NimLparInfoError < StandardError
-    end
-    #
-    class NimAltDiskInstallError < StandardError
-    end
-    #
-    class NimAltDiskInstallTimedOut < StandardError
-    end
     #
     class NimError < StandardError
     end

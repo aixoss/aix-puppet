@@ -32,18 +32,23 @@ Puppet::Type.newtype(:patchmngt) do
   #
   # ############################################################################
   newparam(:lpp_source) do
+    desc '"lpp_source" parameter: name of the NIM lpp_source resource \
+used to perform update or install'
+    validate do |values|
+      raise('"lpp_source" name \"' + values + '\" is too long (' + values.length.to_s + '), max is 39 characters') \
+        if values.length > 39
+    end
   end
 
   # ############################################################################
   # :targets is a parameter giving the LPARs on which to apply action
   #
   # Only valid targets are kept, targets need to be pingable,
-  #  accessible thru c_rsh, in a proper NIM state
+  #  accessible through c_rsh, in a proper NIM state
   # ############################################################################
   newparam(:targets) do
     desc '"targets" parameter: list of lpar or vios on which to perform action'
     kept = []
-    suppressed = []
     validate do |values|
       kept = []
       suppressed = []
