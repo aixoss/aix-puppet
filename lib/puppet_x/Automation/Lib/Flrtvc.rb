@@ -686,8 +686,8 @@ and #{filesets.size} filesets.")
           common_efixes_dirname = get_flrtvc_name(:common_efixes)
           listofkeptfixes = []
           #
-          ifix_ct_for_this_target = 0
-          ifix_nb_for_this_target = listoffixes.length
+          efix_ct_for_this_target = 0
+          efix_nb_for_this_target = listoffixes.length
           #
           lppminmax_of_fixes_hash = mine_this_step('lppminmax_of_fixes',
                                                    'all')
@@ -705,7 +705,7 @@ lppminmax_of_fixes_hash.to_s)
                             ' lppminmax_of_fixes=' + @lppminmax_of_fixes.to_s)
           listoffixes.each do |fix|
             Log.log_debug(' Flrtvc step : ' + step.to_s + ' (target=' + target + ') fix=' + fix)
-            ifix_ct_for_this_target += 1
+            efix_ct_for_this_target += 1
             existing_lppminmax_of_fixes = @lppminmax_of_fixes[fix]
             lpps_minmax_of_fix = {}
             if existing_lppminmax_of_fixes.nil? || existing_lppminmax_of_fixes.empty?
@@ -734,8 +734,8 @@ lppminmax_of_fixes_hash.to_s)
                 else
                   Log.log_info(' Flrtvc step : ' + step.to_s + ' (target=' + target + ')' +
                                    ' fix=' + fix +
-                                   ' (' + ifix_ct_for_this_target.to_s + '/' +
-                                   ifix_nb_for_this_target.to_s +
+                                   ' (' + efix_ct_for_this_target.to_s + '/' +
+                                   efix_nb_for_this_target.to_s +
                                    ') cannot be applied.')
                   kept_fix_for_this_target = false
                   break
@@ -746,8 +746,8 @@ lppminmax_of_fixes_hash.to_s)
             next unless kept_fix_for_this_target
             Log.log_info(' Flrtvc step : ' + step.to_s + ' (target=' + target + ')' +
                              ' fix=' + fix +
-                             ' (' + ifix_ct_for_this_target.to_s + '/' +
-                             ifix_nb_for_this_target.to_s + ') can be applied.')
+                             ' (' + efix_ct_for_this_target.to_s + '/' +
+                             efix_nb_for_this_target.to_s + ') can be applied.')
             listofkeptfixes << fix
           end
           #
@@ -850,7 +850,7 @@ lppminmax_of_fixes_hash.to_s)
                             ' into ' + target_nimresource_dir_name)
         end
         #
-        # return hash with lpp_source as key and sorted ifix as value
+        # return hash with lpp_source as key and sorted efix as value
         nim_lpp_source_resource = get_flrtvc_name(:NIM_res, target)
         Log.log_debug('Testing if NIM resource ' +
                           nim_lpp_source_resource + ' exists.')
@@ -897,13 +897,13 @@ lppminmax_of_fixes_hash.to_s)
         begin
           # efixes are sorted : most recent first
           nim_resource = nimres_sortedfixes.keys[0]
-          ifixes = nimres_sortedfixes.values[0]
-          ifixes_string = Utils.string_separated(ifixes, ' ')
+          efixes = nimres_sortedfixes.values[0]
+          efixes_string = Utils.string_separated(efixes, ' ')
           #
           # efixes are applied
-          Log.log_debug('Performing ifix customization')
-          Nim.perform_efix(target, nim_resource, ifixes_string)
-          Log.log_debug('End performing ifix customization')
+          Log.log_debug('Performing efix customization')
+          Nim.perform_efix(target, nim_resource, efixes_string)
+          Log.log_debug('End performing efix customization')
         rescue StandardError => e
           Log.log_err('Exception e=' + e.to_s)
         end
@@ -942,7 +942,7 @@ lppminmax_of_fixes_hash.to_s)
       # param : input:target:string one particular target
       #   on which action is being done
       # return : nothing
-      # description : For each target, uninstall ifix.
+      # description : For each target, uninstall efix.
       # This is a convenient method used for tests, when we need to do some
       #  cycles of install efixes/uninstall efixes.
       # #######################################################################
@@ -951,9 +951,13 @@ lppminmax_of_fixes_hash.to_s)
         Log.log_info('Flrtvc step : ' + step.to_s + ' (target=' + target + ')')
         nim_lpp_source_resource = get_flrtvc_name(:NIM_res, target)
         begin
-          Log.log_debug('Removing ifixes')
-          Nim.perform_efix_uncustomization(target, nim_lpp_source_resource)
-          Log.log_debug('End removing ifixes')
+          Log.log_debug('Removing efixes')
+          returned = Nim.perform_efix_uncustomization(target, nim_lpp_source_resource)
+          if returned
+            Log.log_debug('End removing efixes on ' + target)
+          else
+            Log.log_err('Issue while removing efixes on ' + target)
+          end
         rescue StandardError => e
           Log.log_err('Exception e=' + e.to_s)
         end
@@ -962,7 +966,7 @@ lppminmax_of_fixes_hash.to_s)
       # #######################################################################
       # name : remove_downloaded
       # return : nothing
-      # description : removes all ifix downloaded files (*.tar *.epkg.Z)
+      # description : removes all efix downloaded files (*.tar *.epkg.Z)
       # This is a convenient method used for tests, when we need to do some
       #  cycles of install efixes/uninstall efixes.
       # #######################################################################
@@ -984,7 +988,7 @@ lppminmax_of_fixes_hash.to_s)
       # param : input:url_to_download:string
       # param : input:count:string
       # param : input:total:string
-      # return : hash with ifix file names as keys and either -1;0;1 as values
+      # return : hash with efix file names as keys and either -1;0;1 as values
       #     -1 meaning that there was an error and download was not done
       #      0 meaning that download was not done, but this is normal as
       #        it was already done
@@ -1430,7 +1434,7 @@ when untarring!")
       # param : input:fixfile:string
       #
       # return : hash with lpp as keys and [min, max] as values, for all lpp
-      #   impacted by the ifix
+      #   impacted by the efix
       # description : this method parses the fix to get
       #   the prereq min max values
       # #######################################################################

@@ -181,9 +181,9 @@ directory=\"#{resource[:root]}\"")
     @flrtvc.remove_nim_resources
     Log.log_debug('flrtvc.removed nim resources')
 
-    Log.log_debug('flrtvc.removing downloaded ifix files')
+    Log.log_debug('flrtvc.removing downloaded efix files')
     @flrtvc.remove_downloaded_files
-    Log.log_debug('flrtvc.removed downloaded ifix files')
+    Log.log_debug('flrtvc.removed downloaded efix files')
 
     Log.log_debug('End of flrtvc.destroy')
   end

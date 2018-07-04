@@ -6,7 +6,7 @@ require_relative '../../puppet_x/Automation/Lib/Flrtvc.rb'
 # description :
 # ##########################################################################
 Puppet::Type.newtype(:fix) do
-  @doc = 'To manage all simple ifix functions.'
+  @doc = 'To manage all simple efix functions.'
 
   include Automation::Lib
 
@@ -48,7 +48,7 @@ Puppet::Type.newtype(:fix) do
   #
   # ############################################################################
   newparam(:root) do
-    desc '"root" parameter: download root directory for ifix'
+    desc '"root" parameter: download root directory for efix'
     defaultto '/tmp'
     validate do |value|
       raise('"root" needs to exist') \

@@ -103,7 +103,7 @@ module Automation
       # param : input:lpp_source:string
       # param : input:filesets:string
       # return :
-      # description : patch target with ifixes
+      # description : patch target with efixes
       # #######################################################################
       def self.perform_efix(target,
           lpp_source,
@@ -160,6 +160,7 @@ do |_stdin, stdout, stderr, wait_thr|
 target + ' lpp_source=' + lpp_source)
         #
         Log.log_debug('Building list of efixes to be removed')
+        returned = true
         remote_cmd = '/usr/sbin/emgr -P | /usr/bin/tail -n +4'
         remote_output = []
         remote_cmd_rc = Remote.c_rsh(target, remote_cmd, remote_output)
@@ -173,38 +174,52 @@ target + ' lpp_source=' + lpp_source)
           Log.log_debug("status=#{status}") unless status.nil?
           if status.success?
             if !stdout.nil? && !stdout.strip.empty?
-              nb_of_ifixes = stdout.lines.count
-              Log.log_debug("stdout=#{stdout}" + ' nb_of_ifixes=' +
-                                nb_of_ifixes.to_s)
+              nb_of_efixes = stdout.chomp.lines.count - 1
+              Log.log_debug("stdout=#{stdout}" + ' nb_of_efixes=' +
+                                nb_of_efixes.to_s)
               Log.log_debug("Removing efixes on #{target}.")
-              index_ifix = 1
+              index_efix = 1
+              nb_removed_efix = 0
+              nb_not_removed_efix = 0
               stdout.each_line.each do |efix|
                 next unless !efix.nil? && !efix.strip.empty?
                 efix = efix.chomp
-                Log.log_debug('Removing (' + index_ifix.to_s + '/' +
-                                  nb_of_ifixes.to_s + ') ' + efix)
+                Log.log_debug('Removing (' + index_efix.to_s + '/' +
+                                  nb_of_efixes.to_s + ') ' + efix)
                 remote_cmd = '/usr/sbin/emgr -r -L ' + efix
                 remote_cmd_rc = Remote.c_rsh(target,
                                              remote_cmd,
                                              remote_output)
                 if remote_cmd_rc == 0
                   Log.log_debug(" ok stdout = #{remote_output[0]}")
+                  Log.log_debug('Removed efix ' + efix)
+                  nb_removed_efix += 1
                 else
                   Log.log_err("ko stderr=#{remote_output[0]}")
+                  Log.log_err('efix ' + efix + ' not removed')
+                  nb_not_removed_efix += 1
+                  returned = false
                 end
-                Log.log_debug('Removed efix ' + efix)
-                index_ifix += 1
+                index_efix += 1
               end
-              Log.log_debug("Finish removing ifixes on #{target}.")
+              log_msg = 'Finish processing removing of efixes on ' + target +
+                  ':' + nb_removed_efix.to_s + '/' + nb_of_efixes.to_s + ' removed,' +
+                  nb_not_removed_efix.to_s + '/' + nb_of_efixes.to_s + ' not removed '
+              if returned
+                Log.log_debug(log_msg)
+              else
+                Log.log_err(log_msg)
+              end
             else
-              Log.log_debug("No ifixes to remove on #{target}.")
+              Log.log_debug("No efixes to remove on #{target}.")
             end
           elsif !stderr.nil? && !stderr.strip.empty?
             Log.log_err("stderr=#{stderr}")
           end
         else
-          Log.log_debug("No ifixes to remove on #{target}.")
+          Log.log_debug("No efixes to remove on #{target}.")
         end
+        returned
       end
 
       # ########################################################################
@@ -213,7 +228,7 @@ target + ' lpp_source=' + lpp_source)
       # param : input:vios:string
       # param : input:_filesets:string
       # return :
-      # description : patch vios with ifixes
+      # description : patch vios with efixes
       # ########################################################################
       def perform_efix_vios(lpp_source,
                             vios,
@@ -339,14 +354,14 @@ above error!" unless exit_status.success?
       end
 
       # #######################################################################
-      # name : sort_ifixes
+      # name : sort_efixes
       # param : input:lpp_source:string
-      # return : string containing the ifixes sorted
+      # return : string containing the efixes sorted
       #   in reverse order : the more recent first
-      # description : sort ifixes of lpp_source in reverse order
+      # description : sort efixes of lpp_source in reverse order
       # #######################################################################
-      def self.sort_ifixes(lpp_source)
-        Log.log_debug('Nim.sort_ifixes')
+      def self.sort_efixes(lpp_source)
+        Log.log_debug('Nim.sort_efixes')
         #
         returned = ''
         location = Nim.get_location_of_lpp_source(lpp_source)
@@ -355,10 +370,10 @@ above error!" unless exit_status.success?
           nim_command = "/bin/ls #{location} | /bin/sort -ru"
           nim_command_output = []
           return_code = Utils.execute2(nim_command, nim_command_output)
-          Log.log_debug('Nim.sort_ifixes return_code=' + return_code.to_s)
+          Log.log_debug('Nim.sort_efixes return_code=' + return_code.to_s)
           #
           unless nim_command_output.nil?
-            Log.log_debug('Nim.sort_ifixes returned=' + nim_command_output[0].to_s)
+            Log.log_debug('Nim.sort_efixes returned=' + nim_command_output[0].to_s)
             returned = nim_command_output[0].gsub('\n', ' ')
           end
         end

@@ -33,7 +33,7 @@
 ** 16. Updating a system to a new level needs sometimes to be done twice the right level, for example
 updating from 7100-04-04-1717 to 7100-05. This happens more generally if the system being updated has 
 requisites to software that identify new filesets that aren't currently installed on the system.
-In th particular case of updating from 7100-04-04-1717 to 7100-05, the Java filesets listed weren't 
+In this particular case of updating from 7100-04-04-1717 to 7100-05, the Java filesets listed weren't 
 already on the system at a downlevel. Whenever AIX ships newly defined filesets as part of a TL/SP, 
 the fileset list of downlevel software (requiring an update in level) wouldn't have the unknown 
 fileset names in the install list. So, customers would have to update again so the newer fileset(s) 
@@ -41,6 +41,7 @@ get applied.
  Then the TO DO would be to detect theses case and launch twice the update when necessary 
  One complication is that the first update notifies user that a 'reboot is required' and this 
  notification is lost at second update.  
+** 17. Remove efix before install efix on option
 
 ## DONE 
 ** 1. Suma preview is likely to be unnecessary if 'to_step' is set to 'download'. Consider skipping 

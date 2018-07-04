@@ -130,7 +130,7 @@
    /etc/puppetlabs/code/environments/production/modules/aixautomation (called AIXAUTOMATION_DIR), 
    and all relative paths in this README are relative to this AIXAUTOMATION_DIR directory.<br>
   The aixautomation module generates all outputs under this directory (under ./output), 
-  except downloads of updates and ifixes which are performed under 'root' directories mentioned 
+  except downloads of updates and efixes which are performed under 'root' directories mentioned 
   into ./manifests/init.pp file, (ou have one 'root' parameter for 'download' and one 'root' directory 
   for 'fix').  
  
@@ -421,7 +421,7 @@
  #### 0.5.5:
    - Rubocop warnings removal 
  #### 0.5.4:
-   - add status before and after ifix removal, as these status exist before and after ifix 
+   - add status before and after efix removal, as these status exist before and after efix 
     installation. Commonnalize status output persistence into Flrtvc.step_status
     method.<br>
     These files can be found:<br> 

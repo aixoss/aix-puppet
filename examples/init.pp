@@ -138,9 +138,9 @@ class aixautomation {
   #  It should be an ad hoc file system dedicated to download
   #   data, keep this file system separated from the system so prevent
   #   saturation
-  fix { "ifix_install_1":
+  fix { "efix_install_1":
     provider => flrtvc,
-    name     => "ifix_install_1",
+    name     => "efix_install_1",
     ensure   => present,
     to_step  => "installResource",
     targets  => "quimby01 quimby02",
@@ -154,9 +154,9 @@ class aixautomation {
   #  from the quimby03 and quimby04 systems
   # Setting ensure to 'absent'
   # All iFix are removed.
-  fix { "ifix_install_2":
+  fix { "efix_install_2":
     provider => flrtvc,
-    name     => "ifix_install_2",
+    name     => "efix_install_2",
     ensure   => absent,
     targets  => "quimby03 quimby04",
   }
@@ -208,7 +208,7 @@ class aixautomation {
 5. Samples with all steps together
 
  This sample shows how to update one LPAR 'castor8' to the last 721 SP, and
-  install all ifixes.
+  install all efixes.
 */
 /*
 class aixautomation {
@@ -232,9 +232,9 @@ class aixautomation {
     sync       => "yes",
     lpp_source => "PAA_SP_7200-01-02-1717_7200-01-03-1720",
   }
-  fix { "ifix_install":
+  fix { "efix_install":
     provider => flrtvc,
-    name     => "ifix_install",
+    name     => "efix_install",
     ensure   => present,
     to_step  => "installResource",
     targets  => "castor8",
