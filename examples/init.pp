@@ -27,6 +27,23 @@
   1. Samples of downloads
 */
 /*
+  # This rule is the one provided into manifest/init.pp by default,
+  #  to perform only a suma preview.
+  # Facters are launched, then manifests/init.pp custom types validation
+  #  is performed and tehen executed: suma preview is launched with below
+  #  parameteres.
+class aixautomation {
+  download { "test suma-preview":
+    ensure => present,
+    type => "SP",
+    root => "/tmp",
+    from => "7200-01-02-1717",
+    to => "7200-01-03-1720",
+    to_step => "preview",
+  }
+}
+*
+/*
 class aixautomation {
   # This rule allows to perform download through suma provider
   #  to get update of 7100-03-07-1614 SP into /export/extra/puppet/suma
@@ -134,7 +151,7 @@ class aixautomation {
   #  installResource.
   # Clean is by default set to 'yes', but if you want to spare time and reuse previous
   #  result of computation for each step, you can set force to 'no'.
-  # "/export/extra/puppet/suma" is suggested as root directory of download
+  # "/export/extra/puppet/flrtvc" is suggested as root directory of download
   #  It should be an ad hoc file system dedicated to download
   #   data, keep this file system separated from the system so prevent
   #   saturation

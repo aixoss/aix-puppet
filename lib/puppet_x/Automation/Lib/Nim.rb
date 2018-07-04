@@ -108,9 +108,9 @@ module Automation
       def self.perform_efix(target,
           lpp_source,
           filesets = 'all')
-        Log.log_debug('Nim.perform_efix target=' +
+        Log.log_debug('Nim.perform_efix (target=' +
                           target +
-                          ' lpp_source=' +
+                          ') lpp_source=' +
                           lpp_source)
         #
         # nim -o cust -a filesets=E:IZ12345.epkg.Z -a lpp_source=lpp1 spot1
@@ -148,16 +148,16 @@ do |_stdin, stdout, stderr, wait_thr|
       end
 
       # #######################################################################
-      # name : perform_efix_uncustomization
+      # name : perform_efix_uninstallation
       # param : input:target:string
       # param : input:lpp_source:string  not used
       # return :
       # description : uninstall all efixes on this target
       # #######################################################################
-      def self.perform_efix_uncustomization(target,
+      def self.perform_efix_uninstallation(target,
           lpp_source)
-        Log.log_debug('Nim.perform_efix_uncustomization target=' + \
-target + ' lpp_source=' + lpp_source)
+        Log.log_debug('Nim.perform_efix_uninstallation (target=' + \
+target + ') lpp_source=' + lpp_source)
         #
         Log.log_debug('Building list of efixes to be removed')
         returned = true
@@ -184,7 +184,7 @@ target + ' lpp_source=' + lpp_source)
               stdout.each_line.each do |efix|
                 next unless !efix.nil? && !efix.strip.empty?
                 efix = efix.chomp
-                Log.log_debug('Removing (' + index_efix.to_s + '/' +
+                Log.log_info('Removing (' + index_efix.to_s + '/' +
                                   nb_of_efixes.to_s + ') ' + efix)
                 remote_cmd = '/usr/sbin/emgr -r -L ' + efix
                 remote_cmd_rc = Remote.c_rsh(target,
@@ -192,7 +192,7 @@ target + ' lpp_source=' + lpp_source)
                                              remote_output)
                 if remote_cmd_rc == 0
                   Log.log_debug(" ok stdout = #{remote_output[0]}")
-                  Log.log_debug('Removed efix ' + efix)
+                  Log.log_info('Removed efix ' + efix)
                   nb_removed_efix += 1
                 else
                   Log.log_err("ko stderr=#{remote_output[0]}")

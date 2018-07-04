@@ -29,7 +29,7 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
     returned = true
     returned = false\
 if resource[:ensure].to_s == 'present' || resource[:to_step].to_s == 'status'
-    Log.log_info('Provider flrtvc exists! returning ' + returned.to_s)
+    Log.log_info('Provider flrtvc "exists!" method returning ' + returned.to_s)
     returned
   end
 
@@ -53,7 +53,7 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
     targets_array.each do |target|
       step = :status
       Log.log_debug('target=' + target + ' doing :' + step.to_s)
-      @flrtvc.run_step(step, target, 'PuppetAix_StatusBeforeEfixInstall_' + target + '.yml')
+      @flrtvc.run_step(step, target, target + '_StatusBeforeEfixInstall.yml')
       Log.log_debug('target=' + target + ' done  :' + step.to_s)
 
       #
@@ -98,9 +98,11 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
               next if to_step == :checkFixes
               step = :buildResource
               if !sorted_fixes_by_pkgdate.nil? && !sorted_fixes_by_pkgdate.empty?
-                Log.log_debug('target=' + target + ' doing :' + step.to_s +
-                                  ' sorted_fixes_by_pkgdate=' +
-                                  sorted_fixes_by_pkgdate.to_s)
+                Log.log_info('target=' + target + ' ' + step.to_s)
+                sorted_fixes_by_pkgdate.each do |sorted_fix_by_pkgdate|
+                  Log.log_info(' sorted_fix_by_pkgdate=' +
+                                    sorted_fix_by_pkgdate.to_s)
+                end
                 nim_resource_and_sorted_fixes = @flrtvc.run_step(step,
                                                                  target,
                                                                  sorted_fixes_by_pkgdate)
@@ -123,7 +125,7 @@ for targets=\"#{resource[:targets]}\" into directory=\"#{resource[:root]}\"")
                 #
                 step = :status
                 Log.log_debug('target=' + target + ' doing :' + step.to_s)
-                @flrtvc.run_step(step, target, 'PuppetAix_StatusAfterEfixInstall_' + target + '.yml')
+                @flrtvc.run_step(step, target, target + '_StatusAfterEfixInstall.yml')
                 Log.log_debug('target=' + target + ' done  :' + step.to_s)
 
               else
@@ -162,7 +164,7 @@ directory=\"#{resource[:root]}\"")
     targets_array.each do |target|
       step = :status
       Log.log_debug('target=' + target + ' doing :' + step.to_s)
-      @flrtvc.run_step(step, target, 'PuppetAix_StatusBeforeEfixRemoval_' + target + '.yml')
+      @flrtvc.run_step(step, target, target + '_StatusBeforeEfixRemoval.yml')
       Log.log_debug('target=' + target + ' done  :' + step.to_s)
 
       step = :removeFixes
@@ -173,7 +175,7 @@ directory=\"#{resource[:root]}\"")
       #
       step = :status
       Log.log_debug('target=' + target + ' doing :' + step.to_s)
-      @flrtvc.run_step(step, target, 'PuppetAix_StatusAfterEfixRemoval_' + target + '.yml')
+      @flrtvc.run_step(step, target, target + '_StatusAfterEfixRemoval.yml')
       Log.log_debug('target=' + target + ' done  :' + step.to_s)
     end
 

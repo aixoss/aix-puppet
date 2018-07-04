@@ -60,12 +60,13 @@ to \"#{resource[:to]}\" lpp_source=\"#{resource[:lpp_source]}\" force=#{resource
       exists = Nim.lpp_source_exists?(@suma.lpp_source)
       if exists
         Log.log_info('NIM lpp_source resource ' + @suma.lpp_source + ' already exists, suma steps not necessary.')
-        Log.log_info('You can force through \'force => "yes"\' a new suma download and new creation of NIM lpp_source resource.')
+        Log.log_info('You can force through \'force => "yes"\' a new suma preview or download with creation of new NIM lpp_source resource.')
       else
         Log.log_info('NIM lpp_source resource ' + @suma.lpp_source + ' does not exists.')
         creation_done = false # this will trigger creation
       end
     end
+    Log.log_info('Provider suma "exists!" method returning ' + creation_done.to_s)
     creation_done
   end
 
@@ -110,7 +111,7 @@ lpp_source=\"#{resource[:lpp_source]}\".")
                                 'built by Puppet AixAutomation')
         else
           Log.log_info('NIM lpp_source resource ' + @suma.lpp_source + ' already exists, creation not done.')
-          Log.log_info('You can force through \'force => "yes"\' a new suma download and new creation of NIM lpp_source resource.')
+          Log.log_info('You can force through \'force => "yes"\' a new suma download and creation of new NIM lpp_source resource.')
         end
       end
     rescue SumaPreviewError, SumaDownloadError => e

@@ -205,7 +205,7 @@ if line =~ /Total bytes of updates downloaded: ([0-9]+)/
 if line =~ /([0-9]+) downloaded/
               @failed = Regexp.last_match(1).to_i if line =~ /([0-9]+) failed/
               @skipped = Regexp.last_match(1).to_i if line =~ /([0-9]+) skipped/
-              Log.log_info(line.chomp.to_s)
+              Log.log_debug(line.chomp.to_s)
             end
             #
             Log.log_info('@dl=' + @dl.to_s +
@@ -228,7 +228,7 @@ if line =~ /([0-9]+) downloaded/
           #
           missing = true if @downloaded != 0 || @dl != 0.0
           #
-          Log.log_warning('Preview: ' +
+          Log.log_info('Preview: ' +
                               @downloaded.to_s +
                               ' downloaded (' + @dl.round(2).to_s + ' GB), ' +
                               @failed.to_s +
@@ -237,13 +237,13 @@ if line =~ /([0-9]+) downloaded/
                               ' skipped fixes')
           Log.log_info('Done suma preview operation: ' +
                            preview_suma_command +
-                           ' missing:' +
+                           ' missing=' +
                            missing.to_s)
         else
           missing = true
           Log.log_info('Skipped suma preview operation: ' +
                            preview_suma_command +
-                           ' missing:' +
+                           ' missing=' +
                            missing.to_s)
         end
         #
@@ -314,31 +314,36 @@ if line =~ /([0-9]+) skipped/
             download_error = true if line =~ /0500-013 Failed to retrieve list from fix server./
             download_error = true if line =~ /0500-035 No fixes match your query./
             download_error = true if line =~ /0500-012 An error occurred attempting to download./
+            download_error = true if line =~ /0500-041 The following system command failed/
             Log.log_err(line.chomp.to_s)
           end
           thr.exit
           wait_thr.value # Process::Status object returned.
         end
 
-        #
-        if download_error
-          raise SumaDownloadError,
-                'SumaDownloadError : command ' + download_suma_command + ' returns above error!'
-        end
-
-        #
-        Log.log_info("Finish downloading #{succeeded} \
-fixes (~ #{download_dl.to_f.round(2)} GB).")
-        Log.log_info('Done suma download operation ' +
-                         download_suma_command)
-        unless exit_status.success?
+        if exit_status.success? && !download_error
+          Log.log_info("Finish downloading #{succeeded} fixes (~ #{download_dl.to_f.round(2)} GB).")
+          Log.log_info('Done suma download operation ' + download_suma_command)
+        else
+          Log.log_err("Finish downloading #{succeeded} fixes (~ #{download_dl.to_f.round(2)} GB).")
+          Log.log_err('Done suma download operation ' + download_suma_command)
           raise SumaDownloadError,
                 'SumaDownloadError: Command ' + download_suma_command + ' returns above error!'
         end
+
         @dl = download_dl
         @downloaded = download_downloaded
         @failed = download_failed
         @skipped = download_skipped
+        Log.log_info('Download: ' +
+                         @downloaded.to_s +
+                         ' downloaded (' + @dl.round(2).to_s + ' GB), ' +
+                         @failed.to_s +
+                         ' failed, ' +
+                         @skipped.to_s +
+                         ' skipped fixes')
+        Log.log_info('Done suma download operation: ' +
+                         download_suma_command)
       end
 
       # #####################################################################

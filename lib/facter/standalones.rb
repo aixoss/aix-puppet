@@ -17,6 +17,10 @@ Facter.add('standalones') do
   setcode do
     Log.log_info('Computing "standalones" facter')
 
+    # Retrieves from :applied_manifest facter list of targets used in manifests/init.pp
+    applied_manifest = Facter.value(:applied_manifest)
+    alltargets = applied_manifest['targets']
+
     standalones_kept = {}
     standalones_skipped = {}
 
@@ -25,32 +29,17 @@ Facter.add('standalones') do
 /bin/awk 'FNR!=1{print l}{l=$0};END{ORS=\"\";print l}' ORS=' '")
     standalones_array = standalones_str.split(' ')
 
+
     #
     standalones_array.each do |standalone|
       standalone_hash = {}
-      # To shorten execution, skip some standalone, manage white list
-      # To only keep standalones which are listed
-      # Take model on what is below to perform same logic
-      # if standalone == "quimby01"
-      #     && standalone != "quimby03" \
-      #     && standalone != "quimby04" && standalone != "quimby05" \
-      #     && standalone != "quimby07" && standalone != "quimby08" \
-      #     && standalone != "quimby09" && standalone != "quimby11"  \
-      #     && standalone != "quimby12"
-      #   Log.log_info("Please note, to shorten execution " + standalone + " standalone is not kept.")
-      #   next
-      # end
       #
-      # To shorten execution, skip some standalone, manage black list
-      # To only keep standalones which are listed
-      # Take model on perform same logic
-      # if standalone != 'quimby03' && standalone != 'quimby04' && standalone != 'quimby05' && standalone != 'quimby06'
-      # if standalone != 'quimby07'
-      #  Log.log_info('Please note, to shorten execution ' + standalone + ' standalone is not kept.')
-      #  standalone_hash['WARNING'] = 'Standalone system skipped in aixautomation/lib/facter/standalones.rb'
-      #  standalones_skipped[standalone] = standalone_hash
-      #  next
-      # end
+      if !alltargets.include? standalone
+        standalone_hash['WARNING'] = 'Standalone ' + standalone + ' is not used in "manifests/init.pp. Skipping"'
+        standalones_skipped[standalone] = standalone_hash
+        next
+      end
+
 
       #### ping
       ping_cmd = '/usr/sbin/ping -c1 -w5 ' + standalone

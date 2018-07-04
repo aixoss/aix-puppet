@@ -65,20 +65,17 @@
 #### ./manifests/init.pp file  
  All aixautomation module setups are done through the ./manifests/init.pp file.<br>
 #### Prerequisites 
- As a prerequisites of aixautomation Puppet module, NIM configuration between NIM server
-  (on which this Puppet module runs), and the LPARs (on which software maintenance 
-  operations are performed) needs to be properly set : all LPARs which can either 
-  not be accessible through a simple 'ping -c1 -w5 <lpar>' command or through a 
-  simple 'c_rsh' command will be excluded from the list of targets on which 
-  ./manifests/init.pp will be applied. <br>
+ As a prerequisites of aixautomation Puppet module, NIM configuration between 
+  NIM server (on which this Puppet module runs), and the LPARs (on which 
+  software maintenance operations are performed) needs to be properly set : 
+  all LPARs which can either not be accessible through a simple 
+  'ping -c1 -w5 <lpar>' command or through a simple 'c_rsh' command will be 
+  excluded from the list of targets on which ./manifests/init.pp will be 
+  applied. <br>
      
  List of LPARs on which rules can be applied is retrieved through NIM server by 
-  getting list of standalones.<br>
- For advanced users who know 'ruby' language : if this list of standalones 
-  is too large, and to spare time, you can skip some standalones by manually 
-  editing ./lib/factor/standalones.rb : search for 'To shorten 
-  execution', and use the two samples of code which are provided, one sample 
-  to work on white list, and one sample to work on black list.  
+  getting list of standalones. As a matter of fact only standalones really used 
+  in manifests/init.pp are tested (see 'Facters' section below)<br>
  
 ### What aixautomation module affects 
  This module requires available disk space to store updates downloaded from FixCentral, 
@@ -159,19 +156,29 @@
 ### Facters
  Specific aixautomation facters collect the necessary data enabling aixautomation module to run :<br> 
     - props : to have shared configuration properties.<br>
-    - standalones : you'll find results on this factor into ./output/facter/standalones_kept.yml file, 
-       and into ./output/facter/standalones_skipped.yml file. This 'standalones' facter takes some time at 
-       the beginning of aixautomation module, but as explained above, you have the possibility to manage 
-       white list or black list of standalones to shorten execution.<br>
-    - (preparation for) vios  : you'll find results on this factor into ./output/facter/vios_kept.yml file, 
-       and into ./output/facter/vios_skipped.yml file.<br> 
-    - servicepacks : you'll find results on this factor into ./output/facter/sp_per_tl.yml file. If this 
-       file does not exist when "Puppet apply" is launched, it is computed by automatically downloading 
-       Suma metadata files, all Suma metadata files are temporarily downloaded under ./output/facter/suma, 
-       but are removed at the end, when new ./output/facter/sp_per_tl.yml file is generated. 
-       Please note that as part of this computing, metadata downloads are attempted for SP of each TL until 
-       repeatedly errors occur, meaning that the last SP do not exist. Therefore it is normal to have errors 
-       when we reach non-existing SP, this is the way which is used to go until last existing SP.  
+    - applied_manifest : to read, parse and display manifests/init.pp, so that we can have into 
+       log file the exact contents of manifests/init.pp used at runtime : this is an help for 
+       debugguing. Moreover the manifests/init.pp is parsed so that the set of 'targets' really used
+        is computed, this is used when running 'standalones' facter (see below 'standalones' facter) 
+        to restrict computing of this facter to the sole list of standalones used 
+        in manifests/init.pp.<br> 
+    - servicepacks : you'll find results on this factor into ./output/facter/sp_per_tl.yml file. If 
+       this file does not exist when "Puppet apply" is launched, it is computed by automatically 
+       downloading Suma metadata files, all Suma metadata files are temporarily downloaded under 
+       ./output/facter/suma, but are removed at the end, when new ./output/facter/sp_per_tl.yml file 
+       is generated. 
+       Please note that as part of this computing, metadata downloads are attempted for SP of each 
+       TL until repeatedly errors occur, meaning that the last SP do not exist. Therefore it is 
+       normal to have errors when we reach non-existing SP, this is the way which is used to go 
+       until last existing SP.  
+    - standalones : to gather data on all standalones managed by the NIM server. As a matter of fact 
+       list of standalones is restricted to the ones really used in manifests/init.pp as explained 
+       above (refer to 'applied_manifest' facter). Results can be found into 
+       ./output/facter/standalones_kept.yml file, and into ./output/facter/standalones_skipped.yml 
+       file. This 'standalones' facter takes some time at the beginning of aixautomation module, 
+       but is necessary to know the usable standalone.<br>
+    - (preparation for) vios  : you'll find results on this factor into 
+       ./output/facter/vios_kept.yml file, and into ./output/facter/vios_skipped.yml file.<br> 
         
     
  
@@ -326,13 +333,13 @@
   occur that one particular eFix prevents another one (less recent) from being installed if 
   they touch the same file.<br>
  At the end of execution of this provider, you'll find into : <br>
-  - ./output/logs/PuppetAix_StatusBeforeEfixInstall_<target>.yml : how were the <target> 
+  - ./output/flrtvc/<target>_StatusBeforeEfixInstall.yml : how were the <target> 
     LPAR before eFix installation.<br> 
-  - ./output/logs/PuppetAix_StatusAfterEfixInstall_<target>.yml : how are the <target> 
+  - ./output/flrtvc/<target>_StatusAfterEfixInstall.yml : how are the <target> 
     LPARs after eFix installation.<br>
-  - ./output/logs/PuppetAix_StatusBeforeEfixRemoval_<target>.yml : how were the <target> 
+  - ./output/flrtvc/<target>_StatusBeforeEfixRemoval.yml : how were the <target> 
     LPAR before eFix de-installation.<br> 
-  - ./output/logs/PuppetAix_StatusAfterEfixRemoval_<target>.yml : how are the <target> 
+  - ./output/flrtvc/<target>_StatusAfterEfixRemoval.yml : how are the <target> 
     LPARs after eFix de-installation.<br>
  ##### Parameters
    - <b>provider</b> : this parameter is not mandatory, if mentioned it needs to contain name of 
@@ -369,24 +376,23 @@
    By default, <b>all</b> is assumed, meaning all possible eFix are installed.       
         
 ## Limitations
- List of missing things to be documented.<br> 
  Refer to TODO.md<br>
 
 ## Development
- List of things to be done to be documented.<br> 
  Refer to TODO.md<br>
 
 ## Release Notes 
  ### Last changes documented
   #### 0.6.5
    - Many fixes
+    -- Fix flrtvc downloads  
     -- Fix paths of eFix removal when eFix cannot be removed 
     -- Fix on flrtvc : better parsing of output for lvl min max computations 
     -- Fix complaints 
     -- Fix update, they were missing installp_flags (agXY), so that file system is 
     increased, license agreement is accepted, apply mode 
-    -- better mngt of c_rsh return codes
-    -- better messages on validating 'download' parameters
+    -- Better mngt of c_rsh return codes
+    -- Better messages on validating 'download' parameters
     -- NIM resource for update always deleted at beginning so that it is recreated. This to prevents
       some cases from occurring : location has been moved while NIM resource remains. 
     -- New facter 'applied_manifest' to display in logs the applied manifest : manifests/init.pp  
@@ -394,56 +400,78 @@
     -- Robustify suma error paths: better flow of exceptions and errors
     -- Change the path where flrtvc yaml files are stored. They were into 'root' directory indicated
      into ./manifests/init.pp, they are now under ./output/flrtvc direcory.
-    -- fix custom type 'clean' parameter is changed to 'force' parameter
+    -- Fix custom type 'clean' parameter is changed to 'force' parameter
       If force is set to 'yes', all downloads are forced again, even if the downloads 
        existed before and were available. By default force is set to 'no', meaning we keep 
        everything.
     -- One status file per target is necessary, otherwise if several 'fix' clauses, then last one 
      overrides previous ones. Therefore we'll have these files 
-     ./output/logs/PuppetAix_StatusAfterEfixInstall_<target>.yml<br>
-     ./output/logs/PuppetAix_StatusAfterEfixRemoval_<target>.yml<br>
-     ./output/logs/PuppetAix_StatusBeforeEfixInstall_<target>.yml<br>
-     ./output/logs/PuppetAix_StatusBeforeEfixRemoval_<target>.yml<br>
+     ./output/flrtvc/<target>_StatusAfterEfixInstall.yml<br>
+     ./output/flrtvc/PuppetAix_StatusAfterEfixRemoval_<target>.yml<br>
+     ./output/flrtvc/<target>_StatusBeforeEfixInstall.yml<br>
+     ./output/flrtvc/PuppetAix_StatusBeforeEfixRemoval_<target>.yml<br>
     -- Persistence of flrtvc information commmon to all targets into two files
        so that these files are taken as input at beginning of flrtvc processings
        (only if clean='no') : listoffixes_per_url.yml, lppminmax_of_fixes.yml      
     -- 'nimpush' targets are now reset between each 'nimpush' clause info ./manifests/init.pp
       this was not the case previously, and brought a lot of confusion when several 'nimpush'
       clauses, applying on different sets of targets, existed into ./manifests/init.pp.
- #### 0.5.5:
+ #### 0.5.5
    - Many fixes
     -- Rubocop warnings removal 
     -- add status before and after eFix removal, as these status exist before and after eFix 
      installation. Commonnalize status output persistence into Flrtvc.step_status
-     method.<br>
-     These files can be found:<br> 
-     ./output/logs/PuppetAix_StatusAfterEfixInstall.yml<br>
-     ./output/logs/PuppetAix_StatusAfterEfixRemoval.yml<br>
-     ./output/logs/PuppetAix_StatusBeforeEfixInstall.yml<br>
-     ./output/logs/PuppetAix_StatusBeforeEfixRemoval.yml<br>
-    -- better management of downloads : for example for timeout on ftp download, the failed urls
+     method.<br> These files can be found:<br> 
+        ./output/flrtvc/PuppetAix_StatusAfterEfixInstall.yml<br>
+        ./output/flrtvc/PuppetAix_StatusAfterEfixRemoval.yml<br>
+        ./output/flrtvc/PuppetAix_StatusBeforeEfixInstall.yml<br>
+        ./output/flrtvc/PuppetAix_StatusBeforeEfixRemoval.yml<br>
+    -- Better management of downloads : for example for timeout on ftp download, the failed urls
     are identified as being in failure, and are listed at the end of download phase. If you run
     flrtvc a second time, after a fist time which had download failures, only failed urls
     downloads are attempted.<br>
-    -- validation messages of custom type contain contextual messages<br> 
-    -- move all outputs into ./output directory : logs are now into 
+    -- Validation messages of custom type contain contextual messages<br> 
+    -- Move all outputs into ./output directory : logs are now into 
     ./output/logs, facter results are now into ./output/facter.<br>
-    -- add 'to_step' parameter to "download" custom type, to control execution of the two steps 
+    -- Add 'to_step' parameter to "download" custom type, to control execution of the two steps 
     'suma preview' and 'suma download' separately. By setting 'to_step' to "preview", only 
     "preview" is performed. By default "download" is performed.<br> 
-    -- fix the automatic installation of "/usr/bin/flrtvc.ksh" if this file is missing 
-    -- renaming of "./output/facter/sp_per_tl.yml" file to 
+    -- Fix the automatic installation of "/usr/bin/flrtvc.ksh" if this file is missing 
+    -- Renaming of "./output/facter/sp_per_tl.yml" file to 
      "./output/facter/sp_per_tl.yml.June_2018", 
      so that this file is generated at least once after installation. This file contains
      the matches between Technical Levels and Service Packs for all releases.<br>   
  ### Debugguing tips
+ #### Shell environments 
  Shell environments may cause errors with underlying (shell) system commands.  
  So, it may require an unset of the terminal environment before use. 
   (For example, if ever you have in your environment this variable set : 'ENV=/.kshrc', 
    this can lead to abnormal behaviour, not well explained. In that case, perform 
    'unset ENV' before retrying.)
 
-        
+ #### Notes on log outputs
+ Error log outputs are displayed in red. Some of these red output cause no incidence, and Puppet 
+ AixAutomation can live with without problem. Some of them are listed below. 
+  
+ ##### Output of /usr/sbin/emgr -dXv3
+ The following output is frequently displayed when "/usr/sbin/emgr -dXv3 -e ABCD.epkg.Z"  command is run, 
+  but this does not prevent the parsing of this command output to be done.<br>
+  
+  Error:     emgr: 0645-007 ATTENTION: /usr/bin/lslpp returned an unexpected result.<br>
+  Error:     emgr: 0645-044 Error processing installp fileset data.<br>
+  Error:     emgr: 0645-060 Unable to determine owning fileset for /opt/pconsole/bin/pconsole_config.<br>
+  Error:     emgr: 0645-097 Error processing inventory data for file number 1.<br>
+  Error:     emgr: 0645-140 ATTENTION: emgr has issued 1 attention notice(s).<br>
+  Error:     Such notices may not indicate an immediate failure, but may require<br>
+  Error:     further attention. Please see the output above or the log for more details.<br>
+  
+ ##### Output of /usr/sbin/suma -x -a Action=Preview
+ The following output is always displayed when "/usr/sbin/suma -x -a Action=Preview" 
+  command is run, but you can pay no attention to this output.<br>   
+  Error: ****************************************<br>
+  Error: Performing preview download.<br>
+  Error: ****************************************<br>
+    
  ### Contributors
  Refer to TODO.md file
  

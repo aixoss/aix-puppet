@@ -172,6 +172,7 @@ on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lpp_sourc
       raise('action must be either "status", "install", "update", or "reboot"')
 
     end
+    Log.log_info('Provider nimpush "exists!" method returning ' + returned.to_s)
     returned
   end
 
