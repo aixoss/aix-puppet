@@ -17,17 +17,17 @@
   tested against Puppet 5.3.3 and Puppet 5.3.5.<br>  
  This aixautomation Puppet module enables automation of software maintenance operations 
   on a list of AIX LPARs, by running this module on a NIM server managing these LPARs.<br>
- By software maintenance operations we mean : updates of AIX levels, updates of efix.<br>   
+ By software maintenance operations we mean : updates of AIX levels, updates of eFix.<br>   
  Necessary AIX level updates are automatically downloaded from FixCentral using 'suma' 
   features, and are locally kept and shared between LPARs if possible.<br>
  Downloaded updates can then be automatically applied on a list of LPARs, through 'nim push' 
   operations, therefore everything (i.e. all aixautomation logic) runs from the NIM server, 
   and nothing needs to be installed on LPARs themselves.<br>
- List of necessary efix is computed (for each LPAR) and retrieved using 'flrtvc', 
+ List of necessary eFix is computed (for each LPAR) and retrieved using 'flrtvc', 
   downloaded, kept locally (in a local repository of the system where this Puppet module 
   runs), and they are kept in a way they can be shared between LPARs. Each LPAR has its 
-  own list of efix to be applied, depending on its level and depending on the current list 
-  of efix already applied. Theses efix are then applied on each LPAR of the list 
+  own list of eFix to be applied, depending on its level and depending on the current list 
+  of eFix already applied. Theses eFix are then applied on each LPAR of the list 
   (after being sorted by 'PACKAGING DATE' : so that most recent ones are applied first). 
   This operation is done by using NIM push mode (therefore as already said without performing 
   any operation on the LPARs themselves, therefore without installing anything on these LPARs). 
@@ -85,7 +85,7 @@
   and to store downloaded eFix. By default downloads are performed into '/tmp', but a 
   more appropriate file system definitely needs to be chosen and then set into 
   ./manifests/init.pp ('root' parameter of 'download' clause for AIX updates, and 'root' 
-  parameter of 'fix' clause for efix).  
+  parameter of 'fix' clause for eFix).  
   File system on which downloads are performed is automatically increased (100 MB each 
   time) if necessary (if system allows).<br>
  This module will perform AIX software updates of your systems, and install (or remove) 
@@ -96,10 +96,10 @@
   You can perform download operations from FixCentral (suma downloads) and build a NIM 
   lpp_source resource with results of downloads in a first separate step, then in a second
    step you can update LPARs using the NIM lpp_source resource which was downloaded.    
- As far as 'efix' operations are concerned :<br>
-  You can perform all preparation steps without applying the efix ans see the results.<br>
-  You can choose to apply efix later on.<br>
-  You can remove all efix installed if necessary<br>
+ As far as 'eFix' operations are concerned :<br>
+  You can perform all preparation steps without applying the eFix ans see the results.<br>
+  You can choose to apply eFix later on.<br>
+  You can remove all eFix installed if necessary<br>
    
 ## Usage
 ### Sample of manifest : init.pp
@@ -130,7 +130,7 @@
    /etc/puppetlabs/code/environments/production/modules/aixautomation (called AIXAUTOMATION_DIR), 
    and all relative paths in this README are relative to this AIXAUTOMATION_DIR directory.<br>
   The aixautomation module generates all outputs under this directory (under ./output), 
-  except downloads of updates and efixes which are performed under 'root' directories mentioned 
+  except downloads of updates and eFixes which are performed under 'root' directories mentioned 
   into ./manifests/init.pp file, (ou have one 'root' parameter for 'download' and one 'root' directory 
   for 'fix').  
  
@@ -291,7 +291,7 @@
    <b>install</b> action enables installation (or un-installation depending on the <b>ensure</b> value) 
    of a lpp_source, <b>update</b> action enables update of a system (installation of a service pack or 
    installation of a technical level), <b>reboot</b> action enables to launch reboot of LPARs. 
-   <b>status</b> action displays version level and efix information related to LPARs.       
+   <b>status</b> action displays version level and eFix information related to LPARs.       
   - <b>lpp_source</b> : name of the NIM lpp_source resource to be installed/un-installed or which 
   needs to be used to performed system update. In case of update, this lpp_source is the one which 
   was built by a previous 'download' clause (results of suma downloads). 
@@ -304,13 +304,16 @@
  The aim of this provider is to provide appropriate eFix installations using flrtvc 
   functionality to compute eFix to be installable, and NIM push functionality to install eFix.<br> 
  "root" parameter is used as download directory : it should be an ad-hoc file system dedicated to 
-  download efix, keep this file system separated from the system so prevent saturation.<br>   
+  download eFix, keep this file system separated from the system so prevent saturation.<br>   
  List of appropriate eFix to be installed on a system is firstly computed by 'flrtvc', then checked
   against constraints and a short list of eFix of installable eFix is computed, a NIM resource 
   is then built and then applied, so that eFix are installed.<br>
- These several steps necessary to achieve this efix installation task, are performed 
+ These several steps necessary to achieve this eFix installation task, are performed 
   following this order : "installFlrtvc", "runFlrtvc", "parseFlrtvc", "downloadFixes", 
   "checkFixes", "buildResource", "installResource". <br>
+ Step "buildResource" builds a NIM lpp_source resource whose name follows these naming conventions : 
+  prefix is 'PAA_FLRTVC_' and suffix is name of the target, for example 'PAA_FLRTVC_quimby01'
+  for NIM resource used to perform eFix installation on quimby01 LPAR. 
  Executions can be stopped after any step, and this is controlled through the 'to_step' parameter 
   into ./manifests/init.pp.<br>
  Each step persists its results into a yaml file, which can be found into 
@@ -337,8 +340,8 @@
    <b>flrtvc</b>.  
    - <b>ensure</b> : to control flow of execution, this parameter can take two values, either 
    <b>present</b> or <b>absent</b>. By default <b>present</b> is assumed. 
-   If set the <b>present</b>, efix are installed by running all steps. If set to <b>absent</b>, 
-   efix are removed.     
+   If set the <b>present</b>, eFix are installed by running all steps. If set to <b>absent</b>, 
+   eFix are removed.     
    - <b>name</b> : not a mandatory property if you have only one 'fix' clause in 
    ./manifests/init.pp. Otherwise (multiple 'fix' clauses), this property is necessary  
    to uniquely identify the flrtvc operation to be performed : you can have several 'fix' 
@@ -358,12 +361,12 @@
    <b>to_step</b> parameter), you can keep previous results by setting this parameter to <b>no</b>. 
    - <b>root</b> : root directory to store results of flrtvc download. This root directory should 
    reside on a file system separated from the one which hosts the system itself. This root 
-   directory needs to be large enough to contain efix updates, and should be a exportable file 
+   directory needs to be large enough to contain eFix updates, and should be a exportable file 
    system (jfs, jfs2, ...), so that NIM can build NIM lpp_source resource and perform a mount from 
    the remote LPARs.
    By default <b>/tmp</b> is assumed. 
-   - <b>type</b> : type of desired efix. Possible values : <b>hiper</b>, <b>sec</b>, <b>all</b>. 
-   By default, <b>all</b> is assumed, meaning all possible efix are installed.       
+   - <b>type</b> : type of desired eFix. Possible values : <b>hiper</b>, <b>sec</b>, <b>all</b>. 
+   By default, <b>all</b> is assumed, meaning all possible eFix are installed.       
         
 ## Limitations
  List of missing things to be documented.<br> 
@@ -375,75 +378,61 @@
 
 ## Release Notes 
  ### Last changes documented
-  #### 0.6.3
-   - Fix on flrtvc : better parsing of output for lvl min max computations 
-   - Fix complaints 
-  #### 0.6.2
-   - Fix update, they were missing installp_flags (agXY), so that file system is increased, license 
-    agreement is accepted, apply mode 
-   - better mngt of c_rsh return codes
-   - better messages on validating 'download' parameters
-  #### 0.6.1
-   - NIM resource for update always deleted at beginning so that it is recreated. This to prevents
-   some cases from occurring : location has been moved while NIM resource remains. 
-   - New facter 'applied_manifest' to display in logs the applied manifest : manifests/init.pp  
-  #### 0.6
-   - commit 
-  #### 0.5.9        
-   - flrtvc NIM resource rebuilt each time, and not reused if it exists
-   - better logs in flrtvc flow
-   - review of README.md 
- #### 0.5.8
-   - Again Rubocop warnings removal 
-   - Robustify suma error paths: better flow of exceptions and errors
-   - Change the path where flrtvc yaml files are stored. They were into 'root' directory indicated
+  #### 0.6.5
+   - Many fixes
+    -- Fix paths of eFix removal when eFix cannot be removed 
+    -- Fix on flrtvc : better parsing of output for lvl min max computations 
+    -- Fix complaints 
+    -- Fix update, they were missing installp_flags (agXY), so that file system is 
+    increased, license agreement is accepted, apply mode 
+    -- better mngt of c_rsh return codes
+    -- better messages on validating 'download' parameters
+    -- NIM resource for update always deleted at beginning so that it is recreated. This to prevents
+      some cases from occurring : location has been moved while NIM resource remains. 
+    -- New facter 'applied_manifest' to display in logs the applied manifest : manifests/init.pp  
+    -- flrtvc NIM resource rebuilt each time, and not reused if it exists
+    -- Robustify suma error paths: better flow of exceptions and errors
+    -- Change the path where flrtvc yaml files are stored. They were into 'root' directory indicated
      into ./manifests/init.pp, they are now under ./output/flrtvc direcory.
- #### 0.5.7
-    - Rubocop warnings removal 
-    - fix custom type 'clean' parameter is changed to 'force' parameter
+    -- fix custom type 'clean' parameter is changed to 'force' parameter
       If force is set to 'yes', all downloads are forced again, even if the downloads 
        existed before and were available. By default force is set to 'no', meaning we keep 
        everything.
-  #### 0.5.6:
-   Several bugs fixed : 
-   - One status file per target is necessary, otherwise if several 'fix' clauses, then last one 
+    -- One status file per target is necessary, otherwise if several 'fix' clauses, then last one 
      overrides previous ones. Therefore we'll have these files 
      ./output/logs/PuppetAix_StatusAfterEfixInstall_<target>.yml<br>
      ./output/logs/PuppetAix_StatusAfterEfixRemoval_<target>.yml<br>
      ./output/logs/PuppetAix_StatusBeforeEfixInstall_<target>.yml<br>
      ./output/logs/PuppetAix_StatusBeforeEfixRemoval_<target>.yml<br>
-   - Persistence of flrtvc information commmon to all targets into two files
+    -- Persistence of flrtvc information commmon to all targets into two files
        so that these files are taken as input at beginning of flrtvc processings
        (only if clean='no') : listoffixes_per_url.yml, lppminmax_of_fixes.yml      
-   - 'nimpush' targets are now reset between each 'nimpush' clause info ./manifests/init.pp
+    -- 'nimpush' targets are now reset between each 'nimpush' clause info ./manifests/init.pp
       this was not the case previously, and brought a lot of confusion when several 'nimpush'
       clauses, applying on different sets of targets, existed into ./manifests/init.pp.
  #### 0.5.5:
-   - Rubocop warnings removal 
- #### 0.5.4:
-   - add status before and after efix removal, as these status exist before and after efix 
-    installation. Commonnalize status output persistence into Flrtvc.step_status
-    method.<br>
-    These files can be found:<br> 
+   - Many fixes
+    -- Rubocop warnings removal 
+    -- add status before and after eFix removal, as these status exist before and after eFix 
+     installation. Commonnalize status output persistence into Flrtvc.step_status
+     method.<br>
+     These files can be found:<br> 
      ./output/logs/PuppetAix_StatusAfterEfixInstall.yml<br>
      ./output/logs/PuppetAix_StatusAfterEfixRemoval.yml<br>
      ./output/logs/PuppetAix_StatusBeforeEfixInstall.yml<br>
      ./output/logs/PuppetAix_StatusBeforeEfixRemoval.yml<br>
-   - better management of downloads : for example for timeout on ftp download, the failed urls
+    -- better management of downloads : for example for timeout on ftp download, the failed urls
     are identified as being in failure, and are listed at the end of download phase. If you run
     flrtvc a second time, after a fist time which had download failures, only failed urls
     downloads are attempted.<br>
- #### 0.5.3:
-   - validation messages of custom type contain contextual messages<br> 
-   - move all outputs into ./output directory : logs are now into 
-   ./output/logs, facter results are now into ./output/facter.<br>
- #### 0.5.2:
-   - add 'to_step' parameter to "download" custom type, to control execution of the two steps 
+    -- validation messages of custom type contain contextual messages<br> 
+    -- move all outputs into ./output directory : logs are now into 
+    ./output/logs, facter results are now into ./output/facter.<br>
+    -- add 'to_step' parameter to "download" custom type, to control execution of the two steps 
     'suma preview' and 'suma download' separately. By setting 'to_step' to "preview", only 
     "preview" is performed. By default "download" is performed.<br> 
- #### 0.5.1:
-   - fix the automatic installation of "/usr/bin/flrtvc.ksh" if this file is missing 
-   - renaming of "./output/facter/sp_per_tl.yml" file to 
+    -- fix the automatic installation of "/usr/bin/flrtvc.ksh" if this file is missing 
+    -- renaming of "./output/facter/sp_per_tl.yml" file to 
      "./output/facter/sp_per_tl.yml.June_2018", 
      so that this file is generated at least once after installation. This file contains
      the matches between Technical Levels and Service Packs for all releases.<br>   
