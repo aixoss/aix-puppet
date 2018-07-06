@@ -98,6 +98,18 @@ or "reject", or "commit"". Useful only for "action=update"'
   end
 
   # ############################################################################
+  # :preview parameter to perform operation in preview mode only
+  #
+  # Check :preview against a short list, provide a default
+  # ############################################################################
+  newparam(:preview) do
+    desc '"preview" parameter: preview only if "yes", by default \
+it is set to "no"'
+    defaultto :no
+    newvalues(:yes, :no)
+  end
+
+  # ############################################################################
   # Perform global consistency checks between parameters
   # ############################################################################
   validate do

@@ -29,7 +29,7 @@ on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lpp_sourc
 
     # default value for returned, depends on 'ensure'
     returned = true
-    returned = false if resource[:ensure] == absent
+    returned = false if resource[:ensure] == 'absent'
 
     #
     targets = resource[:targets].to_s
@@ -186,12 +186,13 @@ action on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lp
     #
     action = resource[:action].to_s
     sync = resource[:sync].to_s
-    sync_option = if sync.to_s == 'no'
+    sync_option = if sync == 'no'
                     'async=yes'
                   else
                     # default value
                     'async=no'
                   end
+    preview = resource[:preview].to_s
 
     Log.log_debug('targets_to_apply=' + @targets_to_apply.to_s)
     targets_array = @targets_to_apply
@@ -217,9 +218,11 @@ action on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lp
 
     when 'install'
       Log.log_debug('Installing the lpp_source')
+      installp_flags = '-acNgXY'
+      installp_flags += 'p' if preview == "yes"
       begin
         Log.log_debug('Nim.cust_install')
-        Nim.cust_install(lpp_source, sync_option, targets_array)
+        Nim.cust_install(lpp_source, sync_option, installp_flags, targets_array)
         Log.log_debug('Nim.cust_install')
       rescue Nim::NimCustOpError => e
         Log.log_err("NimCustOpError #{e} " + e.to_s)
@@ -227,18 +230,16 @@ action on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lp
       end
 
     when 'update'
-      # nim -o cust -a lpp_source=U875725
-      #   -a fixes=update_all -a installp_flags=acNgXY
-      # nim -o cust -a lpp_source=U875725
-      #   -a fixes=update_all -a accept_licenses=yes -a async=yes
       Log.log_debug('Updating the lpp_source')
       mode = resource[:mode].to_s
       Log.log_debug("sync_option=\"#{sync_option}\"")
 
       if mode.to_s == 'update'
+        installp_flags = '-agXY'
+        installp_flags += 'p' if preview == "yes"
         begin
           Log.log_debug('Nim.cust_update')
-          Nim.cust_update(lpp_source, sync_option, 'agXY', targets_array)
+          Nim.cust_update(lpp_source, sync_option, installp_flags, targets_array)
           Log.log_debug('Nim.cust_update')
         rescue Nim::NimCustOpError => e
           Log.log_err("NimCustOpError #{e} " + e.to_s)
@@ -247,6 +248,7 @@ action on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lp
 
       elsif mode.to_s == 'commit'
         installp_flags = '-cg'
+        installp_flags += 'p' if preview == "yes"
         begin
           Log.log_debug('Nim.maint')
           Nim.maint('all', sync_option, installp_flags, targets_array)
@@ -257,14 +259,8 @@ action on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lp
         end
 
       else
-        # apply by default
-        # /usr/lpp/bos.sysmgt/update/methods/m_sm_nim
-        #   update_all  -t 'quimby05' -l  |
-        # 'U87572-45' -f '' -f '' -f '' -f 'g' -f 'X' -f '' -f '' -f 'Y' -f ''  |
-        # nim -o cust -a lpp_source=U87575_245
-        #   -a fixes=update_all -a accept_licenses=yes
-        #   -a async=yes -a installp_flags=gXY quimby05
         installp_flags = '-agXY'
+        installp_flags += 'p' if preview == "yes"
         # It is needed to build the list of filesets to be committed :
         #  this is the list of filesets of the lpp_source which are APPLIED only
         # this list is to be built per target
@@ -309,6 +305,7 @@ targets with \"#{resource[:lpp_source]}\" lpp_source.")
     #
     action = resource[:action].to_s
     sync = resource[:sync].to_s
+    preview = resource[:preview].to_s
 
     Log.log_debug('targets_to_apply=' + @targets_to_apply.to_s)
     targets_array = @targets_to_apply
@@ -337,8 +334,10 @@ targets with \"#{resource[:lpp_source]}\" lpp_source.")
       # builds list of filesets of this lpp_source
       filesets = Utils.get_filesets_of_lppsource(lpp_source)
       begin
+        installp_flags = '-Iu'
+        installp_flags += 'p' if preview == "yes"
         Log.log_debug('Nim.maint')
-        Nim.maint(filesets, sync_option, '-Iu', targets_array)
+        Nim.maint(filesets, sync_option, installp_flags, targets_array)
         Log.log_debug('Nim.maint')
       rescue Nim::NimMaintOpError => e
         Log.log_err("NimMaintOpError #{e} " + e.to_s)
@@ -358,6 +357,7 @@ targets with \"#{resource[:lpp_source]}\" lpp_source.")
         #  "filesets=devices.common.IBM.fc.rte
         #    devices.pci.df1000f7.com" -a installp_flags=rBX quimby05
         installp_flags = '-rBX'
+        installp_flags += 'p' if preview == "yes"
         # it is needed to build the list of filesets to be rejected :
         #  this is the list of filesets of the lpp_source which are APPLIED only
         # this list is to be built per target

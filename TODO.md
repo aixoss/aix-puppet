@@ -17,13 +17,12 @@
  parameters of 'download' custom type.
 ** 9. In case of updates of several LPARs, launch these updates in parallel, as each update is quite 
  long
-** 10. Update in preview mode only to see what would be done.
-** 11. StatusBefore and StatusAfter files for each target for all types of changes
-** 12. Propose a sort of introspection mode : if manifests/init.pp is empty (and that should be 
+** 10. StatusBefore and StatusAfter files for each target for all types of changes
+** 11. Propose a sort of introspection mode : if manifests/init.pp is empty (and that should be 
  the case at the beginning), a 'discovery' facter (to be created) proposes the possible updates of 
  SP and iFix that could be done on all standalones existing on the NIM server, and generates the 
  manifests/init.pp.
-** 13. Updating a system to a new level needs sometimes to be done twice the right level, for example
+** 12. Updating a system to a new level needs sometimes to be done twice the right level, for example
 updating from 7100-04-04-1717 to 7100-05. This happens more generally if the system being updated has 
 requisites to software that identify new filesets that aren't currently installed on the system.
 In this particular case of updating from 7100-04-04-1717 to 7100-05, the Java filesets listed weren't 
@@ -31,9 +30,8 @@ already on the system at a downlevel. Whenever AIX ships newly defined filesets 
 the fileset list of downlevel software (requiring an update in level) wouldn't have the unknown 
 fileset names in the install list. So, customers would have to update again so the newer fileset(s) 
 get applied. Then the TO DO would be to detect theses case and launch twice the update when necessary 
- One complication is that the first update notifies user that a 'reboot is required' and this 
- notification is lost at second update.  
-** 14. Remove efix before install efix on option
+One complication is that the first update notifies user that a 'reboot is required' and this 
+notification is lost at second update.  
 ## DONE 
 ** 1. Suma preview is likely to be unnecessary if 'to_step' is set to 'download'. Consider skipping 
  this preview step in this case.
@@ -48,5 +46,7 @@ get applied. Then the TO DO would be to detect theses case and launch twice the 
 ** 8. Verify Idempotence
 ** 9. Restrict the standalones list analysed by facter 'standalones' to the list of targets provided in 
  manifests/init.pp.
+** 10. Remove efix before install efix on option : this is possible through the 'ensure => absent'
+** 11. Patchmngt provider in preview mode only through a new parameter 'preview'
 
          

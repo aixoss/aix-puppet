@@ -122,14 +122,14 @@
    in any case.
  
 ### Installation directory 
-  As said already, aixautomation module is installed into /etc/puppetlabs/code/environments/production/modules 
-  (called INST_DIR) :<br> 
+  As said already, aixautomation module is installed into 
+   /etc/puppetlabs/code/environments/production/modules (called INST_DIR) :<br> 
    /etc/puppetlabs/code/environments/production/modules/aixautomation (called AIXAUTOMATION_DIR), 
    and all relative paths in this README are relative to this AIXAUTOMATION_DIR directory.<br>
   The aixautomation module generates all outputs under this directory (under ./output), 
   except downloads of updates and eFixes which are performed under 'root' directories mentioned 
-  into ./manifests/init.pp file, (ou have one 'root' parameter for 'download' and one 'root' directory 
-  for 'fix').  
+  into ./manifests/init.pp file, (ou have one 'root' parameter for 'download' and one 
+  'root' directory for 'fix').  
  
 ### Command line    
   You can test ./manifests/init.pp manifest by using following command lines :<br>
@@ -239,19 +239,21 @@
    to uniquely identify the suma download to be performed : you can have several 'download' 
    clauses in ./manifests/init.pp, each of them being uniquely identified. 
  - <b>root</b> : root directory to store results of suma download. This root directory should reside 
-   on a file system separated from the one which hosts the system itself, and preferably different from /tmp. 
-   This root directory needs to be large enough to contain system updates, and should be a exportable file 
-   system, so that NIM can build NIM lpp_source resource and perform a mount from the remote LPARs. 
+   on a file system separated from the one which hosts the system itself, and preferably 
+   different from /tmp. This root directory needs to be large enough to contain system updates, 
+   and should be a exportable file system, so that NIM can build NIM lpp_source resource and perform 
+   a mount from the remote LPARs. 
    <i>Note : jfs jfs2 and others considerations to be added</i>  
- - <b>type</b> : type of suma downloads. Three possible values : <b>SP</b> to suma-download a service 
-   pack, i.e. what allows you to update from a XXXX-YY technical level to any service packs of this 
-   technical level. <b>TL</b> to suma-download a technical level, so that you system gets updated 
-   to a new technical level. <b>Latest</b> to suma-download the last service pack of a given technical
-    level. A last value is possible : <b>Meta</b> but is reserved for internal use.   
+ - <b>type</b> : type of suma downloads. Three possible values : <b>SP</b> to suma-download 
+   a service pack, i.e. what allows you to update from a XXXX-YY technical level to any service 
+   packs of this technical level. <b>TL</b> to suma-download a technical level, so that you system 
+   gets updated to a new technical level. <b>Latest</b> to suma-download the last service pack of a 
+   given technical level. A last value is possible : <b>Meta</b> but is reserved for internal use.   
  - <b>from</b> : parameter used to launch suma-download command, indicating the starting level 
-   of desired updates. For example by indicating <b>7100-01</b>, it means download contains everything 
-   to update from this <b>7100-01</b> technical level, or by indicating <b>100-01-02-1150</b>, it 
-   means download contains everything to update from this <b>7100-01-02-1150</b> service pack.
+   of desired updates. For example by indicating <b>7100-01</b>, it means download contains 
+   everything to update from this <b>7100-01</b> technical level, or by indicating 
+   <b>100-01-02-1150</b>, it means download contains everything to update from this 
+   <b>7100-01-02-1150</b> service pack.
  - <b>to</b> : parameter used to launch suma-download command, indicating the level of updates 
    desired. For example by indicating <b>7100-03</b>, it means download contains everything to 
    update up to this <b>7100-03</b> technical level, or  by indicating <b>7100-01-08-1642</b>, it 
@@ -279,7 +281,9 @@
  This NIM push mode can use suma downloads performed by suma provider, as preliminary step, 
   by using into 'lpp_source' parameter the lpp_source which was created by 'suma' provider.<br>
  Software maintenance operations include : install and updates.<br>
- You'll find samples of install and update into ./examples/init.pp.<br> 
+ You'll find samples of install and update into ./examples/init.pp.<br>
+ You can perform operation synchronously or asynchronously depending on 'sync' parameter.<br> 
+ You can perform preview only depending on 'preview' parameter.<br>
  ##### Parameters
    - <b>provider</b> : this parameter is not mandatory, if mentioned it needs to contain name of 
    the provider implementing the 'patchmngt' custom type, therefore the value needs to be : 
@@ -295,43 +299,55 @@
    clauses in ./manifests/init.pp, each of them being uniquely identified.<br> 
   - <b>action</b> : action to be performed. This parameter can take several values : <b>install</b>, 
    <b>update</b>, <b>reboot</b>, <b>status</b>. By default, <b>status</b> is assumed.
-   <b>install</b> action enables installation (or un-installation depending on the <b>ensure</b> value) 
-   of a lpp_source, <b>update</b> action enables update of a system (installation of a service pack or 
-   installation of a technical level), <b>reboot</b> action enables to launch reboot of LPARs. 
+   <b>install</b> action enables installation (or un-installation depending on the <b>ensure</b> 
+   value) of a lpp_source, <b>update</b> action enables update of a system (installation of a 
+   service pack or installation of a technical level), <b>reboot</b> action enables to launch 
+   reboot of LPARs.  
    <b>status</b> action displays version level and eFix information related to LPARs.       
   - <b>lpp_source</b> : name of the NIM lpp_source resource to be installed/un-installed or which 
   needs to be used to performed system update. In case of update, this lpp_source is the one which 
   was built by a previous 'download' clause (results of suma downloads). 
   - <b>targets</b> : names of the LPARs on which to perform action.
-  - <b>sync</b> : if action needs to be done synchronously or asynchronously. Two possible values for this 
-  parameter : <b>yes</b> and <b>no</b>. By default, <b>no</b> is assumed.  
+  - <b>sync</b> : if action needs to be done synchronously or asynchronously. 
+  Two possible values for this parameter : <b>yes</b> and <b>no</b>. 
+  By default, <b>no</b> is assumed.  
+  - <b>preview</b> : if only preview must be done. 
+  Two possible values for this parameter : <b>yes</b> and <b>no</b>. 
+  By default, <b>no</b> is assumed.  
     
  #### Custom type : fix (provider : flrtvc)
  ##### Explanations
  The aim of this provider is to provide appropriate eFix installations using flrtvc 
-  functionality to compute eFix to be installable, and NIM push functionality to install eFix.<br> 
- "root" parameter is used as download directory : it should be an ad-hoc file system dedicated to 
-  download eFix, keep this file system separated from the system so prevent saturation.<br>   
- List of appropriate eFix to be installed on a system is firstly computed by 'flrtvc', then checked
-  against constraints and a short list of eFix of installable eFix is computed, a NIM resource 
-  is then built and then applied, so that eFix are installed.<br>
+  functionality to compute list of eFix to be installable, and NIM push functionality 
+  to install this list of eFix.<br> 
+ "root" parameter is used as download directory : it should be an ad-hoc file 
+  system dedicated to download eFix, keep this file system separated from the system 
+  so prevent saturation.<br>   
+ List of appropriate eFix to be installed on a system is firstly computed by 'flrtvc', 
+  then checked against constraints and a short list of eFix of installable eFix 
+  is computed, a NIM resource is then built and then applied, so that eFix 
+  are installed.<br>
  These several steps necessary to achieve this eFix installation task, are performed 
   following this order : "installFlrtvc", "runFlrtvc", "parseFlrtvc", "downloadFixes", 
   "checkFixes", "buildResource", "installResource". <br>
- Step "buildResource" builds a NIM lpp_source resource whose name follows these naming conventions : 
-  prefix is 'PAA_FLRTVC_' and suffix is name of the target, for example 'PAA_FLRTVC_quimby01'
-  for NIM resource used to perform eFix installation on quimby01 LPAR. 
- Executions can be stopped after any step, and this is controlled through the 'to_step' parameter 
-  into ./manifests/init.pp.<br>
+ Step "runFlrtvc" launches '/usr/bin/flrtvc.ksh' command which in turn downloads 
+  an 'apar.csv' file into the directory used to launch the command. This file remains
+  at the end, and should cause no worry.  
+ Step "buildResource" builds a NIM lpp_source resource whose name follows these 
+  naming conventions : prefix is 'PAA_FLRTVC_' and suffix is name of the target, 
+  for example 'PAA_FLRTVC_quimby01' for NIM resource used to perform eFix 
+  installation on quimby01 LPAR. 
+ Executions can be stopped after any step, and this is controlled through the 
+  'to_step' parameter into ./manifests/init.pp.<br>
  Each step persists its results into a yaml file, which can be found into 
   ./output/flrtvc directory.<br> 
- All yaml files can be reused between two executions, to spare time if ever the external 
-  conditions have not changed, this is controlled through the 'force' parameter which needs 
-  then to be set to 'no'. By default it is set to 'yes', meaning the previously computed 
-  yaml files are not used.<br>
- eFix are sorted by 'Packaging Date' before being applied, i.e. most recent first. It could 
-  occur that one particular eFix prevents another one (less recent) from being installed if 
-  they touch the same file.<br>
+ All yaml files can be reused between two executions, to spare time if ever the 
+  external conditions have not changed, this is controlled through the 'force' 
+  parameter which needs then to be set to 'no'. By default it is set to 'yes', 
+  meaning the previously computed yaml files are not used.<br>
+ eFix are sorted by 'Packaging Date' before being applied, i.e. most recent first. 
+  It could occur that one particular eFix prevents another one (less recent) from 
+  being installed if they touch the same file.<br>
  At the end of execution of this provider, you'll find into : <br>
   - ./output/flrtvc/<target>_StatusBeforeEfixInstall.yml : how were the <target> 
     LPAR before eFix installation.<br> 
@@ -454,8 +470,8 @@
  AixAutomation can live with without problem. Some of them are listed below. 
   
  ##### Output of /usr/sbin/emgr -dXv3
- The following output is frequently displayed when "/usr/sbin/emgr -dXv3 -e ABCD.epkg.Z"  command is run, 
-  but this does not prevent the parsing of this command output to be done.<br>
+ The following output is frequently displayed when "/usr/sbin/emgr -dXv3 -e ABCD.epkg.Z"  
+  command is run, but this does not prevent the parsing of this command output to be done.<br>
   
   Error:     emgr: 0645-007 ATTENTION: /usr/bin/lslpp returned an unexpected result.<br>
   Error:     emgr: 0645-044 Error processing installp fileset data.<br>

@@ -11,6 +11,7 @@ module Automation
       # name : cust_install
       # param : input:lpp_source:string
       # param : input:sync_option:string
+      # param : input:installp_flags:string
       # param : input:targets_array:array of strings
       # return :
       # description : prepares the NIM command to be run
@@ -19,12 +20,13 @@ module Automation
       # #######################################################################
       def self.cust_install(lpp_source,
           sync_option,
+          installp_flags,
           targets_array)
         Log.log_debug('Nim.cust_install operation')
         #
         targets = Utils.string_separated(targets_array, ' ')
         nim_command = "/usr/sbin/nim -o cust -a lpp_source=#{lpp_source} \
--a #{sync_option} -a filesets=all -a installp_flags=acNgXY " + targets
+-a #{sync_option} -a filesets=all -a installp_flags=" + installp_flags + ' ' + targets
         Utils.execute(nim_command)
       end
 
