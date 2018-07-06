@@ -46,15 +46,17 @@ on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lpp_sourc
     case action.to_s
     when 'install', 'update'
       case mode.to_s
-      when 'update', 'commit', 'apply'
+      when 'commit', 'apply'
         unless Utils.check_input_lppsource(lpp_source).success?
           raise('"lpp_source" does not exist as NIM resource')
         end
+      when 'reject'
+        # nothing
       else
-        raise('"mode" must be either "update", "commit", or "apply"')
+        raise('"mode" must be either "commit", "apply", or "reject"')
       end
     else
-      # type code here
+      # nothing
     end
 
     # Depending on the action param, interpretation of ensure is not the same
@@ -234,7 +236,7 @@ action on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lp
       mode = resource[:mode].to_s
       Log.log_debug("sync_option=\"#{sync_option}\"")
 
-      if mode.to_s == 'update'
+      if mode.to_s == 'apply'
         installp_flags = '-agXY'
         installp_flags += 'p' if preview == "yes"
         begin
@@ -247,7 +249,7 @@ action on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lp
         end
 
       elsif mode.to_s == 'commit'
-        installp_flags = '-cg'
+        installp_flags = '-cgXY'
         installp_flags += 'p' if preview == "yes"
         begin
           Log.log_debug('Nim.maint')
@@ -256,22 +258,6 @@ action on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lp
         rescue Nim::NimMaintOpError => e
           Log.log_err("NimMaintOpError #{e} " + e.to_s)
           Log.log_err("Could not commit #{filesets} on " + target)
-        end
-
-      else
-        installp_flags = '-agXY'
-        installp_flags += 'p' if preview == "yes"
-        # It is needed to build the list of filesets to be committed :
-        #  this is the list of filesets of the lpp_source which are APPLIED only
-        # this list is to be built per target
-        # filesets_per_target = Utils.get_targets_applied_filesets(targets)
-        begin
-          Log.log_debug('Nim.cust_update')
-          Nim.cust_update(lpp_source, sync_option, installp_flags, targets_array)
-          Log.log_debug('Nim.cust_update')
-        rescue Nim::NimCustOpError => e
-          Log.log_err("NimCustOpError #{e} " + e.to_s)
-          Log.log_err("Could not apply #{lpp_source} on " + targets_array.to_s)
         end
       end
 
@@ -320,14 +306,14 @@ targets with \"#{resource[:lpp_source]}\" lpp_source.")
 
     # depending the action param, nimaction is not the same
     case action
-    when :status.to_s
+    when 'status'
       Log.log_debug('Doing status')
       targets_array.each do |target|
         status_output = Utils.status(target)
         Log.log_debug('target=' + target + ' ' + status_output.to_s)
       end
 
-    when :install.to_s
+    when 'install'
       Log.log_debug('Uninstalling the lpp_source')
       lpp_source = resource[:lpp_source].to_s
 
@@ -344,7 +330,7 @@ targets with \"#{resource[:lpp_source]}\" lpp_source.")
         Log.log_err("Could not remove #{filesets} on " + targets_array.to_s)
       end
 
-    when :update.to_s
+    when 'update'
       Log.log_debug('Updating')
       Log.log_debug('Doing the remove of the update : reject')
 
@@ -353,7 +339,7 @@ targets with \"#{resource[:lpp_source]}\" lpp_source.")
 
       Log.log_debug("sync_option=\"#{sync}\"")
 
-      if mode.to_s == 'reject'
+      if mode == 'reject'
         #  "filesets=devices.common.IBM.fc.rte
         #    devices.pci.df1000f7.com" -a installp_flags=rBX quimby05
         installp_flags = '-rBX'
@@ -366,10 +352,13 @@ targets with \"#{resource[:lpp_source]}\" lpp_source.")
         targets_array.each do |target|
           filesets = filesets_per_target[target]
           Log.log_debug("filesets=\"#{filesets}\"")
+          # 'array_target' needed to build an array of just one target
+          array_target = []
           begin
-            Log.log_debug('Nim.maint')
-            Nim.maint(filesets, sync_option, installp_flags, target)
-            Log.log_debug('Nim.maint')
+            Log.log_debug('Start of Nim.maint')
+            array_target.push(target)
+            Nim.maint(filesets, sync_option, installp_flags, array_target)
+            Log.log_debug('End of Nim.maint')
           rescue Nim::NimMaintOpError => e
             Log.log_err("NimMaintOpError #{e} " + e.to_s)
             Log.log_err("Could not reject #{filesets} on " + target)
@@ -377,7 +366,7 @@ targets with \"#{resource[:lpp_source]}\" lpp_source.")
         end
       end
 
-    when :reboot.to_s
+    when 'reboot'
       Log.log_info('Nothing to be done : not supported')
 
     else

@@ -137,9 +137,84 @@ class aixautomation {
   }
 }
 */
-
 /*
- 3. Samples of update
+class aixautomation {
+  # This rule allows to perform preview update through nimpush provider
+  #  of the clio3 system so that its update to the 7100-03-07-1614 SP
+  #  is previewed.
+  # The lpp_source is the one built by download rule
+  #  PAA_SP_7100-03-05-1524_7100-03-07-1614
+  patchmngt { "update clio3 to PAA_SP_7100-03-05-1524_7100-03-07-1614":
+    provider   => nimpush,
+    ensure     => present,
+    name       => "update clio3 to PAA_SP_7100-03-05-1524_7100-03-07-1614",
+    action     => "update",
+    targets    => "clio3",
+    sync       => "yes",
+    lpp_source => "PAA_SP_7100-03-05-1524_7100-03-07-1614",
+    preview    => "yes",
+  }
+*/
+/*
+class aixautomation {
+  # This rule allows to perform update in apply mode through nimpush provider
+  #  of the clio3 system so that it is updated to the 7100-03-07-1614 SP.
+  # The lpp_source is the one built by download rule
+  #  PAA_SP_7100-03-05-1524_7100-03-07-1614
+  patchmngt { "update clio3 to PAA_SP_7100-03-05-1524_7100-03-07-1614":
+    provider   => nimpush,
+    ensure     => present,
+    name       => "update clio3 to PAA_SP_7100-03-05-1524_7100-03-07-1614",
+    action     => "update",
+    targets    => "clio3",
+    sync       => "yes",
+    lpp_source => "PAA_SP_7100-03-05-1524_7100-03-07-1614",
+    preview    => "no",
+  }
+  # This rule allows to perform reject of all updates (which were applied only)
+  #  through nimpush provider of the clio3 system so that it comes back to its
+  #  previous level : 7100-03-05-1524 SP
+  # Please note that to be able to reject, you must set 'ensure' to 'absent'.
+  patchmngt { "reject updates of clio3":
+    provider   => nimpush,
+    ensure     => absent,
+    name       => "reject updates of clio3",
+    action     => "update",
+    targets    => "clio3",
+    sync       => "yes",
+    mode       => "reject",
+  }
+*/
+/*
+class aixautomation {
+  # This rule allows to perform update in apply mode through nimpush provider
+  #  of the clio4 system so that it is updated to the 7100-03-08-1642 SP.
+  # The lpp_source is the one built by download rule
+  #  PAA_SP_7100-03-05-1524_7100-03-08-1642
+  patchmngt { "update clio4 to PAA_SP_7100-03-05-1524_7100-03-08-1642":
+    provider   => nimpush,
+    ensure     => present,
+    name       => "update clio4 to PAA_SP_7100-03-05-1524_7100-03-08-1642",
+    action     => "update",
+    targets    => "clio4",
+    sync       => "yes",
+    lpp_source => "PAA_SP_7100-03-05-1524_7100-03-08-1642",
+  }
+  # This rule allows to perform commit of all updates (which were applied only)
+  #  through nimpush provider of the clio4 system so that it keeps its level
+  #  previous level : 7100-03-05-1524 SP
+  patchmngt { "commit updates of clio4":
+    provider   => nimpush,
+    ensure     => present,
+    name       => "commit updates of clio4",
+    action     => "update",
+    targets    => "clio4",
+    sync       => "yes",
+    mode       => "commit",
+  }
+*/
+/*
+ 3. Samples of efix installation
 */
 /*
 class aixautomation {

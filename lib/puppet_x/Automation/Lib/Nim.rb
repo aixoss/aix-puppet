@@ -77,9 +77,8 @@ module Automation
         Log.log_debug('Nim.maint operation')
         #
         targets = Utils.string_separated(targets_array, ' ')
-        nim_command = "/usr/sbin/nim -o maint -a filesets=#{filesets} \
--a #{sync_option} -a installp_flags=#{installp_flags}\
-        " + targets
+        nim_command = '/usr/sbin/nim -o maint -a filesets="' + filesets + '" \
+-a ' + sync_option + ' -a installp_flags=' + installp_flags + ' ' + targets
         Utils.execute(nim_command)
       end
 

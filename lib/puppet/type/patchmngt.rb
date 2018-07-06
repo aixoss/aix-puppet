@@ -1,13 +1,13 @@
 require_relative '../../puppet_x/Automation/Lib/Utils.rb'
 
-# ##########################################################################
+# ##############################################################################
 # name : patchmngt type
 # description : this custom type enables to automate AIX install and update
 #  through NIM push from a NIM server to a list of LPARs
 # comments : provide a good sample of what it is possible do to
 #  when defining a custom type : validate methods either specific to one
 #  param, one global, moreover we'll find one munge.
-# ##########################################################################
+# ##############################################################################
 Puppet::Type.newtype(:patchmngt) do
   @doc = 'To manage all simple patchmngt actions \
 (status,install/uninstall,update,reboot).'
@@ -74,7 +74,7 @@ either "status", "update", "install", or "reboot"'
   end
 
   # ############################################################################
-  # :sync parameter to control if action is sunchonous or asyncronous
+  # :sync parameter to control if action is synchonous or asyncronous
   #
   # Check :sync against a short list, provide a default
   # ############################################################################
@@ -86,15 +86,15 @@ useful only for "action=update"'
   end
 
   # ############################################################################
-  # :mode parameter to tell kind of update to be done
+  # :mode parameter to tell kind of update to be done : apply, commit, reject
   #
   # Check :mode against a short list, provide a default
   # ############################################################################
   newparam(:mode) do
-    desc '"mode" parameter: update mode either "update", or "apply", \
+    desc '"mode" parameter: update mode either "apply", \
 or "reject", or "commit"". Useful only for "action=update"'
-    defaultto :update
-    newvalues(:update, :apply, :reject, :commit)
+    defaultto :apply
+    newvalues(:apply, :reject, :commit)
   end
 
   # ############################################################################
@@ -117,12 +117,11 @@ it is set to "no"'
     raise('"targets" needs to be set') \
  if self[:targets].nil? || self[:targets].empty?
     #
-    # what is done here :
+    # what is done here : consistency between action, mode and lpp_source
     if ((self[:action] == :install) || ((self[:action] == :update) &&
-        ((self[:mode] == :update) || (self[:mode] == :apply)))) &&
-        self[:lpp_source].nil?
+        (self[:mode] == :apply))) && self[:lpp_source].nil?
       raise('"lpp_source" parameter: required when action is "install" or \
-when action is "update"" and mode is "update" or "apply"')
+when action is "update"" and mode is "apply"')
     end
   end
 end
