@@ -2,23 +2,19 @@
 #  require_relative '../puppet_x/Automation/Lib/Log.rb'
 # require_relative '../puppet_x/Automation/Lib/Remote/c_rsh.rb'
 #
-# ##########################################################################
-# name : vioss factor
+# ##############################################################################
+# name : 'vios' factor
 # param : none
-# return : hash of vioss
-# description : this factor builds a fact called 'vioss' containing a hash
-#  with all vioss names known by the NIM server as value.
-#   oslevel -s as values.
-# ##########################################################################
+# return : hash of vios.
+#  Two files are generated: "output/facter/vios_skipped.yml" and
+#  "output/facter/vios_kept.yml" as result log.
+# description : this factor builds a fact called 'vios' containing a
+#  hash with vios names known by the NIM server as value.
+# ##############################################################################
 # include Automation::Lib
 # include Automation::Lib::Remote
-# this is not possible
-# # Error: Facter: error while resolving custom facts in
-# #  /etc/puppet/modules/aixautomation/lib/facter/vioss.rb:
-# #  wrong argument type Class (expected Module)
-# include Automation::Lib::Log
 #
-# Facter.add('vioss') do
+# Facter.add('vios') do
 #   setcode do
 #
 #     Log.log_info('Computing "vios" facter')

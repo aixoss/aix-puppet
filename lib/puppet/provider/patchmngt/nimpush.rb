@@ -2,11 +2,11 @@ require_relative '../../../puppet_x/Automation/Lib/Nim.rb'
 require_relative '../../../puppet_x/Automation/Lib/Utils.rb'
 require_relative '../../../puppet_x/Automation/Lib/Log.rb'
 
-# ##########################################################################
-# name : nimpush provider of the patchmngt type
+# ##############################################################################
+# name : 'nimpush' provider of the 'patchmngt' custom-type.
 # description :
-#   # implement patchmngt above nimpush
-# ##########################################################################
+#   implement install/update of LPARs above nim commands
+# ##############################################################################
 Puppet::Type.type(:patchmngt).provide(:nimpush) do
   include Automation::Lib
 

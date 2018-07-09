@@ -1,8 +1,8 @@
-# ################################################################
-#  To define constants
-#  If run inside puppet some constants come from Facter, otherwise
-#   they are hard_coded.
-# ################################################################
+# ##############################################################################
+# To define constants
+# If run inside puppet some constants come from Facter, otherwise they are
+#  hard_coded.
+# ##############################################################################
 module Automation
   module Lib
     class Constants

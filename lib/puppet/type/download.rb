@@ -4,9 +4,9 @@ require_relative '../../puppet_x/Automation/Lib/SpLevel.rb'
 require_relative '../../puppet_x/Automation/Lib/Constants.rb'
 
 # ##########################################################################
-# name : download type
-# description : this custom type enables to automate download through
-#  suma metadata/preview/download
+# name : 'download' custom-type
+# description : this custom-type enables to automate download through
+#  suma metadata/preview/download.
 # ##########################################################################
 Puppet::Type.newtype(:download) do
   @doc = 'To manage all simple download functions.'

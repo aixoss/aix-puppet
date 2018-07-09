@@ -3,11 +3,11 @@ require_relative '../../../puppet_x/Automation/Lib/Suma.rb'
 require_relative '../../../puppet_x/Automation/Lib/Nim.rb'
 require_relative '../../../puppet_x/Automation/Lib/Utils.rb'
 
-# ##########################################################################
-# name : suma provider of the download type
+# ##############################################################################
+# name : 'suma' provider of 'download' custom-type
 # description :
-#  implement download above suma
-# ##########################################################################
+#  implement "suma-download" functionality above suma command.
+# ##############################################################################
 Puppet::Type.type(:download).provide(:suma) do
   include Automation::Lib
 

@@ -1,10 +1,11 @@
 require_relative '../../puppet_x/Automation/Lib/Utils.rb'
 require_relative '../../puppet_x/Automation/Lib/Flrtvc.rb'
 
-# ##########################################################################
-# name : fix type
-# description :
-# ##########################################################################
+# ##############################################################################
+# name : 'fix' custom-type
+# description : this custom-type enables to automate eFix management through
+#  flrtvc and nim commands
+# ##############################################################################
 Puppet::Type.newtype(:fix) do
   @doc = 'To manage all simple efix functions.'
 

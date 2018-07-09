@@ -3,11 +3,11 @@ require_relative '../../../puppet_x/Automation/Lib/Log.rb'
 require_relative '../../../puppet_x/Automation/Lib/Flrtvc.rb'
 require_relative '../../../puppet_x/Automation/Lib/Constants.rb'
 
-# ##########################################################################
-# name : flrtvc provider of the fix type
+# ##############################################################################
+# name : 'flrtvc' provider of the 'fix' custom-type
 # description :
-#  implement fix about flrtvc
-# ##########################################################################
+#  implement efix installations about flrtvc command, and nim commands
+# ##############################################################################
 Puppet::Type.type(:fix).provide(:flrtvc) do
   include Automation::Lib
 

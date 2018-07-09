@@ -1,12 +1,9 @@
 require_relative '../../puppet_x/Automation/Lib/Utils.rb'
 
 # ##############################################################################
-# name : patchmngt type
-# description : this custom type enables to automate AIX install and update
-#  through NIM push from a NIM server to a list of LPARs
-# comments : provide a good sample of what it is possible do to
-#  when defining a custom type : validate methods either specific to one
-#  param, one global, moreover we'll find one munge.
+# name : "patchmngt" custom-type
+# description : this custom-type enables to automate AIX install and update (and
+#  more) through nim commands : NIM push from a NIM server to a list of LPARs.
 # ##############################################################################
 Puppet::Type.newtype(:patchmngt) do
   @doc = 'To manage all simple patchmngt actions \

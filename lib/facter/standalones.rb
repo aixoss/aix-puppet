@@ -2,14 +2,18 @@ require_relative '../puppet_x/Automation/Lib/Constants.rb'
 require_relative '../puppet_x/Automation/Lib/Log.rb'
 require_relative '../puppet_x/Automation/Lib/Remote/c_rsh.rb'
 #
-# ##########################################################################
-# name : standalones factor
+# ##############################################################################
+# name : 'standalones' factor
 # param : none
-# return : hash of standalones
-# description : this factor builds a fact called 'standalones' containing a
-#  hash with all standalones names known by the NIM server as value.
-#   oslevel -s as values.
-# ##########################################################################
+# return : hash of standalones.
+#  Two files are generated: "output/facter/standalones_skipped.yml" and
+#  "output/facter/standalones_kept.yml" as result log.
+# description : this facter builds a fact called 'standalones' containing a
+#  hash with standalones names known by the NIM server as value.
+#  Only the standalones used as 'targets' into manifests/init.pp file are tested.
+#  Other tests performed on standalones are : ping, c_rsh, NIM parameters.
+#  Only standalones satisfying these criteria are used by runtime.
+# ##############################################################################
 include Automation::Lib
 include Automation::Lib::Remote
 #

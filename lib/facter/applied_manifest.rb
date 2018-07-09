@@ -1,13 +1,14 @@
 require_relative '../puppet_x/Automation/Lib/Log.rb'
 #
-# ##########################################################################
-# name : apply factor
+# ##############################################################################
+# name : 'applied_manifest' factor
 # param : none
-# return :
-# description : to display contents of manifests/init.pp being applied,
-#  commented lines are not displayed. Set of targets used in manifests/init.pp
-#  is computed.
-# ##########################################################################
+# return : the applied manifest is returned : contents of manifests/init.pp
+# description : this facter to display contents of manifests/init.pp being
+#  applied, please note that commented lines are not displayed. Set of targets
+#  used in manifests/init.pp is computed, this is used to restrict work being
+#  done by 'standalones' facter to the sole list of targets being really used.
+# ##############################################################################
 #
 Facter.add('applied_manifest') do
   setcode do
