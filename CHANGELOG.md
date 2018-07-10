@@ -9,7 +9,7 @@
        manifests/init.pp
    -- Parsing of 'targets' in 'applied_manifest' facter, so that 'standalones'
        facter only works if standalone is used as target.    
-   -- flrtvc NIM resource rebuilt each time, and not reused if it exists
+   -- flrtvc NIM resource recreated each time, and not reused if it exists
    -- Change the path where flrtvc yaml files are stored. They were into 
        'root' directory indicated into './manifests/init.pp', 
        they are now under ./output/flrtvc directory.

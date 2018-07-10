@@ -111,7 +111,7 @@
  Manifest './manifests/init.pp' delivered contains one suma-download  
  As far as 'update' operations are concerned:<br> 
   You can perform download operations from FixCentral (suma-downloads) and 
-  build a NIM lpp_source resource with results of downloads in a first separate 
+  create a NIM lpp_source resource with results of downloads in a first separate 
   step, then in a second step you can update LPARs using the NIM lpp_source 
   resource which was downloaded.    
  As far as 'eFix' operations are concerned:<br>
@@ -253,7 +253,7 @@ It is a good practice to regularly consider that the
    Technical Level.<br>
   - "Latest" contains everything to update a system to the last Service Pack of 
    a given Technical Level.<br>
- As a result of suma-download a lpp_source NIM resource is built. You can choose
+ As a result of suma-download a lpp_source NIM resource is created. You can choose
   either to name it (with your own way of naming) and in that case you need to 
   provide a 'lpp_source' attribute. Or you can let 'suma' provider name the 
   lpp_source, in that case naming convention uses "PAA" as a prefix to identify 
@@ -296,7 +296,7 @@ It is a good practice to regularly consider that the
   directory should reside on a file system separated from the one which hosts 
   the system itself, and preferably different from /tmp. This root directory 
   needs to be large enough to contain system updates, and should be an 
-  exportable file system, so that NIM can build NIM lpp_source resource and 
+  exportable file system, so that NIM can create NIM lpp_source resource and 
   perform a mount from the remote LPARs.<br> 
   Note: it appears that this <b>root</b> directory needs to be either of 
   type jfs or jfs2 (some other types of file system may work too).<br>  
@@ -317,7 +317,7 @@ It is a good practice to regularly consider that the
   download contains everything to update up to this <b>7100-03</b> technical 
   level, or  by indicating <b>7100-01-08-1642</b>, it means download contains 
   everything to update up to this <b>7100-01-08-1642</b> service pack.
- - <b>lpp_source</b>: name of the NIM lpp_source resource built containing 
+ - <b>lpp_source</b>: name of the NIM lpp_source resource created containing 
   results of suma-downloads. If ever this lpp_source name is not provided, a 
   naming convention is used to generate this name, by using a prefix ('PAA'), 
   and by concatenating 'type', 'from', and 'to' attributes. The name of this 
@@ -467,7 +467,7 @@ It is a good practice to regularly consider that the
    This root directory should reside on a file system separated from the one 
    which hosts the system itself. This root directory needs to be large 
    enough to contain eFix updates, and should be a exportable file system 
-   (jfs, jfs2, ...), so that NIM can build NIM lpp_source resource and 
+   (jfs, jfs2, ...), so that NIM can create NIM lpp_source resource and 
    perform a mount from the remote LPARs. By default <b>/tmp</b> is assumed. 
    - <b>type</b>: type of desired eFix. Possible values: <b>hiper</b>, 
    <b>sec</b>, <b>all</b>. 
@@ -480,57 +480,6 @@ It is a good practice to regularly consider that the
  Refer to TODO.md<br>
 
 ## Release Notes 
- ### Last changes documented
-  #### 0.6.5
-   - Many fixes
-    -- Better mngt of c_rsh return codes
-    -- Better messages on validating 'download' attributes
-    -- NIM resource for update always deleted at beginning so that it is recreated. 
-       This to prevents some cases from occurring: location has been moved 
-       while NIM resource remains. 
-    -- New facter 'applied_manifest' to display in logs the applied manifest: 
-       manifests/init.pp
-    -- Parsing of 'targets' in 'applied_manifest' facter, so that 'standalones'
-       facter only works if standalone is used as target.    
-    -- flrtvc NIM resource rebuilt each time, and not reused if it exists
-    -- Change the path where flrtvc yaml files are stored. They were into 
-       'root' directory indicated into './manifests/init.pp', 
-       they are now under ./output/flrtvc directory.
-    -- Fix custom type 'clean' attribute is changed to 'force' attribute
-       If force is set to 'yes', all downloads are forced again, 
-       even if the downloads existed before and were available. 
-       By default force is set to 'no', meaning we keep everything.
-    -- One status file per target is necessary, otherwise if several 'fix' 
-       custom types, then last one overrides previous ones. Therefore we'll have 
-       these files 
-       ./output/flrtvc/<target>_StatusAfterEfixInstall.yml<br>
-       ./output/flrtvc/PuppetAix_StatusAfterEfixRemoval_<target>.yml<br>
-       ./output/flrtvc/<target>_StatusBeforeEfixInstall.yml<br>
-       ./output/flrtvc/PuppetAix_StatusBeforeEfixRemoval_<target>.yml<br>
-    -- Persistence of flrtvc information commmon to all targets into two files
-       so that these files are taken as input at beginning of flrtvc processings
-       (only if clean='no'): listoffixes_per_url.yml, lppminmax_of_fixes.yml      
-     #### 0.5.5
-   - Many fixes
-    -- Rubocop warnings removal 
-    -- Better management of downloads: for example for timeout on ftp download, 
-       the failed urls are identified as being in failure, and are listed at the 
-       end of download phase. If you run flrtvc a second time, after a fist time 
-       which had download failures, only failed urls downloads are attempted.<br>
-    -- Validation messages of custom type contain contextual messages<br> 
-    -- Move all outputs into ./output directory: logs are now into 
-       ./output/logs, facter results are now into ./output/facter.<br>
-    -- Add 'to_step' attribute to "download" custom type, to control execution 
-       of the two steps 'suma-preview' and 'suma-download' separately. 
-       By setting 'to_step' to "preview", only "preview" is performed. By default 
-       "download" is performed.<br> 
-    -- Fix the automatic installation of "/usr/bin/flrtvc.ksh" if this 
-       file is missing 
-    -- Renaming of "./output/facter/sp_per_tl.yml" file to 
-       "./output/facter/sp_per_tl.yml.June_2018", 
-       so that this file is generated at least once after installation. This file 
-       contains the matches between Technical Levels and Service Packs 
-       for all releases.<br>   
  ### Debugguing tips
  #### Shell environments 
  Shell environments may cause errors with underlying (shell) system commands.  
