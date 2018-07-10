@@ -1,0 +1,7 @@
+
+Metrics/BlockNesting:
+  Max: 4
+
+Metrics/ParameterLists:
+  Max: 6
+

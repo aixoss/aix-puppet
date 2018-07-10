@@ -15,4 +15,16 @@ if RUBY_VERSION >= '1.8.7' && RUBY_VERSION < '1.9'
 else
   # rubocop requires ruby >= 1.9
   gem 'rubocop'
+  gem 'rubocop-rspec'
 end
+
+gem 'codecov'
+gem 'simplecov', '~> 0'
+#gem 'github_changelog_generator' if Gem::Version.new(RUBY_VERSION.dup) >= Gem::Ve
+#if Gem::Version.new(RUBY_VERSION.dup) >= Gem::Version.new('2.1.0')
+#  gem 'rubocop', '< 0.50'
+#  gem 'rubocop-rspec', '~> 1'
+#end
+
+# vim:filetype=ruby
+
