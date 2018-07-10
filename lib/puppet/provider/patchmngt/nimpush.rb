@@ -59,7 +59,7 @@ on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lpp_sourc
       # nothing
     end
 
-    # Depending on the action param, interpretation of ensure is not the same
+    # Depending on the action attribute, interpretation of ensure is not the same
     case action.to_s
     when 'status'
       Log.log_debug('targets_array =' + targets_array.to_s)
@@ -201,7 +201,7 @@ action on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lp
     Log.log_debug('targets_array=' + targets_array.to_s)
     lpp_source = resource[:lpp_source].to_s
 
-    # depending on the action param, nimaction is not the same
+    # depending on the action attribute, NIM action is not the same
     case action.to_s
     when 'status'
       Log.log_debug('Doing status')
@@ -304,7 +304,7 @@ targets with \"#{resource[:lpp_source]}\" lpp_source.")
                     'async=no'
                   end
 
-    # depending the action param, nimaction is not the same
+    # depending on the action attribute, NIM action is not the same
     case action
     when 'status'
       Log.log_debug('Doing status')

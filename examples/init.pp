@@ -21,11 +21,11 @@
    Declaration used here is 'download'.
 */
 /*
-  # This rule is the one provided into manifests/init.pp by default,
+  # This declaration is the one provided into manifests/init.pp by default,
   #  to perform only a suma-download preview.
   # Facters are launched, then manifests/init.pp custom types validation
   #  are performed and then executed: suma preview is launched with below
-  #  parameters.
+  #  attributes.
 class aixautomation {
   download { "test suma-preview":
     ensure => present,
@@ -39,7 +39,7 @@ class aixautomation {
 *
 /*
 class aixautomation {
-  # This rule allows to perform suma-download through suma provider
+  # This declaration allows to perform suma-download through suma provider
   #  to get update of 7100-03-07-1614 SP into /export/extra/puppet/suma
   #  for a system which is currently in 7100-03.
   # lpp_source created is named : PAA_SP_7100-03_7100-03-07-1614
@@ -60,7 +60,7 @@ class aixautomation {
     to         => "7100-03-07-1614",
     lpp_source => "PAA_SP_7100-03_7100-03-07-1614",
   }
-  # This rule allows to perform suma-download through suma provider
+  # This declaration allows to perform suma-download through suma provider
   #  to get update of 7100-04 TL into /export/extra/puppet/suma
   #  for a system which is currently in 7100-03.
   # lpp_source created is named : PAA_TM_7100-03_7100-04
@@ -80,7 +80,7 @@ class aixautomation {
     from       => "7100-03",
     to         => "7100-04",
   }
-  # This rule allows to perform suma-download through suma provider
+  # This declaration allows to perform suma-download through suma provider
   #  to get update of 7100-05 TL into /export/extra/puppet/suma
   #  for a system which is currently in 7100-03.
   # lpp_source created is named : PAA_TM_7100-03_7100-05
@@ -100,7 +100,7 @@ class aixautomation {
     from       => "7100-03",
     to         => "7100-05",
   }
-  # This rule allows to perform cleaning of suma-download directory
+  # This declaration allows to perform cleaning of suma-download directory
   #  "/export/extra/puppet/suma/lpp_dource/SP/7100-037100-03-07-1614".
   #  Moreover the NIM resource "PAA_SP_7100-03_7100-03-07-1614" is removed.
   download { "test suma-download clean":
@@ -119,9 +119,9 @@ class aixautomation {
 */
 /*
 class aixautomation {
-  # This rule allows to perform preview update only through nimpush provider:
+  # This declaration allows to perform preview update only through nimpush provider:
   #  clio3 system update to the 7100-03-07-1614 SP is previewed.
-  # The lpp_source is one NIM resource built by a 'download' rule
+  # The lpp_source is one NIM resource built by a 'download' declaration
   #  PAA_SP_7100-03-05-1524_7100-03-07-1614
   patchmngt { "update clio3 to PAA_SP_7100-03-05-1524_7100-03-07-1614":
     provider   => nimpush,
@@ -136,9 +136,9 @@ class aixautomation {
 */
 /*
 class aixautomation {
-  # This rule allows to perform update in apply mode through nimpush provider:
+  # This declaration allows to perform update in apply mode through nimpush provider:
   #  clio3 system is updated to the 7100-03-07-1614 SP.
-  # The lpp_source is one NIM resource built by a 'download' rule
+  # The lpp_source is one NIM resource built by a 'download' declaration
   #  PAA_SP_7100-03-05-1524_7100-03-07-1614
   patchmngt { "update clio3 to PAA_SP_7100-03-05-1524_7100-03-07-1614":
     provider   => nimpush,
@@ -150,7 +150,7 @@ class aixautomation {
     lpp_source => "PAA_SP_7100-03-05-1524_7100-03-07-1614",
     preview    => "no",
   }
-  # This rule allows to perform reject of all updates (which were applied only)
+  # This declaration allows to perform reject of all updates (which were applied only)
   #  through nimpush provider: clio3 system comes back to its
   #  previous level 7100-03-05-1524 SP.
   # Please note that to be able to reject, you must set 'ensure' to 'absent'.
@@ -166,9 +166,9 @@ class aixautomation {
 */
 /*
 class aixautomation {
-  # This rule allows to perform update through nimpush provider:
+  # This declaration allows to perform update through nimpush provider:
   #  quimby07 system is updated to the 7100-03-07-1614 SP.
-  # The lpp_source is the one built by download rule
+  # The lpp_source is the one built by download declaration
   #  PAA_SP_7100-03_7100-03-07-1614
   patchmngt { "update quimby07 to 7100-03-07-1614":
     provider   => nimpush,
@@ -183,9 +183,9 @@ class aixautomation {
 */
 /*
 class aixautomation {
-  # This rule allows to perform update in apply mode through nimpush provider:
+  # This declaration allows to perform update in apply mode through nimpush provider:
   #  clio4 system is updated to the 7100-03-08-1642 SP.
-  # The lpp_source is one NIM resource built by a 'download' rule
+  # The lpp_source is one NIM resource built by a 'download' declaration
   #  PAA_SP_7100-03-05-1524_7100-03-08-1642
   patchmngt { "update clio4 to PAA_SP_7100-03-05-1524_7100-03-08-1642":
     provider   => nimpush,
@@ -196,7 +196,7 @@ class aixautomation {
     sync       => "yes",
     lpp_source => "PAA_SP_7100-03-05-1524_7100-03-08-1642",
   }
-  # This rule allows to perform commit of all updates (which were applied only)
+  # This declaration allows to perform commit of all updates (which were applied only)
   #  through nimpush provider: clio4 system keeps its previous level
   #  7100-03-05-1524 SP.
   patchmngt { "commit updates of clio4":
@@ -215,7 +215,7 @@ class aixautomation {
 */
 /*
 class aixautomation {
-  # This rule allows to install iFix through flrtvc provider:
+  # This declaration allows to install iFix through flrtvc provider:
   #  quimby01 and quimby02 systems are fixed (their necessary eFix are
   #  installed) as best as possible.
   # Setting ensure to 'present'
@@ -241,7 +241,7 @@ class aixautomation {
 */
 /*
 class aixautomation {
-  # This rule allows to remove iFix through flrtvc provider:
+  # This declaration allows to remove iFix through flrtvc provider:
   #  quimby03 and quimby04 systems are cleaned from their eFix.
   # Setting ensure to 'absent'
   # All eFix are removed.
@@ -261,7 +261,7 @@ class aixautomation {
 */
 /*
 class aixautomation {
-  # This rule allows to install lpp_source through nimpush provider:
+  # This declaration allows to install lpp_source through nimpush provider:
   #  quimby01 and quimby02 systems are installed with a new NIM lpp_source.
   # Setting ensure to 'present'.
   # Action to be done is 'install'.
@@ -280,7 +280,7 @@ class aixautomation {
 */
 /*
 class aixautomation {
-  # This rule allows to remove lpp_source through nimpush provider,
+  # This declaration allows to remove lpp_source through nimpush provider,
   #  on the quimby01 and quimby02 systems.
   # Setting ensure to 'absent'
   # Action to be done is 'install'.

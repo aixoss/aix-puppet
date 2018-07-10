@@ -4,6 +4,7 @@ require_relative '../puppet_x/Automation/Lib/Log.rb'
 # name : 'applied_manifest' factor
 # param : none
 # return : the applied manifest is returned : contents of manifests/init.pp
+#  the list of targets used in manifests/init.pp is returned as well.
 # description : this facter to display contents of manifests/init.pp being
 #  applied, please note that commented lines are not displayed. Set of targets
 #  used in manifests/init.pp is computed, this is used to restrict work being
@@ -25,7 +26,7 @@ Facter.add('applied_manifest') do
         contents += line
         line.to_s =~ /\s*targets\s*=>\s*"(.+?)",/
         targets_caught = Regexp.last_match(1)
-        if !targets_caught.nil?
+        unless targets_caught.nil?
           targets = targets_caught.split(/[\s,']/)
           alltargets += targets
         end

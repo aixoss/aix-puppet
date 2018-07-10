@@ -30,7 +30,7 @@ Puppet::Type.newtype(:fix) do
   #  accessible through c_rsh, in a proper NIM state
   # ###########################################################################
   newparam(:targets) do
-    desc '"targets" parameter: list of lpar or vios on which to perform action'
+    desc '"targets" attribute: list of lpar or vios on which to perform action'
     kept = []
     validate do |values|
       kept = []
@@ -49,7 +49,7 @@ Puppet::Type.newtype(:fix) do
   #
   # ############################################################################
   newparam(:root) do
-    desc '"root" parameter: download root directory for efix'
+    desc '"root" attribute: download root directory for efix'
     defaultto '/tmp'
     validate do |value|
       raise('"root" needs to exist') \
@@ -61,7 +61,7 @@ Puppet::Type.newtype(:fix) do
   #
   # ############################################################################
   newparam(:to_step) do
-    desc '"to_step" parameter possible values: "installFlrtvc", runFlrtvc",
+    desc '"to_step" attribute possible values: "installFlrtvc", runFlrtvc",
 "parseFlrtvc", "downloadFixes", "checkFixes", "buildResource",
 "installResource"'
     defaultto :installResource
@@ -73,7 +73,7 @@ Puppet::Type.newtype(:fix) do
   #
   # ############################################################################
   newparam(:level) do
-    desc '"level" parameter possible values: "hiper", "sec", "all"'
+    desc '"level" attribute possible values: "hiper", "sec", "all"'
     defaultto :all
     newvalues(:hiper, :sec, :all)
   end
@@ -82,7 +82,7 @@ Puppet::Type.newtype(:fix) do
   #
   # ############################################################################
   newparam(:force) do
-    desc '"force" parameter possible values: "yes" or "no"'
+    desc '"force" attribute possible values: "yes" or "no"'
     defaultto :yes
     newvalues(:yes, :no)
   end

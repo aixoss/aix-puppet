@@ -31,7 +31,7 @@ Puppet::Type.newtype(:download) do
   # :root is the download root directory
   # ############################################################################
   newparam(:root) do
-    desc '"root" parameter: download root directory for updates'
+    desc '"root" attribute: download root directory for updates'
     validate do |value|
       raise('"root" needs to exist') if Utils.check_directory(value) == -1
     end
@@ -43,7 +43,7 @@ Puppet::Type.newtype(:download) do
   # Check :type against a short list, provide a default
   # ############################################################################
   newparam(:type) do
-    desc '"type" parameter: either "SP", "TL", "Latest", or "Meta"'
+    desc '"type" attribute: either "SP", "TL", "Latest", or "Meta"'
     defaultto :SP
     newvalues(:SP, :TL, :Latest, :Meta)
   end
@@ -54,7 +54,7 @@ Puppet::Type.newtype(:download) do
   #  with naming convention "PAA_<type>_<from>_<to>"
   # ############################################################################
   newparam(:lpp_source) do
-    desc '"lpp_source" parameter: optional parameter, \
+    desc '"lpp_source" attribute: optional attribute, \
 name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
     validate do |values|
       raise('"lpp_source" name \"' + values + '\" is too long (' + values.length.to_s + '), max is 39 characters') \
@@ -64,18 +64,20 @@ name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
   end
 
   # ############################################################################
-  # :from is a parameter of the suma request, giving current level of the system
+  # :from attribute is a parameter of the suma request, giving current level of
+  #  the system
   # ############################################################################
   newparam(:from) do
-    desc '"from" parameter: current level'
+    desc '"from" attribute: current level'
     defaultto ''
   end
 
   # ############################################################################
-  # :to is a parameter of the suma request, giving desired level of the system
+  # :to attribute is a parameter of the suma request, giving desired level of
+  #  the system
   # ############################################################################
   newparam(:to) do
-    desc '"to" parameter: desired level'
+    desc '"to" attribute: desired level'
     defaultto ''
   end
 
@@ -83,13 +85,13 @@ name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
   #
   # ############################################################################
   newparam(:to_step) do
-    desc '"to_step" parameter possible values: "preview", "download"'
+    desc '"to_step" attribute possible values: "preview", "download"'
     defaultto :download
     newvalues(:preview, :download)
   end
 
   # ############################################################################
-  # :force parameter to force new download of suma metadata and lppsource
+  # :force attribute to force new download of suma metadata and lppsource
   #   If set to 'yes', all previous downloads are removed, so that everything
   #    is downloaded again from scratch.
   #   By default it is set to 'no', meaning all previous downloads are kept
@@ -97,13 +99,13 @@ name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
   # Check :force against a short list, provide a default
   # ############################################################################
   newparam(:force) do
-    desc '"force" parameter: possible values "yes", "no"'
+    desc '"force" attribute: possible values "yes", "no"'
     defaultto :no
     newvalues(:yes, :no)
   end
 
   # ############################################################################
-  # Perform global consistency checks between parameters
+  # Perform global consistency checks between attributes
   # ############################################################################
   validate do
     root_directory = ::File.join(Constants.output_dir,
@@ -123,16 +125,16 @@ name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
     if self[:type] == :SP
 
       result = SpLevel.validate_sp_tl('from', from)
-      raise('"' + from + '" "from" parameter is invalid. Check ' + yml_file + ' file.') unless result
+      raise('"' + from + '" "from" attribute is invalid. Check ' + yml_file + ' file.') unless result
 
       result = SpLevel.sp_tl_exists(from)
-      raise('"' + from + '" "from" parameter is neither a known TL nor a known SP. Check ' + yml_file + ' file.') unless result
+      raise('"' + from + '" "from" attribute is neither a known TL nor a known SP. Check ' + yml_file + ' file.') unless result
 
       result = SpLevel.validate_sp('to', to)
-      raise('"' + to + '" "to" parameter is invalid. Check ' + yml_file + ' file.') unless result
+      raise('"' + to + '" "to" attribute is invalid. Check ' + yml_file + ' file.') unless result
 
       result = SpLevel.sp_exists(to)
-      raise('"' + to + '" "to" parameter is not a known SP. Check ' + yml_file + ' file.') unless result
+      raise('"' + to + '" "to" attribute is not a known SP. Check ' + yml_file + ' file.') unless result
 
       Log.log_debug('Validation of type=SP from=' + from + ' to=' + to + ' OK.')
     elsif self[:type] == :TL
@@ -149,28 +151,28 @@ name of the lpp_source built, by default "PAA_<type>_<from>_<to>"'
           result = SpLevel.validate_tl('from', from) && SpLevel.validate_sp('to', to)
         end
       end
-      raise('"' + from + '" "from" parameter and "' + to + '" "to" parameter are not consistent for a TL request. Check ' + yml_file + ' file.') unless result
+      raise('"' + from + '" "from" attribute and "' + to + '" "to" attribute are not consistent for a TL request. Check ' + yml_file + ' file.') unless result
 
       # result = SpLevel.validate_sp_tl("to", to)
       # result = SpLevel.validate_tl('to', to)
-      # raise('"' + to + '" "to" parameter is invalid. Check ' + yml_file + ' file.') unless result
+      # raise('"' + to + '" "to" attribute is invalid. Check ' + yml_file + ' file.') unless result
 
       result = SpLevel.sp_tl_exists(from)
-      raise('"' + from + '" "from" parameter is neither a known TL nor a known SP. Check ' + yml_file + ' file.') unless result
+      raise('"' + from + '" "from" attribute is neither a known TL nor a known SP. Check ' + yml_file + ' file.') unless result
 
       result = SpLevel.sp_tl_exists(to)
-      raise('"' + to + '" "to" parameter is neither a known TL nor a known SP. Check ' + yml_file + ' file.') unless result
+      raise('"' + to + '" "to" attribute is neither a known TL nor a known SP. Check ' + yml_file + ' file.') unless result
 
       Log.log_debug('Validation of type=TL from=' + from + ' to=' + to + ' OK.')
     elsif self[:type] == :Latest
 
       result = SpLevel.validate_tl('from', from)
-      raise('"' + from + '" "from" parameter is invalid. Check ' + yml_file + ' file.') unless result
+      raise('"' + from + '" "from" attribute is invalid. Check ' + yml_file + ' file.') unless result
 
-      raise('"' + to + '" "to" parameter must not be specified if type is set to "Latest"') if to != ''
+      raise('"' + to + '" "to" attribute must not be specified if type is set to "Latest"') if to != ''
 
       result = SpLevel.tl_exists(from)
-      raise('"' + from + '" "from" parameter is not a known TL. Check ' + yml_file + ' file.') unless result
+      raise('"' + from + '" "from" attribute is not a known TL. Check ' + yml_file + ' file.') unless result
 
       Log.log_debug('Validation of type=Latest from=' + from + ' OK.')
     end

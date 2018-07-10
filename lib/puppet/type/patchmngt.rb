@@ -29,7 +29,7 @@ Puppet::Type.newtype(:patchmngt) do
   #
   # ############################################################################
   newparam(:lpp_source) do
-    desc '"lpp_source" parameter: name of the NIM lpp_source resource \
+    desc '"lpp_source" attribute: name of the NIM lpp_source resource \
 used to perform update or install'
     validate do |values|
       raise('"lpp_source" name \"' + values + '\" is too long (' + values.length.to_s + '), max is 39 characters') \
@@ -38,13 +38,13 @@ used to perform update or install'
   end
 
   # ############################################################################
-  # :targets is a parameter giving the LPARs on which to apply action
+  # :targets is a attribute giving the LPARs on which to apply action
   #
   # Only valid targets are kept, targets need to be pingable,
   #  accessible through c_rsh, in a proper NIM state
   # ############################################################################
   newparam(:targets) do
-    desc '"targets" parameter: list of lpar or vios on which to perform action'
+    desc '"targets" attribute: list of lpar or vios on which to perform action'
     kept = []
     validate do |values|
       kept = []
@@ -59,55 +59,55 @@ used to perform update or install'
   end
 
   # ############################################################################
-  # :action parameter to choose action to be applied
+  # :action attribute to choose action to be applied
   #
   # Check :action against a short list, provide a default
   # ############################################################################
   newparam(:action) do
-    desc '"action" parameter: simple action to perform on target : \
+    desc '"action" attribute: simple action to perform on target : \
 either "status", "update", "install", or "reboot"'
     defaultto :status
     newvalues(:status, :update, :install, :reboot)
   end
 
   # ############################################################################
-  # :sync parameter to control if action is synchonous or asyncronous
+  # :sync attribute to control if action is synchonous or asyncronous
   #
   # Check :sync against a short list, provide a default
   # ############################################################################
   newparam(:sync) do
-    desc '"sync" parameter: synchronous if "yes"" or asynchronous if "no", \
+    desc '"sync" attribute: synchronous if "yes"" or asynchronous if "no", \
 useful only for "action=update"'
     defaultto :yes
     newvalues(:yes, :no)
   end
 
   # ############################################################################
-  # :mode parameter to tell kind of update to be done : apply, commit, reject
+  # :mode attribute to tell kind of update to be done : apply, commit, reject
   #
   # Check :mode against a short list, provide a default
   # ############################################################################
   newparam(:mode) do
-    desc '"mode" parameter: update mode either "apply", \
+    desc '"mode" attribute: update mode either "apply", \
 or "reject", or "commit"". Useful only for "action=update"'
     defaultto :apply
     newvalues(:apply, :reject, :commit)
   end
 
   # ############################################################################
-  # :preview parameter to perform operation in preview mode only
+  # :preview attribute to perform operation in preview mode only
   #
   # Check :preview against a short list, provide a default
   # ############################################################################
   newparam(:preview) do
-    desc '"preview" parameter: preview only if "yes", by default \
+    desc '"preview" attribute: preview only if "yes", by default \
 it is set to "no"'
     defaultto :no
     newvalues(:yes, :no)
   end
 
   # ############################################################################
-  # Perform global consistency checks between parameters
+  # Perform global consistency checks between attributes
   # ############################################################################
   validate do
     # what is done here : if targets==null then failure
@@ -117,7 +117,7 @@ it is set to "no"'
     # what is done here : consistency between action, mode and lpp_source
     if ((self[:action] == :install) || ((self[:action] == :update) &&
         (self[:mode] == :apply))) && self[:lpp_source].nil?
-      raise('"lpp_source" parameter: required when action is "install" or \
+      raise('"lpp_source" attribute: required when action is "install" or \
 when action is "update"" and mode is "apply"')
     end
   end
