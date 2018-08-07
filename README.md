@@ -4,7 +4,7 @@
 
 1. [Description](#description)
 2. [Setup - The basics of getting started with aixautomation](#setup)
-    * [What aixautomation affects](#What-aixautomation-module-affects)
+    * [What aixautomation affects](#What-AixAutomation-module-affects)
     * [Setup requirements](#setup-requirements)
     * [Beginning with aixautomation](#beginning-with-aixautomation)
 3. [Usage - Configuration options and additional functionality](#usage)
@@ -65,7 +65,7 @@
   **- for AIX 7.2, 7.1**: https://s3.amazonaws.com/puppet-agents/2017.3/puppet-agent/5.3.5/repos/aix/7.1/PC1/ppc/puppet-agent-5.3.5-1.aix7.1.ppc.rpm<br>
   **- for AIX 6.1**: https://s3.amazonaws.com/puppet-agents/2017.3/puppet-agent/5.3.5/repos/aix/6.1/PC1/ppc/puppet-agent-5.3.5-1.aix6.1.ppc.rpm<br>
  Puppet rpm is installed using rpm -i command line.<br>  
- After Puppet installation, path to puppet is /opt/puppetlabs/puppet/bin/puppet.<br>
+ After Puppet installation, path to puppet is /opt/puppetlabs/bin/puppet.<br>
  Please note that Puppet comes with its own ruby, you'll find it here after Puppet installation:<br> 
     "/opt/puppetlabs/puppet/bin/ruby -version" returns "ruby 2.4.2p198 (2017-09-14 revision 59899)" 
   
@@ -160,19 +160,19 @@
  
 ### Command line    
   You can test './manifests/init.pp' manifest by using following command lines:<br>
-        /opt/puppetlabs/puppet/bin/puppet apply \ 
+        /opt/puppetlabs/bin/puppet apply \ 
           --noop --modulepath=/etc/puppetlabs/code/environments/production/modules \
           -e "include aixautomation"<br>
      or apply it without debug messages: <br>
-        /opt/puppetlabs/puppet/bin/puppet apply \
+        /opt/puppetlabs/bin/puppet apply \
           --modulepath=/etc/puppetlabs/code/environments/production/modules \
           -e "include aixautomation"<br>
      or apply it with debug messages: <br>
-        /opt/puppetlabs/puppet/bin/puppet apply  --debug \ 
+        /opt/puppetlabs/bin/puppet apply  --debug \ 
         --modulepath=/etc/puppetlabs/code/environments/production/modules \
           -e "include aixautomation"<br>
      or apply it with debug message and Puppet logs into a file: <br>
-        /opt/puppetlabs/puppet/bin/puppet apply \ 
+        /opt/puppetlabs/bin/puppet apply \ 
          --logdest=/etc/puppetlabs/code/environments/production/modules/output/logs/PuppetApply.log \
          --debug --modulepath=/etc/puppetlabs/code/environments/production/modules \
          -e "include aixautomation"<br>   
@@ -310,8 +310,10 @@ It is a good practice to regularly consider that the
  - <b>from</b>: attribute used to launch suma-download command, indicating the 
   starting level of desired updates. For example by indicating <b>7100-01</b>, 
   it means download contains everything to update from this <b>7100-01</b> 
-  technical level, or by indicating <b>7100-01-02-1150</b>, it means download 
-  contains everything to update from this <b>7100-01-02-1150</b> service pack.
+  technical level. Or by indicating <b>7100-01-02-1150</b>, it means download 
+  contains everything to update from this <b>7100-01-02-1150</b> service pack,
+  but specifying a SP into the <b>from</b> is equivalent to specifying the 
+  closest TL : <b>7100-01-02-1150</b> SP is equivalent to <b>7100-01</b> TL.
  - <b>to</b>: attribute used to launch suma-download command, indicating the 
   level of updates desired. For example by indicating <b>7100-03</b>, it means 
   download contains everything to update up to this <b>7100-03</b> technical 
@@ -426,13 +428,13 @@ It is a good practice to regularly consider that the
   first. It could occur that one particular eFix prevents another one (less 
   recent) from being installed if both eFixes touch the same file.<br>
  At the end of execution of this provider, you'll find into: <br>
-  - ./output/flrtvc/<target>_StatusBeforeEfixInstall.yml: how were the <target> 
+  - ./output/flrtvc/[target]_StatusBeforeEfixInstall.yml: how were the [target] 
     LPAR before eFix installation.<br> 
-  - ./output/flrtvc/<target>_StatusAfterEfixInstall.yml: how are the <target> 
+  - ./output/flrtvc/[target]_StatusAfterEfixInstall.yml: how are the [target] 
     LPARs after eFix installation.<br>
-  - ./output/flrtvc/<target>_StatusBeforeEfixRemoval.yml: how were the <target> 
+  - ./output/flrtvc/[target]_StatusBeforeEfixRemoval.yml: how were the [target] 
     LPAR before eFix de-installation.<br> 
-  - ./output/flrtvc/<target>_StatusAfterEfixRemoval.yml: how are the <target> 
+  - ./output/flrtvc/[target]_StatusAfterEfixRemoval.yml: how are the [target] 
     LPARs after eFix de-installation.<br>
  ##### Attributes
    - <b>provider</b>: this attribute is not mandatory, if mentioned it needs to 
