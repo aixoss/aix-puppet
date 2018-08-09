@@ -30,7 +30,10 @@
  10. Propose regex in targets parameter so that we can perform operations on a list of targets 
   generated from a regex.
  11. Check updates consistency before trying, by looking at the BUILDDATE from the "oslevel -s", 
-  and by comparing with BUILDDATE of the update.  
+  and by comparing with BUILDDATE of the update. 
+ 12. Maybe not judicious ro raise exception into Automation::Lib::Suma as these exceptions are not
+  caught and therefore they could interrupt execution, if thrown. 
+   
     
 
 

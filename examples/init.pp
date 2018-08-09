@@ -31,7 +31,7 @@ class aixautomation {
     ensure => present,
     type => "SP",
     root => "/tmp",
-    from => "7200-01-02-1717",
+    from => "7200-01",
     to => "7200-01-03-1720",
     to_step => "preview",
   }
@@ -122,15 +122,15 @@ class aixautomation {
   # This declaration allows to perform preview update only through nimpush provider:
   #  clio3 system update to the 7100-03-07-1614 SP is previewed.
   # The lpp_source is one NIM resource built by a 'download' declaration
-  #  PAA_SP_7100-03-05-1524_7100-03-07-1614
-  patchmngt { "update clio3 to PAA_SP_7100-03-05-1524_7100-03-07-1614":
+  #  PAA_SP_7100-03_7100-03-07-1614
+  patchmngt { "update clio3 to PAA_SP_7100-03_7100-03-07-1614":
     provider   => nimpush,
     ensure     => present,
-    name       => "update clio3 to PAA_SP_7100-03-05-1524_7100-03-07-1614",
+    name       => "update clio3 to PAA_SP_7100-03_7100-03-07-1614",
     action     => "update",
     targets    => "clio3",
     sync       => "yes",
-    lpp_source => "PAA_SP_7100-03-05-1524_7100-03-07-1614",
+    lpp_source => "PAA_SP_7100-03_7100-03-07-1614",
     preview    => "yes",
   }
 */
@@ -139,15 +139,15 @@ class aixautomation {
   # This declaration allows to perform update in apply mode through nimpush provider:
   #  clio3 system is updated to the 7100-03-07-1614 SP.
   # The lpp_source is one NIM resource built by a 'download' declaration
-  #  PAA_SP_7100-03-05-1524_7100-03-07-1614
-  patchmngt { "update clio3 to PAA_SP_7100-03-05-1524_7100-03-07-1614":
+  #  PAA_SP_7100-03_7100-03-07-1614
+  patchmngt { "update clio3 to PAA_SP_7100-03_7100-03-07-1614":
     provider   => nimpush,
     ensure     => present,
-    name       => "update clio3 to PAA_SP_7100-03-05-1524_7100-03-07-1614",
+    name       => "update clio3 to PAA_SP_7100-03_7100-03-07-1614",
     action     => "update",
     targets    => "clio3",
     sync       => "yes",
-    lpp_source => "PAA_SP_7100-03-05-1524_7100-03-07-1614",
+    lpp_source => "PAA_SP_7100-03_7100-03-07-1614",
     preview    => "no",
   }
   # This declaration allows to perform reject of all updates (which were applied only)
@@ -186,15 +186,15 @@ class aixautomation {
   # This declaration allows to perform update in apply mode through nimpush provider:
   #  clio4 system is updated to the 7100-03-08-1642 SP.
   # The lpp_source is one NIM resource built by a 'download' declaration
-  #  PAA_SP_7100-03-05-1524_7100-03-08-1642
-  patchmngt { "update clio4 to PAA_SP_7100-03-05-1524_7100-03-08-1642":
+  #  PAA_SP_7100-03_7100-03-08-1642
+  patchmngt { "update clio4 to PAA_SP_7100-03_7100-03-08-1642":
     provider   => nimpush,
     ensure     => present,
-    name       => "update clio4 to PAA_SP_7100-03-05-1524_7100-03-08-1642",
+    name       => "update clio4 to PAA_SP_7100-03_7100-03-08-1642",
     action     => "update",
     targets    => "clio4",
     sync       => "yes",
-    lpp_source => "PAA_SP_7100-03-05-1524_7100-03-08-1642",
+    lpp_source => "PAA_SP_7100-03_7100-03-08-1642",
   }
   # This declaration allows to perform commit of all updates (which were applied only)
   #  through nimpush provider: clio4 system keeps its previous level
@@ -304,16 +304,16 @@ class aixautomation {
 */
 /*
 class aixautomation {
-  download { "test PAA_SP_7200-01-02-1717_7200-01-03-1720":
+  download { "test PAA_SP_7200-01_7200-01-03-1720":
     provider => suma,
     ensure => present,
-    name => "test PAA_SP_7200-01-02-1717_7200-01-03-1720",
+    name => "test PAA_SP_7200-01_7200-01-03-1720",
     type => "SP",
     root => "/exports/extra/test-puppet/suma",
-    from => "7200-01-02-1717",
+    from => "7200-01",
     to => "7200-01-03-1720",
     to_step => "download",
-    lpp_source => "PAA_SP_7200-01-02-1717_7200-01-03-1720",
+    lpp_source => "PAA_SP_7200-01_7200-01-03-1720",
   }
   patchmngt { "update castor8 to 7200-01-03-1720":
     provider   => nimpush,
@@ -322,7 +322,7 @@ class aixautomation {
     action     => "update",
     targets    => "castor8",
     sync       => "yes",
-    lpp_source => "PAA_SP_7200-01-02-1717_7200-01-03-1720",
+    lpp_source => "PAA_SP_7200-01_7200-01-03-1720",
   }
   fix { "efix_install":
     provider => flrtvc,
