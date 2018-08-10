@@ -38,7 +38,7 @@ Facter.add('standalones') do
     standalones_array.each do |standalone|
       standalone_hash = {}
       #
-      if !alltargets.include? standalone
+      unless alltargets.include? standalone
         standalone_hash['WARNING'] = 'Standalone ' + standalone + ' is not used in "manifests/init.pp. Skipping"'
         standalones_skipped[standalone] = standalone_hash
         next
@@ -85,7 +85,6 @@ Facter.add('standalones') do
               next unless lsnim_line =~ /^\s+Cstate\s+=\s+(.*)$/
               cstate = Regexp.last_match(1)
               standalone_hash['cstate'] = cstate
-              # NEEDS TO BE TESTED AGAIN
               keep_it = true if cstate == 'ready for a NIM operation'
             end
 
