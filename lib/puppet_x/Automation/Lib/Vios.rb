@@ -1,4 +1,3 @@
-require_relative './SpLevel.rb'
 require_relative './Constants.rb'
 require 'fileutils'
 require 'yaml'
@@ -100,7 +99,7 @@ have been tested ok, and therefore viospair is kept.")
                                               'facter',
                                               'vios_kept_and_init.yml')
         #
-        bMissingUuid = false
+        b_missing_UUID = false
         #
         if File.exist?(vios_kept_and_init_file)
           nim_vios_init = YAML.load_file(vios_kept_and_init_file)
@@ -114,16 +113,16 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
               nim_vios[vios_key]['vios_uuid'] = nim_vios_init[vios_key]['vios_uuid']
               nim_vios[vios_key]['cec_uuid'] = nim_vios_init[vios_key]['cec_uuid']
             else
-              bMissingUuid = true
+              b_missing_UUID = true
               break
             end
           end
         else
-          bMissingUuid = true
+          b_missing_UUID = true
         end
 
 
-        if bMissingUuid
+        if b_missing_UUID
           cmd_s = "/usr/sbin/vioshc.py -i #{hmc_ip} -l a"
           # add verbose
           cmd_s << "-v "
@@ -321,6 +320,9 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
       # name : find_best_alt_disks
       # param : in:viospairs: array of viospairs, each viospair being an array
       #    of two vios names on which we may desire performing alt_disk_copy
+      # param : in:force: yes or no. If set to yes, it indicates that
+      #    altinst_rootvg (if it exists) can be removed and its disk reused.
+      #    If set to no, existing altinst_rootvg is not touched.
       # return : array of viospairs, each viospair being an array of two arrays,
       #    this inside array contains three strings : name,pvid,size
       # description : for each vios in input parameter, find the best free disk
@@ -328,18 +330,33 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
       #   to contain rootvg of vios, but the smaller one of all possible disks
       #   should be chosen.
       # ########################################################################
-      def self.find_best_alt_disks(viospairs)
-        Log.log_debug('find_best_alt_disks for each vios of ' + viospairs.to_s)
+      def self.find_best_alt_disks(viospairs,
+          force)
+        Log.log_debug('find_best_alt_disks for each vios of ' + viospairs.to_s + ' force =' + force.to_s)
         viospairs_returned = []
         viospairs.each do |viospair|
           viospair_returned = []
           viospair.each do |vios|
+            Log.log_info('Call to check_rootvg_mirror: ' + vios.to_s)
+            alt_disk_to_reuse = []
+            if force.to_s == 'yes'
+              Log.log_info('Call to perform_alt_disk_find_and_remove: ' + vios.to_s)
+              ret = Vios.perform_alt_disk_find_and_remove(vios, alt_disk_to_reuse)
+              if ret == 0
+                Log.log_info('There was a altinst_rootvg on ' + vios.to_s + ' which has been cleaned.')
+              end
+            end
+
+            # If a previous disk was used as disk for alt_disk_copy
+            #  we'll reuse it
             vios_returned = []
-            Log.log_err('find_best_alt_disks on: ' + vios.to_s)
+            if alt_disk_to_reuse.empty? or alt_disk_to_reuse.nil?
+              Log.log_info('find_best_alt_disks on: ' + vios.to_s)
             size_rootvg, size_used_rootvg = Vios.get_vg_size(vios, 'rootvg')
             Log.log_info('find_best_alt_disks on: ' + vios + ' rootvg: ' +
                              size_rootvg.to_s + ' ' + size_used_rootvg.to_s)
-            if size_used_rootvg.to_i != 0
+              #
+              if size_used_rootvg.to_i != 0
               remote_cmd1 = "/usr/ios/cli/ioscli lspv -free | /bin/grep -v NAME"
               remote_output1 = []
               remote_cmd_rc1 = Remote.c_rsh(vios, remote_cmd1, remote_output1)
@@ -349,6 +366,10 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
                   Log.log_debug('remote_output1[0]=' + remote_output1[0].to_s)
                   remote_output1_lines = remote_output1[0].split("\n")
                   Log.log_debug('remote_output1_lines=' + remote_output1_lines.to_s)
+                  # As there might be several disks possible, in a first pass we
+                  #  keep them into disks_kept, and in a second pass we'll select
+                  #  smaller one
+                  disks_kept = []
                   remote_output1_lines.each do |remote_output1_line|
                     Log.log_debug('remote_output_lines=' + remote_output1_line.to_s)
                     name_candidate_disk, pvid_candidate_disk, size_candidate_disk = remote_output1_line.split
@@ -356,21 +377,36 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
 pvid_candidate_disk=#{pvid_candidate_disk} \
 size_candidate_disk=#{size_candidate_disk}")
                     if size_used_rootvg.to_i < size_candidate_disk.to_i
-                      vios_returned.push([vios, name_candidate_disk, size_candidate_disk])
+                      disks_kept.push([name_candidate_disk, size_candidate_disk])
                       added += 1
                     end
                   end
-                end
-                if added == 0
+                  # If there was one or several disks kept
+                  #  we keep only the smaller one
+                  if added != 0
+                    name_candidate_disk = ''
+                    min = disks_kept[0][1]
+                    disks_kept.each do |disk_kept|
+                      if disk_kept[1].to_i <= min.to_i
+                        name_candidate_disk = disk_kept[0]
+                      end
+                    end
+                    vios_returned.push([vios, name_candidate_disk])
+                  else
+                    vios_returned.push([vios])
+                  end
+                else
                   vios_returned.push([vios])
                 end
+              end
               else
                 vios_returned.push([vios])
                 Log.log_err('find_best_alt_disks: no free disk')
               end
             else
-              vios_returned.push([vios])
-              Log.log_err('find_best_alt_disks: cannot get free disks ')
+              # We reuse disk which was previously used as disk for alt_disk_copy
+              Log.log_info('find_best_alt_disks: reusing ' + alt_disk_to_reuse[0])
+              vios_returned.push([vios, alt_disk_to_reuse[0]])
             end
             Log.log_debug("vios_returned=#{vios_returned}")
             unless vios_returned.empty?
@@ -381,6 +417,7 @@ size_candidate_disk=#{size_candidate_disk}")
             viospairs_returned.push(viospair_returned)
           end
         end
+        #
         Log.log_debug('find_best_alt_disks on: ' + viospairs.to_s + ' returning:' + viospairs_returned.to_s)
         viospairs_returned
       end
@@ -436,7 +473,8 @@ size_candidate_disk=#{size_candidate_disk}")
       # return : [size1,size2]
       # description : returns the total and used vg sizes in megabytes
       # ########################################################################
-      def self.get_vg_size(vios, vg_name)
+      def self.get_vg_size(vios,
+          vg_name)
         Log.log_debug('get_vg_size on ' + vios + ' for ' + vg_name)
         vg_size = 0
         used_size = 0
@@ -485,9 +523,10 @@ size_candidate_disk=#{size_candidate_disk}")
           boot_client = 'no')
         Log.log_debug("perform_alt_disk_install: vios: #{vios} disk: #{disk}")
         ret = 0
-        cmd_s = "/usr/sbin/nim -o alt_disk_install -a source=rootvg -a disk=#{disk} -a set_bootlist=#{set_bootlist} -a boot_client=#{boot_client} #{vios}"
-        Log.log_debug("perform_alt_disk_install: '#{cmd_s}'")
-        Open3.popen3({'LANG' => 'C'}, cmd_s) do |_stdin, stdout, stderr, wait_thr|
+        cmd = "/usr/sbin/nim -o alt_disk_install -a source=rootvg -a disk=#{disk} \
+-a set_bootlist=#{set_bootlist} -a boot_client=#{boot_client} #{vios}"
+        Log.log_debug("perform_alt_disk_install: '#{cmd}'")
+        Open3.popen3({'LANG' => 'C'}, cmd) do |_stdin, stdout, stderr, wait_thr|
           stdout.each_line { |line| Log.log_debug("[STDOUT] #{line.chomp}") }
           stderr.each_line do |line|
             Log.log_err("[STDERR] #{line.chomp}")
@@ -506,20 +545,19 @@ size_candidate_disk=#{size_candidate_disk}")
       #      "alt_disk_install operation is being performed"
       # to   "ready for NIM operation"
       #
-      # You might want a timeout of 30 minutes (count=180, sleep=10s), if
+      # You might want a timeout of 30 minutes (count=90, sleep=20s), if
       # there is no progress in NIM operation "info" attribute for this
-      # duration, it can be considered as an error.
+      #  duration, it can be considered as an error. Manual intervention
+      #  is required in that case.
       #
-      #    Return
+      # Returns
       #    0   if the alt_disk_install operation ends with success
       #    1   if the alt_disk_install operation failed
       #    -1  if the alt_disk_install operation timed out
-      #
-      #    raise NimLparInfoError if cannot get NIM state
       # ##################################################################
       def self.wait_alt_disk_install(vios,
-          check_count = 180,
-          sleep_time = 10)
+          check_count = 90,
+          sleep_time = 20)
         nim_info_prev = '___' # this info should not appear in nim info attribute
         nim_info = ''
         count = 0
@@ -532,7 +570,7 @@ size_candidate_disk=#{size_candidate_disk}")
 
         while count <= check_count do
           sleep(sleep_time)
-          wait_time += 10
+          wait_time += 20
           nim_cstate = ''
           nim_result = ''
           nim_info = ''
@@ -558,7 +596,7 @@ size_candidate_disk=#{size_candidate_disk}")
                 # <viosName>:ready for a NIM operation:0505-126 alt_disk_install- target disk hdisk2 has a volume group assigned to it.:failure:  -> len=4
                 nim_status = line.strip.split(':')
                 if nim_status[0] != "#name"
-                  print("\033[2K\r#{nim_status[2]}")
+                  Log.log_info("\033[2K\r#{nim_status[2]}")
                   Log.log_info("nim_status:#{nim_status}")
                 else
                   next
@@ -578,10 +616,10 @@ size_candidate_disk=#{size_candidate_disk}")
                   Log.log_info("NIM alt_disk_install operation on #{vios} ended with #{nim_result}")
                   unless nim_result == "success"
                     msg = "Failed to perform NIM alt_disk_install operation on #{vios}: #{nim_info}"
-                    put_error(msg)
+                    Log.log_err(msg)
                     return 1
                   end
-                  print("\033[2K\r")
+                  Log.log_info("\033[2K\r")
                   return 0 # here the operation succeeded
                 else
                   if nim_info_prev == nim_info
@@ -592,66 +630,315 @@ size_candidate_disk=#{size_candidate_disk}")
                   end
                 end
                 if wait_time.modulo(60) == 0
-                  msg = "Waiting the NIM alt disk copy on #{vios}... duration: #{wait_time / 60} minute(s)"
-                  print("\033[2K\r#{msg}")
-                  Log.log_info(msg)
+                  msg = "Waiting for the NIM alt_disk_install on #{vios}, duration: #{wait_time / 60} minute(s)"
+                  Log.log_info("\033[2K\r#{msg}")
                 end
               end
             end
           end
         end # while count
 
-        # timed out before the end of alt_disk_install
+        # Timed out before the end of alt_disk_install
         msg = "NIM alt_disk_install operation for #{vios} shows no progress in #{count * sleep_time / 60} minute(s): #{nim_info}"
         Log.log_err(msg)
         return -1
       end
 
+
+      # ########################################################################
+      # name : perform_alt_disk_find_and_remove
+      # param : in:vios:string
+      # param : out:used_alt_disk:string array containing in index 0 alt_disk
+      #  to be reused
+      # description : Perform the symmetric operation of the NIM
+      #  alt_disk_install to remove and clean the alternate copy operation
+      #  on specified vios
+      # Return: 0 if ok, 1 otherwise
+      # ########################################################################
+      def self.perform_alt_disk_find_and_remove(vios,
+          used_alt_disk)
+        Log.log_debug('perform_alt_disk_find_and_remove on ' + vios)
+        ret = 1
+
+        Log.log_info('Is there any existing altinst_rootvg on ' + vios + '?')
+        remote_cmd0 = '/usr/sbin/lspv | /bin/grep -w altinst_rootvg'
+        remote_outputs0 = []
+        remote_cmd_rc0 = Remote.c_rsh(vios, remote_cmd0, remote_outputs0)
+        if remote_cmd_rc0 == 0
+          if !remote_outputs0[0].nil? and !remote_outputs0[0].empty?
+            Log.log_debug('remote_output0[0]=' + remote_outputs0[0].to_s)
+            remote_outputs0.each do |remote_output0|
+              Log.log_debug('remote_output0=' + remote_output0.to_s)
+              alt_disk_name, _junk1, _junk2, active = remote_output0.split
+
+              Log.log_debug('alt_disk_name=' + alt_disk_name)
+              Log.log_debug('active=' + active.to_s)
+              if active.nil? or active.empty?
+                Log.log_info('There is one existing altinst_rootvg on ' + vios + ' and we need to varyonvg it')
+                remote_cmd1 = '/usr/sbin/varyonvg altinst_rootvg'
+                remote_output1 = []
+                remote_cmd_rc1 = Remote.c_rsh(vios, remote_cmd1, remote_output1)
+                Log.log_debug('remote_cmd_rc1=' + remote_cmd_rc1.to_s + ' remote_output1[0]=' + remote_output1[0])
+                ret = Vios.perform_alt_disk_remove(vios, alt_disk_name)
+              else
+                Log.log_info('There is one existing altinst_rootvg on ' + vios + ' but we dont need to varyonvg it')
+              end
+              # check again
+              remote_cmd2 = '/usr/sbin/lsvg altinst_rootvg'
+              remote_output2 = []
+              remote_cmd_rc2 = Remote.c_rsh(vios, remote_cmd2, remote_output2)
+              if remote_cmd_rc2 == 0
+                Log.log_info('There is an altinst_rootvg on ' + vios)
+                # Meaning altinst_rootvg exists, we then need to remove it
+                ret = Vios.perform_alt_disk_remove(vios, alt_disk_name)
+                used_alt_disk[0] = alt_disk_name
+              end
+            end
+          else
+            Log.log_info('No altinst_rootvg on ' + vios)
+          end
+        else
+          Log.log_info('No altinst_rootvg on ' + vios)
+        end
+        Log.log_debug('perform_alt_disk_find_and_remove on ' + vios + ' returning ' + ret.to_s)
+        ret
+      end
+
       # ##################################################################
-      # Perform the symmetric operation of the NIM alt_disk_install to
-      #  remove and clean the alternate copy operation on specified vios
+      # name : perform_alt_disk_remove
+      # param : in:vios:string
+      # param : in:alt_disk:string
+      # description : Perform the symmetric operation of the NIM
+      #  alt_disk_install to remove and clean the alternate copy
+      #  operation on specified vios
       # Return: 0 if ok, 1 otherwise
       # ##################################################################
-      #
-      #    NOT YET USED
-      #
-      # def perform_alt_disk_remove(vios,
-      #                             alt_disk)
-      #   Log.log_debug("perform_alt_disk_remove: vios: #{vios} disk: #{alt_disk}")
-      #
-      #   ret = 0
-      #   #
-      #   cmd1 = '/usr/sbin/alt_rootvg_op -X altinst_rootvg'
-      #   cmd1_output = ''
-      #   remote_cmd1_rc = Remote.c_rsh(vios, cmd1, cmd1_output)
-      #   #
-      #   if remote_cmd1_rc == 0
-      #     Log.log_debug("#{cmd1_output[0]}")
-      #     Log.log_info("Succeeded in removing altinst_rootvg on #{vios}!")
-      #   else
-      #     ret = 1
-      #     Log.log_err("#{cmd1_output[0]}")
-      #     Log.log_err("Failed to remove altinst_rootvg on #{vios}!")
-      #   end
-      #
-      #   if ret == 0
-      #     #
-      #     cmd2 = "/usr/bin/dd if=/dev/zero of=/dev/#{alt_disk} seek=7 count=1 bs=512"
-      #     cmd2_output = ''
-      #     remote_cmd2_rc = Remote.c_rsh(vios, cmd1, cmd2_output)
-      #     #
-      #     if remote_cmd1_rc == 0
-      #       Log.log_debug("#{cmd1_output[0]}")
-      #       Log.log_info("Succeeded in cleaning altinst_rootvg on #{vios}!")
-      #     else
-      #       Log.log_err("#{cmd1_output[0]}")
-      #       Log.log_err("Failed to clean altinst_rootvg on #{vios}!")
-      #     end
-      #   end
-      #
-      #   Log.log_info("perform_alt_disk_remove: done, returning " + ret)
-      #   ret
-      # end
+      def self.perform_alt_disk_remove(vios,
+          alt_disk)
+        Log.log_debug('perform_alt_disk_remove: vios=' + vios + ' disk=' + alt_disk)
+
+        ret = 0
+        #
+        Log.log_debug('Cleaning altinst_rootvg on ' + vios)
+        cmd1 = '/usr/sbin/alt_rootvg_op -X altinst_rootvg'
+        cmd1_output = ''
+        remote_cmd1_rc = Remote.c_rsh(vios, cmd1, cmd1_output)
+        #
+        if remote_cmd1_rc == 0
+          Log.log_info('Succeeded in removing altinst_rootvg on ' + vios)
+        else
+          ret = 1
+          Log.log_err("#{cmd1_output[0]}")
+          Log.log_err('Failed to remove altinst_rootvg on ' + vios)
+        end
+        #
+        if ret == 0
+          #
+          Log.log_debug('Cleaning disk ' + alt_disk + ' on ' + vios)
+          cmd2 = "/etc/chdev -a pv=clear -l #{alt_disk}; /usr/bin/dd if=/dev/zero of=/dev/#{alt_disk} seek=7 count=1 bs=512"
+          cmd2_output = ''
+          remote_cmd2_rc = Remote.c_rsh(vios, cmd2, cmd2_output)
+          if remote_cmd2_rc == 0
+            Log.log_debug("#{cmd2_output[0]}")
+            Log.log_info('Succeeded in cleaning altinst_rootvg on ' + vios)
+          else
+            Log.log_err("#{cmd2_output[0]}")
+            Log.log_err('Failed to clean altinst_rootvg on ' + vios)
+            ret = 1
+          end
+        end
+        #
+        Log.log_info('perform_alt_disk_remove: done, returning ' + ret.to_s)
+        ret
+      end
+
+      # ########################################################################
+      # name : check_rootvg_mirror
+      # param : in:vios:string
+      # param : out:copies:hash
+      # return : 0 or -1
+      # description : check if the rootvg is mirrored and if it is the case,
+      #  that the mirror is not on same disk that the original. It it were
+      #  the case, we wouldn't be able to un-mirror the rootvg, although this
+      #  operation is mandatory before performing al_disk_copy.
+      # ########################################################################
+      def self.check_rootvg_mirror(vios,
+          copies)
+        Log.log_debug('check_rootvg_mirror for vios of ' + vios.to_s)
+        ret = 0
+        hdisk_copy = {}
+        copy_hdisk = {}
+        nb_lp = 0
+        # The lsvg -M command lists the physical disks that contain the various logical volumes.
+        # lsvg -M rootvg command OK, check mirroring
+        # lists all PV, LV, PP details of a vg (PVname:PPnum LVname: LPnum :Copynum)
+        # hdisk4:453      hd1:101
+        # hdisk4:454      hd1:102
+        # hdisk4:257      hd10opt:1:1
+        # hdisk4:258      hd10opt:2:1
+        # hdisk4:512-639
+        # hdisk8:255      hd1:99:2        stale
+        # hdisk8:256      hd1:100:2       stale
+        # hdisk8:257      hd10opt:1:2
+        # hdisk8:258      hd10opt:2:2
+        # ..
+        # hdisk9:257      hd10opt:1:3
+        remote_cmd1 = "/usr/sbin/lsvg -M rootvg"
+        remote_output1 = []
+        Log.log_debug('check_rootvg_mirror for vios of ' + vios.to_s)
+        remote_cmd_rc1 = Remote.c_rsh(vios,
+                                      remote_cmd1,
+                                      remote_output1)
+        #
+        if remote_cmd_rc1 == 0
+          if !remote_output1[0].nil? and !remote_output1[0].empty?
+            #Log.log_debug('remote_output1[0]=' + remote_output1[0].to_s)
+            remote_output1_lines = remote_output1[0].split("\n")
+            #Log.log_debug('remote_output1_lines=' + remote_output1_lines.to_s)
+            remote_output1_lines.each do |remote_output1_line|
+              remote_output1_line.chomp!
+              # Log.log_debug('remote_output_lines=' + remote_output1_line.to_s)
+              if remote_output1_line.include? 'stale'
+                Log.log_warning("#{vios} rootvg contains stale partitions")
+                ret = 1
+                break
+              elsif remote_output1_line.strip =~ /^(\S+):\d+\s+\S+:\d+:(\d+)$/
+                #  case: hdisk8:257 hd10opt:1:2
+                hdisk = Regexp.last_match(1)
+                copy = Regexp.last_match(2).to_i
+              elsif remote_output1_line.strip =~ /^(\S+):\d+\s+\S+:\d+$/
+                # case: hdisk8:258 hd10opt:2
+                hdisk = Regexp.last_match(1)
+                copy = 1
+              else
+                next
+              end
+              #
+              nb_lp += 1 if copy == 1
+              # Log.log_info('hdisk='+hdisk.to_s+' copy='+copy.to_s)
+              # Log.log_info('hdisk_copy.key?(hdisk)='+hdisk_copy.key?(hdisk).to_s)
+              if hdisk_copy.key?(hdisk)
+                # Log.log_info('hdisk_copy.key?(hdisk)='+hdisk_copy.key?(hdisk).to_s)
+                if hdisk_copy[hdisk] != copy
+                  # Log.log_info('hdisk_copy[hdisk]='+hdisk_copy[hdisk].to_s)
+                  Log.log_warning("#{vios} rootvg data structure is not compatible with a \
+alt_disk_copy operation (2 copies on the same disk)")
+                  ret = 1
+                end
+              else
+                hdisk_copy[hdisk] = copy
+                # Log.log_debug('check_rootvg_mirror hdisk_copy='+hdisk_copy.to_s)
+                # Log.log_info('!copy_hdisk.key?(copy)='+(!copy_hdisk.key?(copy)).to_s)
+                unless copy_hdisk.key?(copy)
+                  # Log.log_info('copy_hdisk.value?(hdisk)='+ copy_hdisk.value?(hdisk).to_s)
+                  if copy_hdisk.value?(hdisk)
+                    Log.log_warning("#{vios} rootvg data structure is not compatible with a \
+alt_disk_copy operation (1 copy spread on more than one disk)")
+                    ret = 1
+                  else
+                    copy_hdisk[copy] = hdisk
+                    # Log.log_debug('check_rootvg_mirror copy_hdisk='+copy_hdisk.to_s)
+                  end
+                end
+              end
+              #
+              if ret == 1
+                break
+              end
+            end
+            # Log.log_debug('check_rootvg_mirror nb_lp='+nb_lp.to_s)
+          end
+        end
+        #
+        if ret == 0
+          if copy_hdisk.keys.length > 1 and (copy_hdisk.keys.length != hdisk_copy.keys.length)
+            Log.log_warning("The #{vios} rootvg is partially or completly mirrored but some "\
+                    'LP copies are spread on several disks. This prevents the '\
+                    'system from building an alternate rootvg disk copy')
+            ret = 1
+          else
+            copies[0] = copy_hdisk
+          end
+        end
+        #
+        Log.log_debug('check_rootvg_mirror for vios of ' + vios.to_s + ' returning ' +
+                          copies.to_s + ' ret=' + ret.to_s)
+        ret
+      end
+
+      # ##################################################################
+      #  Run NIM mirror command
+      #  Return : 0 if success, 1 if failure, -1 if not done
+      # ##################################################################
+      def self.perform_mirror(vios,
+          vg_name,
+          copies)
+        ret = -1
+        nb_copies = copies.length
+        if nb_copies > 0
+          ret = 0
+          copy_nb = nb_copies + 1
+          Log.log_debug('Performing mirroring of rootvg on ' + vios)
+          cmd1 = "/usr/sbin/mirrorvg -m -c #{copy_nb} #{vg_name} #{copies[0]} "
+          cmd1 += copies[1] if nb_copies > 1
+          cmd1 += ' 2>&1'
+          remote_output1 = []
+          Log.log_debug('Performing mirroring of rootvg on ' + vios + ':' + cmd1)
+          remote_cmd1_rc = Remote.c_rsh(vios, cmd1, remote_output1)
+          #
+          if remote_cmd1_rc == 0
+            Log.log_debug('remote_output1[0] ' + remote_output1[0])
+            remote_output1[0].each_line do |line|
+              line.chomp!
+              Log.log_debug("[STDOUT] #{line.chomp}")
+              ret = 1 if line.include? 'Failed to mirror the volume group'
+            end
+          else
+            ret = 1
+            msg = "Failed to mirror '#{vg_name}' on #{vios}, command \"#{cmd1}\" returns above error!"
+            Log.log_err("[STDERR] #{msg}")
+          end
+
+          if ret == 1
+            Log.log_err("Failed to mirror '#{vg_name}' on '#{vios}'")
+          else
+            Log.log_info("Mirror '#{vg_name}' on '#{vios}' successful.")
+          end
+        end
+        ret
+      end
+
+      # ##################################################################
+      #  Run NIM unmirror command
+      # ##################################################################
+      def self.perform_unmirror(vios,
+          vg_name)
+        ret = 0
+        Log.log_debug('Performing un-mirroring of rootvg on ' + vios)
+        cmd1 = "/usr/sbin/unmirrorvg #{vg_name} 2>&1 "
+        remote_output1 = []
+        Log.log_debug('Performing un-mirroring of rootvg on ' + vios + ':' + cmd1)
+        remote_cmd1_rc = Remote.c_rsh(vios, cmd1, remote_output1)
+        #
+        if remote_cmd1_rc == 0
+          Log.log_debug('remote_output1[0] ' + remote_output1[0])
+          remote_output1[0].each_line do |line|
+            line.chomp!
+            Log.log_debug("[STDOUT] #{line.chomp}")
+            ret = 0 if line.include? 'successfully un-mirrored'
+          end
+        else
+          ret = 1
+          msg = "Failed to un-mirror '#{vg_name}' on #{vios}, command \"#{cmd1}\" returns above error!"
+          Log.log_err("[STDERR] #{msg}")
+        end
+
+        #
+        if ret == 0
+          Log.log_info("Unmirror '#{vg_name}' on '#{vios}' successful.")
+        end
+        ret
+      end
 
       # ##################################################################
       # Check the SSP status of the VIOS tuple

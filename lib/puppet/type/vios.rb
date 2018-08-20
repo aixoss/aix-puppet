@@ -53,14 +53,14 @@ used to perform update or install'
     validate do |values|
       Log.log_debug('values=' + values.to_s)
       # To parse input
-      results = values.scan(/\([\w\_\-]+,[\w\_\-]+\)/)
+      results = values.scan(/\([\w\-]+,[\w\-]+\)/)
       # v2
       #  if values="(vios11,vios12),(vios21,vios22),(vios31,vios32)"
       #  results=[["vios11","vios12"], ["vios21","vios22"], ["vios31","vios32"]]
       Log.log_debug('results=' + results.to_s)
       results.each do |result|
         Log.log_debug('result=' + result.to_s)
-        viospair = result.scan(/[\w\_\-]+/)
+        viospair = result.scan(/[\w\-]+/)
         # if result="(vios31,vios32)"
         # viospair=["vios31", "vios32"]
         viospair.each do |vios|
@@ -205,6 +205,18 @@ used to perform update or install'
   newparam(:sync) do
     desc '"sync" attribute: synchronous if "yes"" or asynchronous if "no", \
 useful only for "action=update"'
+    defaultto :yes
+    newvalues(:yes, :no)
+  end
+
+  # ############################################################################
+  # :force attribute to control if save action can use potentially
+  #   existing altinst_rootvg
+  #
+  # Check :force against a short list, provide a default
+  # ############################################################################
+  newparam(:force) do
+    desc '"force" attribute: "yes"" or "no", useful only for "action=save"'
     defaultto :yes
     newvalues(:yes, :no)
   end
