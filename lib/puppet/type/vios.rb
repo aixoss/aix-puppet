@@ -26,19 +26,6 @@ Puppet::Type.newtype(:vios) do
   end
 
   # ############################################################################
-  #
-  # ############################################################################
-  newparam(:lpp_source) do
-    desc '"lpp_source" attribute: name of the NIM lpp_source resource \
-used to perform update or install'
-    validate do |values|
-      raise('"lpp_source" name \"' + values + '\" is too long (' +
-                values.length.to_s + '), max is 39 characters') \
-        if values.length > 39
-    end
-  end
-
-  # ############################################################################
   # :vios_pairs is a attribute giving the VIOS pairs on which to apply action
   # Pairs must be given inside brackets, as following: (vios1,vios2)
   # Only valid targets are kept, targets need to be pingable,
@@ -79,16 +66,48 @@ used to perform update or install'
   end
 
   # ############################################################################
-  # :actions attribute to choose actions to beperformed
+  # :vios_lpp_sources is a attribute giving the lpp_sources to be used per
+  #  VIOS pairs.
+  # To enable association with vios_pairs, vios_lpp_sources must be given
+  #  in same order than vios_pairs, following the same syntax.
+  # ############################################################################
+  newparam(:vios_lpp_sources) do
+    desc '"vios_lpp_sources" attribute: names of the NIM lpp_source resources, \
+associated to vios_pairs, used to perform update or install'
+    validate do |values|
+      Log.log_debug('values=' + values.to_s)
+      # To parse input
+      results = values.scan(/\([\w\-]+,[\w\-]+\)/)
+      Log.log_debug('results=' + results.to_s)
+      results.each do |result|
+        Log.log_debug('result=' + result.to_s)
+        lpp_sources = result.scan(/[\w\-]+/)
+        # if result="(vios31,vios32)"
+        # viospair=["vios31", "vios32"]
+        lpp_sources.each do |lpp_source|
+          Log.log_debug('lpp_source=' + lpp_source.to_s)
+          unless lpp_source.length <= 39
+            raise('"vios_lpp_sources" name \"' + lpp_source + '\" is too long (' +
+                      lpp_source.length.to_s + '), max is 39 characters')
+            unless Utils.check_input_lppsource(lpp_source).success?
+              raise('"vios_lpp_sources" name \"' + lpp_source + ' does not exist as NIM resource')
+            end
+          end
+        end
+      end
+    end
+  end
+
+
+  # ############################################################################
+  # :actions attribute to choose actions to be performed
   #
   # Check :actions against a short list, provide a default
   # ############################################################################
   newparam(:actions) do
     desc '"actions" attribute: actions to be performed on vios. \
  Possible actions : "check", "status", "save", update", "restore"'
-
     param_actions = []
-
     # To parse input
     validate do |values|
       Log.log_debug('values=' + values.to_s)
@@ -114,7 +133,6 @@ used to perform update or install'
     munge do |_values|
       param_actions
     end
-
   end
 
   #   # ############################################################################
@@ -253,8 +271,8 @@ it is set to "no"'
     actions = self[:actions]
 
     # what is done here : consistency between actions, mode and lpp_source
-    if (actions.include? 'update') && (self[:mode] == :apply) && (self[:lpp_source].nil?)
-      raise('"lpp_source" attribute: required when "actions" contains "update"" and mode
+    if (actions.include? 'update') && (self[:mode] == :apply) && (self[:vios_lpp_sources].nil?)
+      raise('"vios_lpp_sources" attribute: required when "actions" contains "update"" and mode
 is "apply"')
     end
 

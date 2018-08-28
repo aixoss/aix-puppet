@@ -14,12 +14,12 @@ class aixautomation {
   #   actions => 'check',
   # }
   vios { 'vios11':
-    ensure     => present,
-    name       => 'vios11',
-    # vios_pairs => '(quimby-vios1,quimby-vios2),(p7juav1,p7juav2)',
-    vios_pairs => '(p7juav1,p7juav2)',
-    # actions => 'check,save',
-    actions    => 'save',
+    ensure           => present,
+    name             => 'vios',
+    # actions => 'check,save,update',
+    actions          => 'check, save',
+    vios_pairs       => '(p7juav1,p7juav2),(quimby-vios,quimby-vios2)',
+    vios_lpp_sources => '(vios_update,vios_update_22621)',
   }
   # vios { 'vios12':
   #   ensure  => present,
