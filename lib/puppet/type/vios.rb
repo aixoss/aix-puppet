@@ -26,10 +26,13 @@ Puppet::Type.newtype(:vios) do
   end
 
   # ############################################################################
-  # :vios_pairs is a attribute giving the VIOS pairs on which to apply action
+  # :vios_pairs is an attribute giving the VIOS pairs on which to apply action
   # Pairs must be given inside brackets, as following: (vios1,vios2)
-  # Only valid targets are kept, targets need to be pingable,
-  #  accessible through c_rsh, in a proper NIM state
+  # Several pairs can be given as following:(vios1,vios2),(vios3,vios4)
+  # Only valid pairs are kept:
+  #  - each member of the pair needs to be pingable,
+  #  - each member of the pair needs to be accessible through c_rsh,
+  #  - each member of the pair needs to be in a proper NIM state.
   # ############################################################################
   newparam(:vios_pairs) do
     desc '"vios_pairs" attribute: list of vios pairs on which to perform action'
@@ -47,13 +50,13 @@ Puppet::Type.newtype(:vios) do
       Log.log_debug('results=' + results.to_s)
       results.each do |result|
         Log.log_debug('result=' + result.to_s)
-        viospair = result.scan(/[\w\-]+/)
+        vios_pair = result.scan(/[\w\-]+/)
         # if result="(vios31,vios32)"
-        # viospair=["vios31", "vios32"]
-        viospair.each do |vios|
+        # vios_pair=["vios31", "vios32"]
+        vios_pair.each do |vios|
           Log.log_debug('vios=' + vios.to_s)
         end
-        Vios.check_input_viospair(viospair, kept, suppressed)
+        Vios.check_input_vios_pair(vios_pair, kept, suppressed)
       end
 
       Log.log_err('"vios_pairs" which cannot be kept : ' + suppressed.to_s)
@@ -79,18 +82,22 @@ associated to vios_pairs, used to perform update or install'
       # To parse input
       results = values.scan(/\([\w\-]+,[\w\-]+\)/)
       Log.log_debug('results=' + results.to_s)
-      results.each do |result|
-        Log.log_debug('result=' + result.to_s)
-        lpp_sources = result.scan(/[\w\-]+/)
-        # if result="(vios31,vios32)"
-        # viospair=["vios31", "vios32"]
-        lpp_sources.each do |lpp_source|
-          Log.log_debug('lpp_source=' + lpp_source.to_s)
-          unless lpp_source.length <= 39
-            raise('"vios_lpp_sources" name \"' + lpp_source + '\" is too long (' +
-                      lpp_source.length.to_s + '), max is 39 characters')
-            unless Utils.check_input_lppsource(lpp_source).success?
-              raise('"vios_lpp_sources" name \"' + lpp_source + ' does not exist as NIM resource')
+      unless results.nil?
+        results.each do |result|
+          Log.log_debug('result=' + result.to_s)
+          lpp_sources = result.scan(/[\w\-]+/)
+          # if result="(vios31,vios32)"
+          # vios_pair=["vios31", "vios32"]
+          unless lpp_sources.nil?
+            lpp_sources.each do |lpp_source|
+              Log.log_debug('lpp_source=' + lpp_source.to_s)
+              unless lpp_source.length <= 39
+                raise('"vios_lpp_sources" name \"' + lpp_source.to_s + '\" is too long (' +
+                          lpp_source.length.to_s + '), max is 39 characters')
+              end
+              unless Utils.check_input_lppsource(lpp_source).success?
+                raise('"vios_lpp_sources" name \"' + lpp_source.to_s + ' does not exist as NIM resource')
+              end
             end
           end
         end
@@ -106,7 +113,7 @@ associated to vios_pairs, used to perform update or install'
   # ############################################################################
   newparam(:actions) do
     desc '"actions" attribute: actions to be performed on vios. \
- Possible actions : "check", "status", "save", update", "restore"'
+ Possible actions : "health", "check", "status", "save", update", "restore"'
     param_actions = []
     # To parse input
     validate do |values|
@@ -116,7 +123,8 @@ associated to vios_pairs, used to perform update or install'
       invalid_actions = ''
       param_actions.each do |action|
         Log.log_debug('action=' + action.to_s)
-        if action.to_s != 'check' &&
+        if action.to_s != 'health' &&
+            action.to_s != 'check' &&
             action.to_s != 'status' &&
             action.to_s != 'save' &&
             action.to_s != 'update' &&
@@ -228,15 +236,25 @@ useful only for "action=update"'
   end
 
   # ############################################################################
-  # :force attribute to control if save action can use potentially
-  #   existing altinst_rootvg
-  #
-  # Check :force against a short list, provide a default
+  # :altinst_rootvg_force attribute to control if save action can use potentially
+  #   existing altinst_rootvg. Three possible values: :no, :yes, :reuse
+  #   This attribute applies on all vios.
+  #  :no  If one altinst_rootvg already exists, then it is kept, and
+  #       therefore as taking a new one is not possible, the VIOS update
+  #       is stopped. If none altinst_rootvg existed, a new one is taken,
+  #       and best disk is chosen.
+  #  :yes  Builds a new altinst_rootvg, and the previous one, if ever it
+  #       exists, will be overridden. Same disk will be used prioritarily,
+  #       if size allows, otherwise best disk is chosen.
+  #  :reuse  If one one altinst_rootvg already exists, this one is
+  #       considered as 'fresh' enough, and no new one is taken. If none
+  #       existed, a new one is taken, and best disk is chosen.
+  # Check :altinst_rootvg_force against a short list, provide a default
   # ############################################################################
-  newparam(:force) do
-    desc '"force" attribute: "yes"" or "no", useful only for "action=save"'
-    defaultto :yes
-    newvalues(:yes, :no)
+  newparam(:altinst_rootvg_force) do
+    desc '"force" attribute: "no", "yes", or "reuse", useful only for "action=save"'
+    defaultto :no
+    newvalues(:no, :yes, :reuse)
   end
 
   # ############################################################################
@@ -285,4 +303,5 @@ is "apply"')
       raise('"vios_pairs" attribute : cannot be empty when "actions" contains "save"')
     end
   end
+
 end
