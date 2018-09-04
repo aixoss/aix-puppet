@@ -17,10 +17,10 @@ class aixautomation {
     ensure               => present,
     name                 => 'vios',
     # actions => 'check,save,update',
-    actions              => 'check, save',
-    vios_pairs           => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
+    actions              => 'check, save, update',
+    vios_pairs           => '(p7juav1,p7juav2)',
     altinst_rootvg_force => 'yes',
-    vios_lpp_sources     => '(vios_update,vios_update_22621)',
+    vios_lpp_sources     => 'p7juav1=vios_update,p7juav2=vios_update_22621',
   }
   # vios { 'vios12':
   #   ensure  => present,

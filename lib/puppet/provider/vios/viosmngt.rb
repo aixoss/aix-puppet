@@ -24,7 +24,7 @@ Puppet::Type.type(:vios).provide(:viosmngt) do
   def exists?
     Log.log_info("Provider viosmngt 'exists?' method : we want to realize: \"#{resource[:ensure]}\" for \
                  \"#{resource[:actions]}\" actions on \"#{resource[:vios_pairs]}\" targets with force=\"#{resource[:altinst_rootvg_force]}\" \
-with \"#{resource[:vios_lpp_sources]}\" lpp_source.")
+with \"#{resource[:vios_lpp_sources]}\" lpp_sources.")
     #
     # default value for returned, depends on 'ensure'
     returned = true
@@ -36,6 +36,9 @@ with \"#{resource[:vios_lpp_sources]}\" lpp_source.")
     #
     vios_pairs = resource[:vios_pairs]
     Log.log_info('vios_pairs=' + vios_pairs.to_s)
+
+    vios_lppsources = resource[:vios_lpp_sources]
+    Log.log_info('vios_lppsources=' + vios_lppsources.to_s)
 
     if actions.include? 'check'
       #
@@ -112,7 +115,7 @@ with \"#{resource[:vios_lpp_sources]}\" lpp_source.")
       hvios = Vios.check_altinst_rootvg(vios_pairs_kept)
       if force == 'no'
         unless hvios["1"].empty?
-          Log.log_warning('As these "' + hvios["1"].to_s + '" vios already have an "altinst_rootvg", you should use "vios_force=yes" or "vios_force=reuse"')
+          Log.log_warning('Because these "' + hvios["1"].to_s + '" vios already have an "altinst_rootvg", you should use "vios_force=yes" or "vios_force=reuse"')
           return
         end
       end
@@ -122,11 +125,26 @@ with \"#{resource[:vios_lpp_sources]}\" lpp_source.")
       # It contains as well for each vios the disk on which to perform alt_disk_copy.
       Log.log_info('vios_pairs_best_disks=' + vios_pairs_best_disks.to_s)
 
+      #
+      ret = Vios.unmirror_altcopy_mirror(vios_pairs_best_disks, vios_mirrors)
 
-      Vios.unmirror_altcopy_mirror(vios_pairs_best_disks, vios_mirrors)
-
-
+      #
+      if actions.include? 'update'
+        # VIOS update ! at least !!
+        if ret == 0
+          vios_lppsources.each do |key_vios, value_lpp_source|
+            Log.log_info('Launching update of "' + key_vios.to_s + '" vios with "' + value_lpp_source + '" lpp_source.')
+            update_cmd = Vios.prepare_updateios_command(key_vios, value_lpp_source)
+            Log.log_info('vios update of "' + key_vios.to_s + '" vios with "' + update_cmd.to_s + '" command.')
+            update_ret = Vios.nim_updateios(update_cmd, key_vios)
+            Log.log_info('vios update of "' + key_vios.to_s + '" vios returns ' + update_ret.to_s)
+          end
+        else
+          Log.log_err('vios unmirror_altcopy_mirror returns ' + ret.to_s)
+        end
+      end
     end
+
 
     Log.log_info('Provider viosmngt "exists!" method returning ' + returned.to_s)
     returned

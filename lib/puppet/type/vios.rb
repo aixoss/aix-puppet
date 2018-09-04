@@ -69,39 +69,53 @@ Puppet::Type.newtype(:vios) do
   end
 
   # ############################################################################
-  # :vios_lpp_sources is a attribute giving the lpp_sources to be used per
-  #  VIOS pairs.
-  # To enable association with vios_pairs, vios_lpp_sources must be given
-  #  in same order than vios_pairs, following the same syntax.
+  # :vios_lpp_sources is a attribute giving for each vios the name of the
+  #  lpp_sources to be used.
+  # To enable association with vios, vios_lpp_sources must be given
+  #  with following syntax: "vios1=lpp_source1,vios2=lpp_source2"
+  # Check is done that vios are valid targets, and that lpp_sources are valid
+  #  lpp_source.
+  # Prepare an hashtable with vios as keys and lpp_source as values
   # ############################################################################
   newparam(:vios_lpp_sources) do
     desc '"vios_lpp_sources" attribute: names of the NIM lpp_source resources, \
 associated to vios_pairs, used to perform update or install'
+    h_vios_lppsources = {}
+
+    #
     validate do |values|
       Log.log_debug('values=' + values.to_s)
       # To parse input
-      results = values.scan(/\([\w\-]+,[\w\-]+\)/)
-      Log.log_debug('results=' + results.to_s)
-      unless results.nil?
-        results.each do |result|
-          Log.log_debug('result=' + result.to_s)
-          lpp_sources = result.scan(/[\w\-]+/)
-          # if result="(vios31,vios32)"
-          # vios_pair=["vios31", "vios32"]
-          unless lpp_sources.nil?
-            lpp_sources.each do |lpp_source|
-              Log.log_debug('lpp_source=' + lpp_source.to_s)
-              unless lpp_source.length <= 39
-                raise('"vios_lpp_sources" name \"' + lpp_source.to_s + '\" is too long (' +
-                          lpp_source.length.to_s + '), max is 39 characters')
-              end
-              unless Utils.check_input_lppsource(lpp_source).success?
-                raise('"vios_lpp_sources" name \"' + lpp_source.to_s + ' does not exist as NIM resource')
-              end
+      vios_lppsources = values.scan(/\w+=\w+/)
+      Log.log_debug('vios_lppsources=' + vios_lppsources.to_s)
+      unless vios_lppsources.nil?
+        vios_lppsources.each do |vios_lppsource|
+          Log.log_debug('result=' + vios_lppsource.to_s)
+          if vios_lppsource =~ /(\w+)=(\w+)/
+            vios = Regexp.last_match(1)
+            Log.log_debug('vios=' + vios.to_s)
+            unless Vios.check_vios(vios)
+              raise('"vios_lpp_sources" "' + vios.to_s + '" vios is not a valid target.')
             end
+            lppsource = Regexp.last_match(2)
+            Log.log_debug('lppsource=' + lppsource.to_s)
+            unless lppsource.length <= 39
+              raise('"vios_lpp_sources" "' + lppsource.to_s + '" lpp_source is too long (' +
+                        lpp_source.length.to_s + '), max is 39 characters.')
+            end
+            unless Utils.check_input_lppsource(lppsource).success?
+              raise('"vios_lpp_sources" "' + lppsource.to_s + '" lpp_source does not exist as NIM resource.')
+            end
+            h_vios_lppsources[vios.to_s] = lppsource.to_s
           end
         end
       end
+    end
+
+    #
+    munge do | |
+      Log.log_debug('h_vios_lppsources=' + h_vios_lppsources.to_s)
+      h_vios_lppsources
     end
   end
 
@@ -303,5 +317,4 @@ is "apply"')
       raise('"vios_pairs" attribute : cannot be empty when "actions" contains "save"')
     end
   end
-
 end

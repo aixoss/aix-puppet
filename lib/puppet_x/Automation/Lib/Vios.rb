@@ -55,6 +55,30 @@ module Automation
       end
 
       # ########################################################################
+      # name : check_vios
+      # param :input:vios:string vios
+      # return : true if vios is valid, false if vios is invalid
+      # description : checks 'vios' param
+      #  Each vios is checked against the list of valid vios checked
+      #  by vios facter.
+      # ########################################################################
+      def self.check_vios(vios)
+        Log.log_debug('Into check_vios vios=' + vios.to_s)
+        bret = true
+        valid_vios = Facter.value(:vios)
+        valid_vios_keys = valid_vios.keys
+        # Log.log_info('valid_vios=' + valid_vios.to_s +
+        #  ' valid_vios_keys=' + valid_vios_keys.to_s)
+        Log.log_info('valid_vios_keys=' + valid_vios_keys.to_s)
+        unless valid_vios_keys.include?(vios)
+          bret = false
+        end
+        Log.log_debug('Into check_vios vios=' + vios.to_s + ' returns ' + bret.to_s)
+        bret
+      end
+
+
+      # ########################################################################
       # name : check_input_vios_pair
       # param :input:vios_pair:array of two vios
       # param :output:kept:array of array of two strings
@@ -70,13 +94,6 @@ module Automation
                           ' kept=' + kept.to_s +
                           ' suppressed=' + suppressed.to_s)
 
-        # Each vios is checked against the list of valid vios checked by vios facter
-        valid_vios = Facter.value(:vios)
-        valid_vios_keys = valid_vios.keys
-        # Log.log_info('valid_vios=' + valid_vios.to_s +
-        #  ' valid_vios_keys=' + valid_vios_keys.to_s)
-        Log.log_info('valid_vios_keys=' + valid_vios_keys.to_s)
-
         b_suppressed = false
 
         validity_vios = {}
@@ -84,10 +101,10 @@ module Automation
           # Log.log_info('valid_vios_keys=' + valid_vios_keys.to_s +
           #  ' vios=' + vios + ' include=' + (valid_vios_keys.include?(vios)).to_s)
           Vios.add_vios_msg(vios, 'new run', true)
-          if valid_vios_keys.include?(vios)
-            validity_vios[vios] = true
-          else
-            validity_vios[vios] = false
+
+          # Each vios is checked against the list of valid vios checked by vios facter
+          validity_vios[vios] = Vios.check_vios(vios)
+          unless validity_vios[vios]
             b_suppressed = true
             suppressed.push(vios_pair)
           end
@@ -436,11 +453,11 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
             vios_returned = []
             if vios_force.to_s == 'reuse' and hvios["1"].contains vios
               # If an altinst_rootvg already exists, we reuse it
-              # There is no need to remove previous one, and to find the best disk
-              #  to do it
+              # There is no need to remove previous one, and to find the best
+              #  disk to do it
               vios_returned.push([vios])
             else
-              # This 'else' covers teh following cases :
+              # This 'else' covers the following cases :
               #  - vios_force.to_s == 'reuse' and !hvios["1"].contains vios
               #  - vios_force.to_s == 'yes'
               #  - vios_force.to_s == 'no'
@@ -880,11 +897,12 @@ size_candidate_disk=#{size_candidate_disk}")
       # param : in:vios_mirrors:
       # description : Perform the unmirror, then the alt_disk_copy, then the
       #  mirror
-      # return:
+      # return: 0 is success, 1 otherwise
       # ########################################################################
       def self.unmirror_altcopy_mirror(vios_pairs_best_disks,
           vios_mirrors)
         Log.log_debug('unmirror_altcopy_mirror on ' + vios_pairs_best_disks.to_s + ' ' + vios_mirrors.to_s)
+        ret = 0
         # Loop against 'vios_pairs_best_disks'
         vios_pairs_best_disks.each do |vios_pairs|
           # Loop against pairs
@@ -909,12 +927,16 @@ size_candidate_disk=#{size_candidate_disk}")
                     # Vios.perform_unmirror(vios)
                     # If unmirroring has been correctly done, we can go on
                     #  otherwise we must give up
-                    Log.log_info('The rootvg of this vios is mirrored')
+                    Log.log_info('The rootvg of this vios is mirrored on ' + vios_disk.to_s)
                     Log.log_info('Attempting now to perform unmirror of rootvg on ' + vios_disk.to_s)
                     ret = Vios.perform_unmirror(vios_disk[0], 'rootvg')
                     Log.log_info('Perform unmirror returns ' + ret.to_s)
+                    if ret != 0
+                      return ret
+                    end
                   else
-                    # No need to unmirror
+                    # No need to un-mirror
+                    Log.log_info('No need to un-mirror on ' + vios_disk.to_s)
                   end
                 end
 
@@ -928,6 +950,7 @@ size_candidate_disk=#{size_candidate_disk}")
                   if ret == -1
                     msg = "Manual intervention is required to verify the NIM alt_disk_install operation for #{vios_disk} being done!"
                     Log.log_err(msg)
+                    return ret
                   else
                     Log.log_debug('vios_mirrors=' + vios_mirrors.to_s)
                     Log.log_debug('vios_mirrors[vios_disk[0]]=' + vios_mirrors[vios_disk[0]].to_s)
@@ -950,23 +973,28 @@ size_candidate_disk=#{size_candidate_disk}")
                                                   'rootvg',
                                                   disk_copies)
                         Log.log_info('Perform mirror returns ' + ret.to_s)
-                        Log.log_info('The rootvg of this vios was mirrored')
+                        Log.log_info('The rootvg of this vios was mirrored on ' + vios_disk.to_s)
                       else
-                        # No need to mirror as we did nt unmirror
+                        # No need to mirror as we didn't un-mirror
+                        Log.log_info('No need to mirror as we didn t un-mirror on ' + vios_disk.to_s)
                       end
                     end
                   end
                 else
                   # Alt_disk_copy failed
+                  Log.log_err('Alt_disk_copy failed')
+                  return ret
                 end
               else
                 # We cannot do alt_disk_copy as we only have one parameter
-                Log.log_info('We cannot attempt a alt_disk_copy on ' + vios.to_s)
+                Log.log_info('We cannot attempt a alt_disk_copy on ' + vios_disk.to_s)
+                Log.log_info('This is not an error')
               end
               break
             end
           end
         end
+        ret
       end
 
 
@@ -1277,84 +1305,84 @@ specific constraints before performing an altinst_rootvg."
       #
       #  TO BE IMPLEMENTED
       #
-      # ##################################################################
-      def self.check_vios_ssp_status(nim_vios,
-          vios_pair)
-        Log.log_debug('Checking SSP status on \"' + vios_pair.to_s + '\" vios pair')
-        #
-        ssp_cluster_check = false
-        vios1 = vios_pair[0]
-        nim_vios[vios1]['ssp_status'] = 'none'
-        vios2 = vios_pair[1]
-        nim_vios[vios2]['ssp_status'] = 'none'
-
-        # Get the SSP status
-        vios_ssp_status = {}
-        vios_pair.each do |vios|
-          remote_cmd1 = "/usr/ios/cli/ioscli cluster -list &&  /usr/ios/cli/ioscli cluster -status -fmt :"
-          remote_output1 = []
-          Log.log_debug('Check SSP VIOS cluster ' + vios.to_s)
-          remote_cmd_rc1 = Remote.c_rsh(vios,
-                                        remote_cmd1,
-                                        remote_output1)
-          #
-          if remote_cmd_rc1 == 0
-            if !remote_output1[0].nil? and !remote_output1[0].empty?
-              # check that the VIOSes belong to the same cluster and have the same satus
-              #                  or there is no SSP
-              # stdout is like:
-              # gdr_ssp3:OK:castor_gdr_vios3:8284-22A0221FD4BV:17:OK:OK
-              # gdr_ssp3:OK:castor_gdr_vios2:8284-22A0221FD4BV:16:OK:OK
-              #  or
-              # Cluster does not exist.
-              #
-              # Log.log_debug('remote_output1[0]=' + remote_output1[0].to_s)
-              remote_output1_lines = remote_output1[0].split("\n")
-              # Log.log_debug('remote_output1_lines=' + remote_output1_lines.to_s)
-              remote_output1_lines.each do |remote_output1_line|
-                remote_output1_line.chomp!
-                if remote_output1_line =~ /^Cluster does not exist.$/
-                  msg = "There is no SSP cluster on the \"#{vios}\" vios or the \"#{vios}\" node is DOWN"
-                  Log.log_debug(msg)
-                  Vios.add_vios_msg(vios, msg)
-                  nim_vios[vios]['ssp_vios_status'] = "DOWN"
-                else
-                  if remote_output1_line =~ /^(\S+):(\S+):(\S+):\S+:\S+:(\S+):.*/
-                    cur_ssp_name = Regexp.last_match(1)
-                    cur_ssp_status = Regexp.last_match(2)
-                    cur_vios_name = Regexp.last_match(3)
-                    cur_vios_ssp_status = Regexp.last_match(4)
-                    vios_ssp_status[vios] = [cur_ssp_name,
-                                             cur_ssp_status,
-                                             cur_vios_name,
-                                             cur_vios_ssp_status]
-                  end
-                end
-              end
-            end
-          elsif !remote_output1[0].nil? and !remote_output1[0].empty?
-            msg = "Failed to get SSP status of #{vios}"
-            Log.log_err(msg)
-            Log.log_err(remote_output1[0])
-            Vios.add_vios_msg(vios, msg)
-            return ssp_cluster_check
-          end
-        end
-
-        # If both vios have a SSP cluster, then they must have the same output
-        if vios_ssp_status.length == 2
-          if vios_ssp_status[vios1] == vios_ssp_status[vios2]
-            ssp_cluster_check = true
-          else
-            ssp_cluster_check = false
-          end
-        elsif vios_ssp_status.length == 0
-          ssp_cluster_check = true
-        else
-          ssp_cluster_check = false
-        end
-        ssp_cluster_check
-      end
+      # # ##################################################################
+      # def self.check_vios_ssp_status(nim_vios,
+      #     vios_pair)
+      #   Log.log_debug('Checking SSP status on \"' + vios_pair.to_s + '\" vios pair')
+      #   #
+      #   ssp_cluster_check = false
+      #   vios1 = vios_pair[0]
+      #   nim_vios[vios1]['ssp_status'] = 'none'
+      #   vios2 = vios_pair[1]
+      #   nim_vios[vios2]['ssp_status'] = 'none'
+      #
+      #   # Get the SSP status
+      #   vios_ssp_status = {}
+      #   vios_pair.each do |vios|
+      #     remote_cmd1 = "/usr/ios/cli/ioscli cluster -list &&  /usr/ios/cli/ioscli cluster -status -fmt :"
+      #     remote_output1 = []
+      #     Log.log_debug('Check SSP VIOS cluster ' + vios.to_s)
+      #     remote_cmd_rc1 = Remote.c_rsh(vios,
+      #                                   remote_cmd1,
+      #                                   remote_output1)
+      #     #
+      #     if remote_cmd_rc1 == 0
+      #       if !remote_output1[0].nil? and !remote_output1[0].empty?
+      #         # check that the VIOSes belong to the same cluster and have the same satus
+      #         #                  or there is no SSP
+      #         # stdout is like:
+      #         # gdr_ssp3:OK:castor_gdr_vios3:8284-22A0221FD4BV:17:OK:OK
+      #         # gdr_ssp3:OK:castor_gdr_vios2:8284-22A0221FD4BV:16:OK:OK
+      #         #  or
+      #         # Cluster does not exist.
+      #         #
+      #         # Log.log_debug('remote_output1[0]=' + remote_output1[0].to_s)
+      #         remote_output1_lines = remote_output1[0].split("\n")
+      #         # Log.log_debug('remote_output1_lines=' + remote_output1_lines.to_s)
+      #         remote_output1_lines.each do |remote_output1_line|
+      #           remote_output1_line.chomp!
+      #           if remote_output1_line =~ /^Cluster does not exist.$/
+      #             msg = "There is no SSP cluster on the \"#{vios}\" vios or the \"#{vios}\" node is DOWN"
+      #             Log.log_debug(msg)
+      #             Vios.add_vios_msg(vios, msg)
+      #             nim_vios[vios]['ssp_vios_status'] = "DOWN"
+      #           else
+      #             if remote_output1_line =~ /^(\S+):(\S+):(\S+):\S+:\S+:(\S+):.*/
+      #               cur_ssp_name = Regexp.last_match(1)
+      #               cur_ssp_status = Regexp.last_match(2)
+      #               cur_vios_name = Regexp.last_match(3)
+      #               cur_vios_ssp_status = Regexp.last_match(4)
+      #               vios_ssp_status[vios] = [cur_ssp_name,
+      #                                        cur_ssp_status,
+      #                                        cur_vios_name,
+      #                                        cur_vios_ssp_status]
+      #             end
+      #           end
+      #         end
+      #       end
+      #     elsif !remote_output1[0].nil? and !remote_output1[0].empty?
+      #       msg = "Failed to get SSP status of #{vios}"
+      #       Log.log_err(msg)
+      #       Log.log_err(remote_output1[0])
+      #       Vios.add_vios_msg(vios, msg)
+      #       return ssp_cluster_check
+      #     end
+      #   end
+      #
+      #   # If both vios have a SSP cluster, then they must have the same output
+      #   if vios_ssp_status.length == 2
+      #     if vios_ssp_status[vios1] == vios_ssp_status[vios2]
+      #       ssp_cluster_check = true
+      #     else
+      #       ssp_cluster_check = false
+      #     end
+      #   elsif vios_ssp_status.length == 0
+      #     ssp_cluster_check = true
+      #   else
+      #     ssp_cluster_check = false
+      #   end
+      #   ssp_cluster_check
+      # end
 
 
       # ##################################################################
@@ -1368,59 +1396,135 @@ specific constraints before performing an altinst_rootvg."
       #  TO BE IMPLEMENTED
       #
       # ##################################################################
-      def self.ssp_stop_start(nim_vios,
-          vios_pair,
-          action)
-        Log.log_debug('Performing \"' + action.to_s + '\" SSP action on \"' + vios_pair.to_s + '\" vios pair')
+      # def self.ssp_stop_start(nim_vios,
+      #     vios_pair,
+      #     action)
+      #   Log.log_debug('Performing \"' + action.to_s + '\" SSP action on \"' + vios_pair.to_s + '\" vios pair')
+      #
+      #   # if action is start SSP,  find the first node running SSP
+      #   node = vios
+      #   if action == 'start'
+      #     vios_pair.each do |n|
+      #       if vios_pair[n]['ssp_vios_status'] == "OK"
+      #         node = n
+      #         break
+      #       end
+      #     end
+      #   end
+      #
+      #   remote_cmd1 = "/usr/sbin/clctrl -#{action} -n #{nim_vios[vios]['ssp_name']} -m #{vios}\""
+      #   remote_output1 = []
+      #   Log.log_debug('Launching SSP action ' + action.to_s + ' on ' + vios.to_s)
+      #   remote_cmd_rc1 = Remote.c_rsh(vios,
+      #                                 remote_cmd1,
+      #                                 remote_output1)
+      #   #
+      #   if remote_cmd_rc1 == 0
+      #     if !remote_output1[0].nil? and !remote_output1[0].empty?
+      #       remote_output1_lines = remote_output1[0].split("\n")
+      #       # Log.log_debug('remote_output1_lines=' + remote_output1_lines.to_s)
+      #       remote_output1_lines.each do |remote_output1_line|
+      #         remote_output1_line.chomp!
+      #         if remote_output1_line =~ /XYZ/ # TBI
+      #           msg = ""
+      #           Log.log_debug(msg)
+      #           Vios.add_vios_msg(vios, msg)
+      #           nim_vios[vios]['ssp_vios_status'] = "DOWN"
+      #         elsif remote_output1_line =~ /XYZ/ # TBI
+      #         end
+      #       end
+      #     else
+      #       msg = "Failed to #{action} cluster #{nim_vios[vios]['ssp_name']} on vios #{vios}"
+      #       Log.log_warning(msg)
+      #       Vios.add_vios_msg(vios, msg)
+      #     end
+      #     nim_vios[vios]['ssp_vios_status'] = if action == 'stop'
+      #                                           "DOWN"
+      #                                         else
+      #                                           "OK"
+      #                                         end
+      #
+      #     Log.log_info("#{action} cluster #{nim_vios[vios]['ssp_name']} on vios #{vios} succeeded")
+      #
+      #     return 0
+      #   end
+      # end
 
-        # if action is start SSP,  find the first node running SSP
-        node = vios
-        if action == 'start'
-          vios_pair.each do |n|
-            if vios_pair[n]['ssp_vios_status'] == "OK"
-              node = n
-              break
-            end
-          end
+
+      # ##################################################################
+      # name : prepare_updateios_command
+      # param : in:lpp_source:string
+      # param : in:accept_licenses:string
+      # param : in:preview:string
+      # return : the command string to pass to nim_updateios()
+      # description :
+      #  Builds the NIM updateios command to run
+      # ##################################################################
+      def self.prepare_updateios_command(vios,
+          lpp_source,
+          accept_licenses = 'yes',
+          preview = 'yes')
+        Log.log_debug('prepare_updateios_command vios=' + vios.to_s +
+                          ' lpp_source=' + lpp_source +
+                          ' accept_licenses=' + accept_licenses +
+                          ' preview=' + preview)
+
+        cmd = '/usr/sbin/nim -o updateios'
+
+        # lpp_source
+        if !lpp_source.nil? && !lpp_source.empty?
+          cmd << " -a lpp_source=#{lpp_source}"
         end
 
-        remote_cmd1 = "/usr/sbin/clctrl -#{action} -n #{nim_vios[vios]['ssp_name']} -m #{vios}\""
-        remote_output1 = []
-        Log.log_debug('Launching SSP action ' + action.to_s + ' on ' + vios.to_s)
-        remote_cmd_rc1 = Remote.c_rsh(vios,
-                                      remote_cmd1,
-                                      remote_output1)
-        #
-        if remote_cmd_rc1 == 0
-          if !remote_output1[0].nil? and !remote_output1[0].empty?
-            remote_output1_lines = remote_output1[0].split("\n")
-            # Log.log_debug('remote_output1_lines=' + remote_output1_lines.to_s)
-            remote_output1_lines.each do |remote_output1_line|
-              remote_output1_line.chomp!
-              if remote_output1_line =~ /XYZ/ # TBI
-                msg = ""
-                Log.log_debug(msg)
-                Vios.add_vios_msg(vios, msg)
-                nim_vios[vios]['ssp_vios_status'] = "DOWN"
-              elsif remote_output1_line =~ /XYZ/ # TBI
-              end
-            end
-          else
-            msg = "Failed to #{action} cluster #{nim_vios[vios]['ssp_name']} on vios #{vios}"
-            Log.log_warning(msg)
-            Vios.add_vios_msg(vios, msg)
-          end
-          nim_vios[vios]['ssp_vios_status'] = if action == 'stop'
-                                                "DOWN"
-                                              else
-                                                "OK"
-                                              end
+        # accept licenses
+        cmd << if !accept_licenses.nil? && !accept_licenses.empty?
+                 " -a accept_licenses=#{accept_licenses}"
+               end
 
-          Log.log_info("#{action} cluster #{nim_vios[vios]['ssp_name']} on vios #{vios} succeeded")
+        # preview mode
+        cmd << if !preview.nil? && !preview.empty?
+                 " -a preview=#{preview} "
+               end
 
-          return 0
-        end
+        cmd << " #{vios}"
+        Log.log_debug('prepare_updateios_command returns ' + cmd)
+        cmd
       end
+
+      # ##################################################################
+      # name : nim_updateios
+      # param : in:cmd:string
+      # param : in:vios:string
+      # return : 0 if success 1 otherwise
+      # description :
+      #  Run the NIM updateios operation on specified vios
+      #  The command to run is built by prepare_updateios_command()
+      # ##################################################################
+      def self.nim_updateios(cmd,
+          vios)
+        Log.log_debug('nim_updateios cmd=' + cmd +
+                          ' vios=' + vios)
+        ret = 0
+        # TBC - For testing, will be removed after test !!!
+        # cmd_s = "/usr/sbin/lsnim -Z -a Cstate -a info -a Cstate_result #{vios}"
+        # log_info("nim_updateios: overwrite cmd_s:'#{cmd_s}'")
+        exit_status = Open3.popen3({'LANG' => 'C'}, cmd) do |_stdin, stdout, stderr, wait_thr|
+          stdout.each_line {|line| Log.log_info("[STDOUT] #{line.chomp}")}
+          stderr.each_line do |line|
+            Log.log_err("[STDERR] #{line.chomp}")
+          end
+          wait_thr.value # Process::Status object returned.
+        end
+        if exit_status.success?
+          Log.log_info('Finish updating "' + vios + '" vios')
+          Log.log_info(' update was committed') if cmd.include?('updateios_flags=-commit')
+        else
+          ret = 1
+          Log.log_err(' Failed to perform NIM updateios operation on "' + vios + '" vios, see above error!')
+        end
+        ret
+      end
+
 
       # ############################
       #     E X C E P T I O N      #
