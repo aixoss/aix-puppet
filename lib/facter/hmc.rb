@@ -25,7 +25,6 @@ Facter.add('hmc') do
     Log.log_info("cmd: #{cmd}")
     Open3.popen3({'LANG' => 'C'}, cmd) do |_stdin, stdout, stderr, wait_thr|
       stderr.each_line do |line|
-        STDERR.puts line
         Log.log_err("[STDERR] #{line.chomp}")
       end
       unless wait_thr.value.success?

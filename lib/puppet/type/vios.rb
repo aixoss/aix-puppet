@@ -127,7 +127,7 @@ associated to vios_pairs, used to perform update or install'
   # ############################################################################
   newparam(:actions) do
     desc '"actions" attribute: actions to be performed on vios. \
- Possible actions : "health", "check", "status", "save", update", "restore"'
+ Possible actions : "health", "check", "clean", "save", update", "restore"'
     param_actions = []
     # To parse input
     validate do |values|
@@ -139,7 +139,7 @@ associated to vios_pairs, used to perform update or install'
         Log.log_debug('action=' + action.to_s)
         if action.to_s != 'health' &&
             action.to_s != 'check' &&
-            action.to_s != 'status' &&
+            action.to_s != 'clean' &&
             action.to_s != 'save' &&
             action.to_s != 'update' &&
             action.to_s != 'restore'

@@ -17,7 +17,7 @@ class aixautomation {
     ensure               => present,
     name                 => 'vios',
     # actions => 'check,save,update',
-    actions              => 'check, save, update',
+    actions              => 'save',
     update_options       => 'accept_licenses, commit',
     vios_pairs           => '(p7juav1,p7juav2)',
     altinst_rootvg_force => 'yes',
