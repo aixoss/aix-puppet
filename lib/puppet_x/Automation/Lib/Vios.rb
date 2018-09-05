@@ -100,7 +100,8 @@ module Automation
         vios_pair.each do |vios|
           # Log.log_info('valid_vios_keys=' + valid_vios_keys.to_s +
           #  ' vios=' + vios + ' include=' + (valid_vios_keys.include?(vios)).to_s)
-          Vios.add_vios_msg(vios, 'new run', true)
+          msg = 'Launch of VIOS udate on "' + vios.to_s + '" vios.'
+          Vios.add_vios_msg(vios, msg, true)
 
           # Each vios is checked against the list of valid vios checked by vios facter
           validity_vios[vios] = Vios.check_vios(vios)
@@ -463,8 +464,8 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
               #  - vios_force.to_s == 'no'
               Log.log_info('find_best_alt_disks on: ' + vios.to_s)
               alt_disk_to_reuse = []
-              Log.log_info('Call to alt_disk_find_and_remove: ' + vios.to_s)
-              ret = Vios.alt_disk_find_and_remove(vios, alt_disk_to_reuse)
+              Log.log_info('Call to altvg_find_and_remove: ' + vios.to_s)
+              ret = Vios.altvg_find_and_remove(vios, alt_disk_to_reuse)
               if ret == 0
                 Log.log_info('There was a altinst_rootvg on ' + vios.to_s + ' which has been cleaned.')
               end
@@ -832,7 +833,7 @@ size_candidate_disk=#{size_candidate_disk}")
 
 
       # ########################################################################
-      # name : alt_disk_find_and_remove
+      # name : altvg_find_and_remove
       # param : in:vios:string
       # param : out:used_alt_disk:string array containing in index 0 alt_disk
       #  to be reused
@@ -841,13 +842,14 @@ size_candidate_disk=#{size_candidate_disk}")
       #  on specified vios
       # return: 0 if ok, 1 otherwise
       # ########################################################################
-      def self.alt_disk_find_and_remove(vios,
+      def self.altvg_find_and_remove(vios,
           used_alt_disk)
-        Log.log_debug('alt_disk_find_and_remove on ' + vios.to_s)
+        Log.log_debug('altvg_find_and_remove on ' + vios.to_s)
         ret = 1
 
-        Log.log_info('Is there any existing altinst_rootvg on ' + vios.to_s + '?')
-        remote_cmd0 = '/usr/sbin/lspv | /bin/grep -w altinst_rootvg'
+        vg = 'altinst_rootvg'
+        Log.log_info('Is there any existing ' + vg + ' on ' + vios.to_s + '?')
+        remote_cmd0 = '/usr/sbin/lspv | /bin/grep -w ' + vg
         remote_output0 = []
         remote_cmd_rc0 = Remote.c_rsh(vios, remote_cmd0, remote_output0)
         if remote_cmd_rc0 == 0
@@ -860,33 +862,33 @@ size_candidate_disk=#{size_candidate_disk}")
               Log.log_debug('alt_disk_name=' + alt_disk_name.to_s)
               Log.log_debug('active=' + active.to_s)
               if active.nil? or active.empty?
-                Log.log_info('There is one existing altinst_rootvg on ' + vios.to_s + ' and we need to varyonvg it')
-                remote_cmd1 = '/usr/sbin/varyonvg altinst_rootvg'
+                Log.log_info('There is one existing  ' + vg + ' on ' + vios.to_s + ' and we need to varyonvg it')
+                remote_cmd1 = '/usr/sbin/varyonvg  ' + vg
                 remote_output1 = []
                 remote_cmd_rc1 = Remote.c_rsh(vios, remote_cmd1, remote_output1)
                 Log.log_debug('remote_cmd_rc1=' + remote_cmd_rc1.to_s + ' remote_output1[0]=' + remote_output1[0].to_s)
-                ret = Vios.perform_alt_disk_remove(vios, alt_disk_name)
+                ret = Vios.perform_vg_clean_and_free_disk(vios, vg, alt_disk_name)
               else
-                Log.log_info('There is one existing altinst_rootvg on ' + vios.to_s + ' but we dont need to varyonvg it')
+                Log.log_info('There is one existing  ' + vg + ' on ' + vios.to_s + ' but we dont need to varyonvg it')
               end
               # check again
-              remote_cmd2 = '/usr/sbin/lsvg altinst_rootvg'
+              remote_cmd2 = '/usr/sbin/lsvg ' + vg
               remote_output2 = []
               remote_cmd_rc2 = Remote.c_rsh(vios, remote_cmd2, remote_output2)
               if remote_cmd_rc2 == 0
-                Log.log_info('There is an altinst_rootvg on ' + vios.to_s)
-                # Meaning altinst_rootvg exists, we then need to remove it
-                ret = Vios.perform_alt_disk_remove(vios, alt_disk_name)
+                Log.log_info('There is an ' + vg + ' on ' + vios.to_s)
+                # Meaning vg exists, we then need to remove it
+                ret = Vios.perform_vg_clean_and_free_disk(vios, vg, alt_disk_name)
                 used_alt_disk[0] = alt_disk_name
               end
             end
           else
-            Log.log_info('No altinst_rootvg on ' + vios.to_s)
+            Log.log_info('No  ' + vg + ' on ' + vios.to_s)
           end
         else
-          Log.log_info('No altinst_rootvg on ' + vios.to_s)
+          Log.log_info('No  ' + vg + ' on ' + vios.to_s)
         end
-        Log.log_debug('alt_disk_find_and_remove on ' + vios.to_s + ' returning ' + ret.to_s)
+        Log.log_debug('altvg_find_and_remove on ' + vios.to_s + ' returning ' + ret.to_s)
         ret
       end
 
@@ -999,50 +1001,57 @@ size_candidate_disk=#{size_candidate_disk}")
 
 
       # ##################################################################
-      # name : perform_alt_disk_remove
+      # name : perform_vg_clean_and_free_disk
       # param : in:vios:string
+      # param : in:vg:string name of vg, either altinst_rootvg or old_rootvg
       # param : in:alt_disk:string
       # description : Perform the symmetric operation of the NIM
       #  alt_disk_install to remove and clean the alternate copy
       #  operation on specified vios
       # Return: 0 if ok, 1 otherwise
       # ##################################################################
-      def self.perform_alt_disk_remove(vios,
+      def self.perform_vg_clean_and_free_disk(vios,
+          vg,
           alt_disk)
-        Log.log_debug('perform_alt_disk_remove: vios=' + vios.to_s + ' disk=' + alt_disk.to_s)
-
+        Log.log_debug('perform_vg_clean_and_free_disk: vios=' + vios.to_s +
+                          ' vg=' + vg.to_s +
+                          ' disk=' + alt_disk.to_s)
         ret = 0
         #
         Log.log_debug('Cleaning altinst_rootvg on ' + vios)
-        remote_cmd1 = '/usr/sbin/alt_rootvg_op -X altinst_rootvg'
+        # /usr/sbin/alt_rootvg_op -X altinst_rootvg => clean VG
+        remote_cmd1 = '/usr/sbin/alt_rootvg_op -X ' + vg
         remote_output1 = ''
         remote_cmd_rc1 = Remote.c_rsh(vios, remote_cmd1, remote_output1)
         #
         if remote_cmd_rc1 == 0
-          Log.log_info('Succeeded in removing altinst_rootvg on ' + vios.to_s)
+          Log.log_info('Succeeded in removing ' + vg.to_s + ' on ' + vios.to_s)
         else
           ret = 1
           Log.log_err("#{remote_output1[0]}")
-          Log.log_err('Failed to remove altinst_rootvg on ' + vios.to_s)
+          Log.log_err('Failed to remove ' + vg.to_s + ' on ' + vios.to_s)
         end
         #
         if ret == 0
           #
           Log.log_debug('Cleaning disk ' + alt_disk.to_s + ' on ' + vios.to_s)
+
+          # /etc/chdev -a pv=clear -l diskX  => remove PVID disk
+          # /usr/bin/dd if=/dev/zero of=/dev/diskX seek=7 count=1 bs=512 => clean the disk and give it back to free
           remote_cmd2 = "/etc/chdev -a pv=clear -l #{alt_disk}; /usr/bin/dd if=/dev/zero of=/dev/#{alt_disk} seek=7 count=1 bs=512"
           remote_output2 = ''
           remote_cmd_rc2 = Remote.c_rsh(vios, remote_cmd2, remote_output2)
           if remote_cmd_rc2 == 0
             Log.log_debug("#{remote_output2[0]}")
-            Log.log_info('Succeeded in cleaning altinst_rootvg on ' + vios.to_s)
+            Log.log_info('Succeeded in cleaning ' + vg.to_s + ' on ' + vios.to_s)
           else
             Log.log_err("#{remote_output2[0]}")
-            Log.log_err('Failed to clean altinst_rootvg on ' + vios.to_s)
+            Log.log_err('Failed to clean ' + vg.to_s + ' on ' + vios.to_s)
             ret = 1
           end
         end
         #
-        Log.log_info('perform_alt_disk_remove: done, returning ' + ret.to_s)
+        Log.log_info('perform_vg_clean_and_free_disk: done, returning ' + ret.to_s)
         ret
       end
 
@@ -1493,9 +1502,45 @@ specific constraints before performing an altinst_rootvg."
 
         cmd << " #{vios}"
 
-        Log.log_debug('prepare_updateios_command returns "' + cmd + '"')
+        msg = 'Preparing update command for ' + vios.to_s + ' successful : "' + cmd.to_s + '"'
+        Log.log_info(msg)
+        Vios.add_vios_msg(vios, msg)
+
         cmd
       end
+
+
+      # ##################################################################
+      # name : vios_levels
+      # param : in:step:string Either 'Before' or 'After'
+      # param : in:vios:string
+      # return : nothing
+      # description :
+      #  Log oslevel and ioslevel of vios
+      # ##################################################################
+      def self.vios_levels(step,
+          vios)
+        Log.log_debug('vios_levels step="' + step.to_s +
+                          '" vios="' + vios.to_s + '"')
+        oslevel = ''
+        ioslevel = ''
+        remote_cmd_rc = Remote.c_rsh(vios, '/usr/bin/oslevel -s', oslevel)
+        if remote_cmd_rc == 0
+          oslevel = oslevel.strip
+        end
+
+        remote_cmd_rc = Remote.c_rsh(vios, '/usr/ios/cli/ioscli ioslevel', ioslevel)
+        if remote_cmd_rc == 0
+          ioslevel = ioslevel.strip
+        end
+
+        msg = step + ' NIM updateios operation of ' + vios.to_s +
+            ' oslevel=' + oslevel.to_s +
+            ' ioslevel=' + ioslevel.to_s
+        Log.log_info(msg)
+        Vios.add_vios_msg(vios, msg)
+      end
+
 
       # ##################################################################
       # name : nim_updateios
@@ -1511,6 +1556,7 @@ specific constraints before performing an altinst_rootvg."
         Log.log_debug('nim_updateios cmd="' + cmd +
                           '" vios="' + vios + '"')
         ret = 0
+        Vios.vios_levels('Before', vios)
         # TBC - For testing, will be removed after test !!!
         # cmd_s = "/usr/sbin/lsnim -Z -a Cstate -a info -a Cstate_result #{vios}"
         # log_info("nim_updateios: overwrite cmd_s:'#{cmd_s}'")
@@ -1522,12 +1568,20 @@ specific constraints before performing an altinst_rootvg."
           wait_thr.value # Process::Status object returned.
         end
         if exit_status.success?
-          Log.log_info('Finish updating "' + vios + '" vios')
-          Log.log_info(' update was committed') if cmd.include?('updateios_flags=-commit')
+          if cmd.include? 'preview=no'
+            msg = 'NIM updateios operation of ' + vios.to_s + ' successful, and update is committed.'
+          else
+            msg = 'NIM updateios operation of ' + vios.to_s + ' successful, update was done in preview only.'
+          end
+          Log.log_info(msg)
+          Vios.add_vios_msg(vios, msg)
         else
           ret = 1
-          Log.log_err(' Failed to perform NIM updateios operation on "' + vios + '" vios, see above error!')
+          msg = 'Failed to fully perform NIM updateios operation on "' + vios.to_s + '" vios, see errors in log file and advise.'
+          Log.log_err(msg)
+          Vios.add_vios_msg(vios, msg)
         end
+        Vios.vios_levels('After', vios)
         ret
       end
 

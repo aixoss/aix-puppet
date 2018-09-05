@@ -26,11 +26,17 @@ Facter.add('vios') do
 #
     vios_array.each do |vios|
       vios_hash = {}
-      oslevel = ""
+      oslevel = ''
+      ioslevel = ''
 
-      remote_cmd_rc = Remote.c_rsh(vios, "/usr/bin/oslevel -s", oslevel)
+      remote_cmd_rc = Remote.c_rsh(vios, '/usr/bin/oslevel -s', oslevel)
       if remote_cmd_rc == 0
         vios_hash['oslevel'] = oslevel.strip
+      end
+
+      remote_cmd_rc = Remote.c_rsh(vios, '/usr/ios/cli/ioscli ioslevel', ioslevel)
+      if remote_cmd_rc == 0
+        vios_hash['ioslevel'] = ioslevel.strip
       end
 
       #### ping
