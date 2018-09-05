@@ -1454,21 +1454,17 @@ specific constraints before performing an altinst_rootvg."
       # ##################################################################
       # name : prepare_updateios_command
       # param : in:lpp_source:string
-      # param : in:accept_licenses:string
-      # param : in:preview:string
+      # param : in:update_options:array of strings
       # return : the command string to pass to nim_updateios()
       # description :
       #  Builds the NIM updateios command to run
       # ##################################################################
       def self.prepare_updateios_command(vios,
           lpp_source,
-          accept_licenses = 'yes',
-          preview = 'yes')
+          update_options)
         Log.log_debug('prepare_updateios_command vios=' + vios.to_s +
                           ' lpp_source=' + lpp_source +
-                          ' accept_licenses=' + accept_licenses +
-                          ' preview=' + preview)
-
+                          ' update_options=' + update_options.to_s)
         cmd = '/usr/sbin/nim -o updateios'
 
         # lpp_source
@@ -1476,18 +1472,28 @@ specific constraints before performing an altinst_rootvg."
           cmd << " -a lpp_source=#{lpp_source}"
         end
 
-        # accept licenses
-        cmd << if !accept_licenses.nil? && !accept_licenses.empty?
-                 " -a accept_licenses=#{accept_licenses}"
-               end
+        # update_options
+        if !update_options.nil? && !update_options.empty?
+          # accept licenses
+          cmd << if update_options.include? 'accept_licenses'
+                   ' -a accept_licenses=yes '
+                 else
+                   ' -a accept_licenses=no '
+                 end
 
-        # preview mode
-        cmd << if !preview.nil? && !preview.empty?
-                 " -a preview=#{preview} "
-               end
+          # preview mode
+          cmd << if update_options.include? 'commit'
+                   ' -a preview=no '
+                 else
+                   ' -a preview=yes '
+                 end
+        else
+          cmd << ' -a accept_licenses=no -a preview=yes '
+        end
 
         cmd << " #{vios}"
-        Log.log_debug('prepare_updateios_command returns ' + cmd)
+
+        Log.log_debug('prepare_updateios_command returns "' + cmd + '"')
         cmd
       end
 
@@ -1502,8 +1508,8 @@ specific constraints before performing an altinst_rootvg."
       # ##################################################################
       def self.nim_updateios(cmd,
           vios)
-        Log.log_debug('nim_updateios cmd=' + cmd +
-                          ' vios=' + vios)
+        Log.log_debug('nim_updateios cmd="' + cmd +
+                          '" vios="' + vios + '"')
         ret = 0
         # TBC - For testing, will be removed after test !!!
         # cmd_s = "/usr/sbin/lsnim -Z -a Cstate -a info -a Cstate_result #{vios}"

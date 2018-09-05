@@ -113,7 +113,7 @@ associated to vios_pairs, used to perform update or install'
     end
 
     #
-    munge do | |
+    munge do |_values|
       Log.log_debug('h_vios_lppsources=' + h_vios_lppsources.to_s)
       h_vios_lppsources
     end
@@ -154,6 +154,43 @@ associated to vios_pairs, used to perform update or install'
 
     munge do |_values|
       param_actions
+    end
+  end
+
+  # ############################################################################
+  # :update_options attribute to set options to be passed at update
+  #  Possible update options are :
+  #   accept_licenses (default is not not accept license)
+  #   commit  (default is to do preview only)
+  #   remove  (default is to perform install)
+  # Check :update_options against a short list, provide a default
+  # ############################################################################
+  newparam(:update_options) do
+    desc '"update_options" attribute: options to be passed to update. \
+ Possible update_options are : "accept_licenses", "commit", "remove"'
+    param_update_options = []
+    # To parse input
+    validate do |values|
+      Log.log_debug('values=' + values.to_s)
+      param_update_options = values.scan(/\w+/)
+      Log.log_debug('param_update_options=' + param_update_options.to_s)
+      invalid_update_options = ''
+      param_update_options.each do |update_option|
+        Log.log_debug('update_option=' + update_option.to_s)
+        if update_option.to_s != 'accept_licenses' &&
+            update_option.to_s != 'commit' &&
+            update_option.to_s != 'remove'
+          Log.log_debug('invalid update_options=' + update_option.to_s)
+          invalid_update_options += ' ' + update_option
+        end
+      end
+
+      raise('"update_options" contains invalid update options :' +
+                invalid_update_options) unless invalid_update_options.empty?
+    end
+
+    munge do |_values|
+      param_update_options
     end
   end
 

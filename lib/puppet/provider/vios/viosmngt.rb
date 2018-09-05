@@ -22,24 +22,33 @@ Puppet::Type.type(:vios).provide(:viosmngt) do
   #      false       absent    do nothing               n/a
   # ###########################################################################
   def exists?
-    Log.log_info("Provider viosmngt 'exists?' method : we want to realize: \"#{resource[:ensure]}\" for \
-                 \"#{resource[:actions]}\" actions on \"#{resource[:vios_pairs]}\" targets with force=\"#{resource[:altinst_rootvg_force]}\" \
-with \"#{resource[:vios_lpp_sources]}\" lpp_sources.")
+    Log.log_info("Provider viosmngt 'exists?' method : we want to realize: \
+                 \"#{resource[:ensure]}\" for \"#{resource[:actions]}\" actions \
+on \"#{resource[:vios_pairs]}\" targets \
+with \"#{resource[:altinst_rootvg_force]}\" for altinst_rootvg_force and \
+with \"#{resource[:vios_lpp_sources]}\" lpp_sources and
+with \"#{resource[:update_options]}\" update_options.")
     #
     # default value for returned, depends on 'ensure'
     returned = true
     returned = false if resource[:ensure] == 'absent'
 
     actions = resource[:actions]
+    Log.log_debug('actions=' + actions.to_s)
+    #
     force = resource[:altinst_rootvg_force].to_s
-
+    Log.log_debug('force=' + force.to_s)
     #
     vios_pairs = resource[:vios_pairs]
-    Log.log_info('vios_pairs=' + vios_pairs.to_s)
-
+    Log.log_debug('vios_pairs=' + vios_pairs.to_s)
+    #
     vios_lppsources = resource[:vios_lpp_sources]
-    Log.log_info('vios_lppsources=' + vios_lppsources.to_s)
+    Log.log_debug('vios_lppsources=' + vios_lppsources.to_s)
+    #
+    update_options = resource[:update_options]
+    Log.log_debug('update_options=' + update_options.to_s)
 
+    #
     if actions.include? 'check'
       #
       Vios.check_vioshc
@@ -134,7 +143,7 @@ with \"#{resource[:vios_lpp_sources]}\" lpp_sources.")
         if ret == 0
           vios_lppsources.each do |key_vios, value_lpp_source|
             Log.log_info('Launching update of "' + key_vios.to_s + '" vios with "' + value_lpp_source + '" lpp_source.')
-            update_cmd = Vios.prepare_updateios_command(key_vios, value_lpp_source)
+            update_cmd = Vios.prepare_updateios_command(key_vios, value_lpp_source, update_options)
             Log.log_info('vios update of "' + key_vios.to_s + '" vios with "' + update_cmd.to_s + '" command.')
             update_ret = Vios.nim_updateios(update_cmd, key_vios)
             Log.log_info('vios update of "' + key_vios.to_s + '" vios returns ' + update_ret.to_s)
@@ -145,7 +154,7 @@ with \"#{resource[:vios_lpp_sources]}\" lpp_sources.")
       end
     end
 
-
+    #
     Log.log_info('Provider viosmngt "exists!" method returning ' + returned.to_s)
     returned
   end
