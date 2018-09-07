@@ -86,12 +86,12 @@ associated to vios_pairs, used to perform update or install'
     validate do |values|
       Log.log_debug('values=' + values.to_s)
       # To parse input
-      vios_lppsources = values.scan(/\w+=\w+/)
+      vios_lppsources = values.scan(/[\w\-]+=\w+/)
       Log.log_debug('vios_lppsources=' + vios_lppsources.to_s)
       unless vios_lppsources.nil?
         vios_lppsources.each do |vios_lppsource|
           Log.log_debug('result=' + vios_lppsource.to_s)
-          if vios_lppsource =~ /(\w+)=(\w+)/
+          if vios_lppsource =~ /([\w\-]+)=(\w+)/
             vios = Regexp.last_match(1)
             Log.log_debug('vios=' + vios.to_s)
             unless Vios.check_vios(vios)
@@ -127,7 +127,7 @@ associated to vios_pairs, used to perform update or install'
   # ############################################################################
   newparam(:actions) do
     desc '"actions" attribute: actions to be performed on vios. \
- Possible actions : "health", "check", "clean", "save", update", "restore"'
+ Possible actions : "health", "check", "clean", "save", "autocommit", "update", "restore"'
     param_actions = []
     # To parse input
     validate do |values|
@@ -141,6 +141,7 @@ associated to vios_pairs, used to perform update or install'
             action.to_s != 'check' &&
             action.to_s != 'clean' &&
             action.to_s != 'save' &&
+            action.to_s != 'autocommit' &&
             action.to_s != 'update' &&
             action.to_s != 'restore'
           Log.log_debug('invalid_actions=' + invalid_actions)

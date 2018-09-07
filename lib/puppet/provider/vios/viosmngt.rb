@@ -48,28 +48,36 @@ with \"#{resource[:update_options]}\" update_options.")
     update_options = resource[:update_options]
     Log.log_debug('update_options=' + update_options.to_s)
 
-    #
+    facter_vios = {}
+    facter_hmc = {}
+
     if actions.include? 'check'
       #
       Vios.check_vioshc
-      #
       facter_vios = Facter.value(:vios)
       Log.log_info('facter vios=' + facter_vios.to_s)
       #
       facter_hmc = Facter.value(:hmc)
       Log.log_info('facter hmc=' + facter_hmc.to_s)
+    end
+
+    # We loop against vios_pairs
+    Log.log_info('We loop againts vios_pairs=' + vios_pairs.to_s)
+    vios_pairs.each do |vios_pair|
+      Log.log_info('vios_pair=' + vios_pair.to_s)
       #
-      nim_vios = facter_vios
-      hmc_id = ''
-      hmc_ip = ''
-      #
-      if actions.include? 'health'
-        vios_pairs.each do |vios_pair|
-          Log.log_info('vios_pair=' + vios_pair.to_s)
-          vios_pair.each do |viosunit|
-            Log.log_info('viosunit=' + viosunit)
-            hmc_id = nim_vios[viosunit]['mgmt_hmc_id']
+      if actions.include? 'check'
+        #
+        nim_vios = facter_vios
+        hmc_id = ''
+        hmc_ip = ''
+        #
+        if actions.include? 'health'
+          vios_pair.each do |vios|
+            Log.log_info('vios=' + vios)
+            hmc_id = nim_vios[vios]['mgmt_hmc_id']
             hmc_ip = facter_hmc[hmc_id]['ip']
+            # Do it only once per pair
             break
           end
           #
@@ -79,77 +87,121 @@ with \"#{resource[:update_options]}\" update_options.")
                                       hmc_ip)
           if ret == 0
             Log.log_info('nim_vios 2 =' + nim_vios.to_s)
-            Vios.vios_health_check(nim_vios,
-                                   hmc_ip,
-                                   vios_pair)
+            ret = Vios.vios_health_check(nim_vios,
+                                         hmc_ip,
+                                         vios_pair)
+            if ret == 1
+              Log.log_err('Check health of "' + vios_pair.to_s + '" vios pair is unsuccessful')
+              # This does not prevent from continuing on another pair
+              next
+            end
           else
-            Log.log_err('not possible to check health of vios_pair : ' + vios_pair.to_s)
+            Log.log_warning('Not possible to check health of vios_pair : ' + vios_pair.to_s)
+            # This does not prevent from continuing on another pair
+            next
           end
         end
       end
-    end
 
-    #
-    vios_mirrors = {}
-    if actions.include? 'save'
       #
-      vios_pairs_kept = []
-      vios_pairs.each do |vios_pair|
+      if actions.include? 'save'
+
+        vios_mirrors = {}
+        hvios = Vios.check_altinst_rootvg_pair(vios_pair)
+        if force == 'no'
+          unless hvios["1"].empty?
+            Log.log_warning('Because these "' + hvios["1"].to_s + '" vios already have an "altinst_rootvg", you should use "vios_force=yes" or "vios_force=reuse"')
+            # This does not prevent from continuing on another pair
+            next
+          end
+        end
+
+        #
         # A priori, vios_pair is kept
         #  It won't be kept, if ever the check_rootvg_mirror test fails.
         b_vios_pair_kept = 1
         vios_pair.each do |vios|
           Log.log_info('vios=' + vios.to_s)
-          copies = []
-          ret = Vios.check_rootvg_mirror(vios, copies)
-          Log.log_info('check_rootvg_mirror=' + vios.to_s + ' ret=' + ret.to_s + ' copies=' + copies.to_s)
-          if ret == -1
-            b_vios_pair_kept = 0
-            break
+
+          value_lpp_source = vios_lppsources[vios]
+          if value_lpp_source.nil? or value_lpp_source.empty?
+            msg = 'No lpp_source set on this "' + vios.to_s + '" vios. No update to be done. Therefore no need to perform "save"'
+            Vios.add_vios_msg(vios, msg)
+            Log.log_info(msg)
+            # This does not prevent us from continuing on next vios
+            next
+          end
+
+          # If vios already has an altinst_rootvg and we have force="reuse"
+          #  then there is no need to check for mirror
+          if force == 'reuse' and hvios["1"].include? vios
+            msg = 'No need to check mirroring on "' + vios.to_s + '" vios, as we reuse altinst_rootvg'
+            Vios.add_vios_msg(vios, msg)
+            Log.log_info(msg)
           else
-            # ret == 0 : no mirror, or ret == 1 mirror ok
-            # keep somewhere all information about mirroring
-            #  when mirroring exists on a rootvg of a vios
-            vios_mirrors[vios] = copies[0]
-            Log.log_debug('vios_mirrors=' + vios_mirrors.to_s)
-            Log.log_debug('vios_mirrors[vios]=' + vios_mirrors[vios].to_s)
+            copies = []
+            ret = Vios.check_rootvg_mirror(vios, copies)
+            Log.log_info('check_rootvg_mirror=' + vios.to_s + ' ret=' + ret.to_s + ' copies=' + copies.to_s)
+            if ret == -1
+              b_vios_pair_kept = 0
+            else
+              # ret == 0 : no mirror, or ret == 1 mirror ok
+              # keep somewhere all information about mirroring
+              #  when mirroring exists on a rootvg of a vios
+              vios_mirrors[vios] = copies[0]
+              Log.log_debug('vios_mirrors=' + vios_mirrors.to_s)
+              Log.log_debug('vios_mirrors[vios]=' + vios_mirrors[vios].to_s)
+            end
+          end
+          #
+          if b_vios_pair_kept == 0
+            # This does not prevent from continuing on another pair
+            next
+          end
+          #
+          vios_best_disk = Vios.find_best_alt_disk_vios(vios, hvios, force)
+          # The 'vios_best_disk' output contains for vios the disk on which to perform alt_disk_copy.
+          Log.log_info('vios_best_disk=' + vios_best_disk.to_s)
+          #
+          ret = Vios.unmirror_altcopy_mirror_vios(vios_best_disk,
+                                                  vios_mirrors)
+          if ret != 0
+            Log.log_warning('Because vios unmirror_altcopy_mirror returns ' + ret.to_s + ' on "' + vios_best_disk.to_s + '", update cannot be run.')
+            # This does not prevent us from continuing on next pair
+            next
           end
         end
-        #
-        if b_vios_pair_kept == 1
-          vios_pairs_kept.push(vios_pair)
-        end
       end
-
-      hvios = Vios.check_altinst_rootvg(vios_pairs_kept)
-      if force == 'no'
-        unless hvios["1"].empty?
-          Log.log_warning('Because these "' + hvios["1"].to_s + '" vios already have an "altinst_rootvg", you should use "vios_force=yes" or "vios_force=reuse"')
-          return
-        end
-      end
-
-      vios_pairs_best_disks = Vios.find_best_alt_disks(vios_pairs_kept, hvios, force)
-      # The 'vios_pairs_best_disks' output contains more than vios_pairs with vios inside
-      # It contains as well for each vios the disk on which to perform alt_disk_copy.
-      Log.log_info('vios_pairs_best_disks=' + vios_pairs_best_disks.to_s)
-
-      #
-      ret = Vios.unmirror_altcopy_mirror(vios_pairs_best_disks, vios_mirrors)
 
       #
       if actions.include? 'update'
-        # VIOS update ! at least !!
-        if ret == 0
-          vios_lppsources.each do |key_vios, value_lpp_source|
-            Log.log_info('Launching update of "' + key_vios.to_s + '" vios with "' + value_lpp_source + '" lpp_source.')
-            update_cmd = Vios.prepare_updateios_command(key_vios, value_lpp_source, update_options)
-            Log.log_info('vios update of "' + key_vios.to_s + '" vios with "' + update_cmd.to_s + '" command.')
-            update_ret = Vios.nim_updateios(update_cmd, key_vios)
-            Log.log_info('vios update of "' + key_vios.to_s + '" vios returns ' + update_ret.to_s)
+        # VIOS update: at least!
+        vios_pair.each do |vios|
+          #
+          value_lpp_source = vios_lppsources[vios]
+          if value_lpp_source.nil? or value_lpp_source.empty?
+            Log.log_info('No lpp_source set on this "' + vios.to_s + '" vios. No update to be done.')
+            next
+          elsif Vios.check_altinst_rootvg_vios(vios) == 1 # Check altinst_rootvg
+            if actions.include? 'autocommit'
+              # Commit applied lpps if asked
+              Log.log_info('Perform autocommit before NIM updateios for "' + vios.to_s + '" vios')
+              autocommit_cmd = '/usr/sbin/nim -o updateios -a updateios_flags=-commit -a filesets=all ' + vios.to_s
+              # Perform autocommit
+              Log.log_info('vios update of "' + vios.to_s + '" vios with "' + autocommit_cmd.to_s + '" command.')
+              autocommit_cmd_ret = Vios.nim_updateios(autocommit_cmd, vios)
+              Log.log_debug('autocommit_cmd_ret = ' + autocommit_cmd_ret.to_s)
+            end
+            # Prepare update command
+            Log.log_info('Launching update of "' + vios.to_s + '" vios with "' + value_lpp_source.to_s + '" lpp_source.')
+            update_cmd = Vios.prepare_updateios_command(vios, value_lpp_source, update_options)
+            # Perform update
+            Log.log_info('vios update of "' + vios.to_s + '" vios with "' + update_cmd.to_s + '" command.')
+            update_ret = Vios.nim_updateios(update_cmd, vios)
+            Log.log_info('vios update of "' + vios.to_s + '" vios returns ' + update_ret.to_s)
+          else
+            Log.log_warning('Because there is no altinst_rootvg on "' + vios.to_s + '" vios, update cannot be run.')
           end
-        else
-          Log.log_err('vios unmirror_altcopy_mirror returns ' + ret.to_s)
         end
       end
     end
