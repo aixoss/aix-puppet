@@ -881,7 +881,10 @@ and #{filesets.size} filesets.")
         Log.log_info('End building NIM resource ' +
                          nim_lpp_source_resource)
         #
-        returned[nim_lpp_source_resource] = fixes
+        # remove fixe(s) if inter lock fileset detected
+        fl_lock_fixes = {}
+        fl_lock_fixes = filter_lock_fixes(target_nimresource_dir_name, fixes, target)
+        returned[nim_lpp_source_resource] = fl_lock_fixes.keys
         Log.log_debug('In step_build_nim_resource returned=' +
                           returned.to_s)
         returned
@@ -1608,6 +1611,157 @@ when checking!")
       end
 
       # ########################################################################
+      # name : filter_lock_fixes
+      # param : input:lpp_source_dir:string
+      # param : input:efixes_basenames:array
+      # param : input:target:string
+      #
+      # return hach table efix=>package_names filtered by locked filesets
+      # description : filtering  fixes list by locked filesets
+      # ########################################################################
+      def filter_lock_fixes (lpp_source_dir, efixes_basenames, target)
+        locked_pkg = []
+        list_pkg_name = {}
+        # get locked package from client
+        begin
+          locked_pkg = get_locked_packages(target)
+        rescue EmgrCmdError => e
+            Log.log_debug("filter_lock_fixes -> get_locked_packages Error for client #{target}:#{e}")
+        end
+        Log.log_debug("Locked package list for client [#{target}]: #{locked_pkg}")
+        # get package name from efix list
+        list_pkg_name = get_efix_packaging_names(lpp_source_dir, efixes_basenames)
+        list_pkg_name_copy = list_pkg_name.dup
+        Log.log_debug("Package list name: #{list_pkg_name}")
+        # remove efix from list if package is locked
+        locked_pkg.each do |item|
+          list_pkg_name.delete_if { |_, v| v.include?(item) }
+        end
+        # remove efix with package name doublon
+        unlock_efixes_basenames = {}
+        list_pkg_name.each do |k, v|
+          unlock_efixes_basenames[k] = v
+          del_key = []
+          list_pkg_name.delete(k)
+          v.each do |item|
+            list_pkg_name.each do |ky, va|
+              del_key << ky if va.include?(item)
+            end
+            list_pkg_name.delete_if { |kk, _| del_key.include?(kk) }
+          end
+        end
+        # next if efix list to apply is empty
+        if unlock_efixes_basenames.keys.empty?
+          Log.log_info("[#{target}] Have vulnerabilities but no installion will be done due to locked packages")
+          Log.log_info("[#{target}] Use force option to remove locked packages before update")
+        end
+        # check if conflict detected to log message
+        unlock_efixes_basenames.each do |key, _|
+          list_pkg_name_copy.delete(key)
+        end
+        unless list_pkg_name_copy.empty?
+          Log.log_info("[#{target}] Some Efix(es) will not be installed due to a conflict on packages:")
+          unless locked_pkg.empty?
+            Log.log_info("\t[#{target}]Locked packages:")
+            Log.log_info("\t" + locked_pkg.join("\n\t"))
+            Log.log_info("\n\tUse force option to remove locked packages before update")
+          end
+          Log.log_info("\t\tEFix\t=>    Packages   ")
+          Log.log_info("\t\t------------------------")
+          list_pkg_name_copy.each do |k, v|
+            Log.log_info("\t\t#{format('%s', k)}")
+            v.each do |item|
+              Log.log_info("\t\t\t\t=>#{format('%s', item)}")
+            end
+          end
+        end
+        unlock_efixes_basenames
+      end
+
+      # ########################################################################
+      # name : get_locked_packages
+      # param : input:machine:string
+      #
+      # return array of locked packages for a specific client
+      # description : get package names impacted from specific fileset
+      #    raise EmgrCmdError in case of error
+      # ########################################################################
+      def get_locked_packages(machine)
+        locked_packages = []
+        emgr_s = "/usr/lpp/bos.sysmgt/nim/methods/c_rsh #{machine} \"/usr/sbin/emgr -P\""
+        Log.log_debug("EMGR listing package locks: #{emgr_s}")
+        exit_status = Open3.popen3({ 'LANG' => 'C' }, emgr_s) do |_stdin, stdout, stderr, wait_thr|
+          stdout.each_line do |line|
+            next if line =~ /^PACKAGE\s*INSTALLER\s*LABEL/
+            next if line =~ /^=*\s\=*\s\=*/
+            line_array = line.split(' ')
+            Log.log_debug("emgr: adding locked package #{line_array[0]} to locked package list")
+            locked_packages.push(line_array[0])
+            Log.log_debug("[STDOUT] #{line.chomp}")
+          end
+          stderr.each_line do |line|
+            Log.log_debug("[STDERR] #{line.chomp}")
+          end
+          wait_thr.value # Process::Status object returned.
+        end
+        raise EmgrCmdError, "Error: Command \"#{emgr_s}\" returns above error!" unless exit_status.success?
+        locked_packages.delete_if { |item| item.nil? || item.empty? }
+        locked_packages
+      end
+
+      # ########################################################################
+      # name : get_pkg_names
+      # param : input:lpp_source_dir:string
+      # param : input:fileset:string
+      #
+      # return array of packaging names
+      # description : get package names impacted from specific fileset
+      #    raise EmgrCmdError in case of error
+      # ########################################################################
+      def get_pkg_names(lpp_source_dir, fileset)
+        pkg_names = []
+        cmd_s = "/usr/sbin/emgr -d -e #{lpp_source_dir}/#{fileset} -v3 | /bin/grep -w 'PACKAGE:' | /bin/cut -c16-"
+        Log.log_debug("get_pkg_name: #{cmd_s}")
+        Open3.popen3({ 'LANG' => 'C' }, cmd_s) do |_stdin, stdout, stderr, wait_thr|
+          stderr.each_line do |line|
+            Log.log_debug("[STDERR] #{line.chomp}")
+          end
+          unless wait_thr.value.success?
+            stdout.each_line { |line| Log.log_debug("[STDOUT] #{line.chomp}") }
+            raise EmgrCmdError, "Error: Command \"#{cmd_s}\" returns above error!"
+          end
+           stdout.each_line do |line|
+            Log.log_debug("[STDOUT] #{line.chomp}")
+            # match "  devices.pciex.df1060e214103404.com"
+            next unless line =~ /^\s*(\S*[.]\S*)\s*$/
+            pkg_names << Regexp.last_match(1)
+          end
+        end
+        Log.log_debug("get_pkg_names for: #{lpp_source_dir}/#{fileset} => #{pkg_names}")
+        pkg_names
+      end
+
+      # ########################################################################
+      # name : get_efix_packaging_names
+      # param : input:lpp_source_dir:string
+      # param : input:filesets:array
+      #
+      # return hash table package names (key = fileset)
+      # description : get package names from fileset list
+      # ########################################################################
+      def get_efix_packaging_names(lpp_source_dir, filesets)
+        pkg_names_h = {}
+        filesets.each do |fileset|
+          begin
+            pkg_names_h[fileset] = get_pkg_names(lpp_source_dir, fileset)
+          rescue EmgrCmdError => e
+            Log.log_debug("get_efix_packaging_names -> get_pkg_name Error: #{e}")
+          end
+        end
+        pkg_names_h
+      end
+
+      # ########################################################################
       # name : increase_filesystem
       # param : input:path:string
       #
@@ -1652,6 +1806,9 @@ when checking!")
     end
     #
     class InvalidCsvProperty < StandardError
+    end
+    #
+    class EmgrCmdError < StandardError
     end
     #
   end

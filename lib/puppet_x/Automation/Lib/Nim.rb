@@ -119,7 +119,7 @@ module Automation
 -a filesets='#{filesets}' #{target}"
         Log.log_debug("NIM install efixes cust operation: #{nim_command}")
         Log.log_debug("Start patching machine(s) '#{target}'.")
-        Open3.popen3({ 'LANG' => 'C' }, nim_command) \
+         exit_status = Open3.popen3({ 'LANG' => 'C' }, nim_command) \
 do |_stdin, stdout, stderr, wait_thr|
           thr = Thread.new do
             loop do
@@ -127,6 +127,7 @@ do |_stdin, stdout, stderr, wait_thr|
               sleep 3
             end
           end
+          sleep 4
           stdout.each_line do |line|
             line.chomp!
             Log.log_debug("\033[2K\r#{line}") if line =~ /^Processing Efix Package [0-9]+ of [0-9]+.$/
@@ -139,11 +140,11 @@ do |_stdin, stdout, stderr, wait_thr|
             line.chomp!
             Log.log_err(" #{line} !")
           end
-          unless stderr.nil?
-            Log.log_err(' To better understand error case, you should refer to remote file ' + target + ':/var/adm/ras/emgr.log')
-          end
           thr.exit
-          wait_thr.value # Process::Status object returned.
+          wait_thr.value # Process::Status object returned.-+
+        end
+        unless exit_status.success?
+          Log.log_err(' To better understand error case, you should refer to remote file ' + target + ':/var/adm/ras/emgr.log')
         end
         Log.log_debug("Finish patching #{target}.")
       end
