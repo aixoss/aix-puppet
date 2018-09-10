@@ -81,22 +81,28 @@ with \"#{resource[:update_options]}\" update_options.")
             break
           end
           #
-          Log.log_info('nim_vios 1 =' + nim_vios.to_s + ' hmc_id=' + hmc_id + ' hmc_ip=' + hmc_ip)
-          ret = Vios.vios_health_init(nim_vios,
-                                      hmc_id,
-                                      hmc_ip)
-          if ret == 0
-            Log.log_info('nim_vios 2 =' + nim_vios.to_s)
-            ret = Vios.vios_health_check(nim_vios,
-                                         hmc_ip,
-                                         vios_pair)
-            if ret == 1
-              Log.log_err('Check health of "' + vios_pair.to_s + '" vios pair is unsuccessful')
+          if vios_pair.size == 2
+            Log.log_info('nim_vios 1 =' + nim_vios.to_s + ' hmc_id=' + hmc_id + ' hmc_ip=' + hmc_ip)
+            ret = Vios.vios_health_init(nim_vios,
+                                        hmc_id,
+                                        hmc_ip)
+            if ret == 0
+              Log.log_info('nim_vios 2 =' + nim_vios.to_s)
+              ret = Vios.vios_health_check(nim_vios,
+                                           hmc_ip,
+                                           vios_pair)
+              if ret == 1
+                Log.log_err('Check health of "' + vios_pair.to_s + '" vios pair is unsuccessful')
+                # This does not prevent from continuing on another pair
+                next
+              end
+            else
+              Log.log_warning('Not possible to check health of vios_pair : ' + vios_pair.to_s + ' as init step failed.')
               # This does not prevent from continuing on another pair
               next
             end
           else
-            Log.log_warning('Not possible to check health of vios_pair : ' + vios_pair.to_s)
+            Log.log_warning('Not possible to check health of vios_pair : ' + vios_pair.to_s + ' as only one member into pair.')
             # This does not prevent from continuing on another pair
             next
           end

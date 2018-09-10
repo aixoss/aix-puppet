@@ -43,7 +43,7 @@ Puppet::Type.newtype(:vios) do
     validate do |values|
       Log.log_debug('values=' + values.to_s)
       # To parse input
-      results = values.scan(/\([\w\-]+,[\w\-]+\)/)
+      results = values.scan(/\([\w\-]+,*[\w\-]+\)/)
       # v2
       #  if values="(vios11,vios12),(vios21,vios22),(vios31,vios32)"
       #  results=[["vios11","vios12"], ["vios21","vios22"], ["vios31","vios32"]]

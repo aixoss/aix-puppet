@@ -93,16 +93,13 @@ module Automation
         Log.log_debug('Into check_input_vios_pair vios_pair=' + vios_pair.to_s +
                           ' kept=' + kept.to_s +
                           ' suppressed=' + suppressed.to_s)
-
         b_suppressed = false
-
         validity_vios = {}
         vios_pair.each do |vios|
           # Log.log_info('valid_vios_keys=' + valid_vios_keys.to_s +
           #  ' vios=' + vios + ' include=' + (valid_vios_keys.include?(vios)).to_s)
           msg = 'Launch of VIOS udate on "' + vios.to_s + '" vios.'
           Vios.add_vios_msg(vios, msg, true)
-
           # Each vios is checked against the list of valid vios checked by vios facter
           validity_vios[vios] = Vios.check_vios(vios)
           unless validity_vios[vios]
@@ -938,6 +935,7 @@ size_candidate_disk=#{size_candidate_disk}")
 
         vgs = ['old_rootvg', 'altinst_rootvg']
         vgs.each do |vg|
+          ret = 1
           used_alt_disk[0] = ''
           Log.log_info('Is there any existing ' + vg + ' on ' + vios.to_s + '?')
           remote_cmd0 = '/usr/sbin/lspv | /bin/grep -w ' + vg
