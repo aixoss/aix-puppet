@@ -29,13 +29,13 @@ class aixautomation {
     # Test case where vios pair is constituted with only one vios
     ensure               => present,
     name                 => 'vios',
-    # actions => 'check,save,update',
-    actions              => 'health,check,save,update',
+    # actions => 'health,check,save,update',
+    actions              => 'check,save',
     #vios_pairs           => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
     vios_pairs           => '(p7juav1,p7juav2),(quimby-vios2)',
     update_options       => 'accept_licenses,commit',
-    altinst_rootvg_force => 'yes',
-    #vios_lpp_sources     => 'p7juav1=vios_update_22560,p7juav2=vios_update_22621',
+    altinst_rootvg_force => 'reuse',
+    # vios_altinst_rootvg  => 'p7juav1=hdisk0',
     vios_lpp_sources     => 'p7juav1=vios_update_22623,p7juav2=vios_update_22623',
   }
   # vios { 'vios12':

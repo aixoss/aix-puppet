@@ -1073,8 +1073,8 @@ size_candidate_disk=#{size_candidate_disk}")
             return ret
           end
         else
-          # We cannot do alt_disk_copy as we only have one parameter
-          Log.log_info('We cannot attempt a alt_disk_copy on ' + vios_best_disk.to_s)
+          # No need to attempt an alt_disk_copy as we only have one parameter
+          Log.log_info('No need to attempt an alt_disk_copy on ' + vios_best_disk.to_s)
           Log.log_info('This is not an error')
         end
         ret

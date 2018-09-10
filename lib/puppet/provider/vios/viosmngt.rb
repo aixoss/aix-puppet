@@ -139,12 +139,20 @@ with \"#{resource[:update_options]}\" update_options.")
           end
 
           # If vios already has an altinst_rootvg and we have force="reuse"
-          #  then there is no need to check for mirror
+          #  then there is no need:
+          #   - to check for mirror
+          #   - to find best alt disk
+          #   - to mirror
+          skip_unmirror_find_mirror = false
           if force == 'reuse' and hvios["1"].include? vios
             msg = 'No need to check mirroring on "' + vios.to_s + '" vios, as we reuse altinst_rootvg'
             Vios.add_vios_msg(vios, msg)
             Log.log_info(msg)
-          else
+            skip_unmirror_find_mirror = true
+          end
+
+          #
+          unless skip_unmirror_find_mirror
             copies = []
             ret = Vios.check_rootvg_mirror(vios, copies)
             Log.log_info('check_rootvg_mirror=' + vios.to_s + ' ret=' + ret.to_s + ' copies=' + copies.to_s)
@@ -158,23 +166,23 @@ with \"#{resource[:update_options]}\" update_options.")
               Log.log_debug('vios_mirrors=' + vios_mirrors.to_s)
               Log.log_debug('vios_mirrors[vios]=' + vios_mirrors[vios].to_s)
             end
-          end
-          #
-          if b_vios_pair_kept == 0
-            # This does not prevent from continuing on another pair
-            next
-          end
-          #
-          vios_best_disk = Vios.find_best_alt_disk_vios(vios, hvios, force)
-          # The 'vios_best_disk' output contains for vios the disk on which to perform alt_disk_copy.
-          Log.log_info('vios_best_disk=' + vios_best_disk.to_s)
-          #
-          ret = Vios.unmirror_altcopy_mirror_vios(vios_best_disk,
-                                                  vios_mirrors)
-          if ret != 0
-            Log.log_warning('Because vios unmirror_altcopy_mirror returns ' + ret.to_s + ' on "' + vios_best_disk.to_s + '", update cannot be run.')
-            # This does not prevent us from continuing on next pair
-            next
+            #
+            if b_vios_pair_kept == 0
+              # This does not prevent from continuing on another pair
+              next
+            end
+            #
+            vios_best_disk = Vios.find_best_alt_disk_vios(vios, hvios, force)
+            # The 'vios_best_disk' output contains for vios the disk on which to perform alt_disk_copy.
+            Log.log_info('vios_best_disk=' + vios_best_disk.to_s)
+            #
+            ret = Vios.unmirror_altcopy_mirror_vios(vios_best_disk,
+                                                    vios_mirrors)
+            if ret != 0
+              Log.log_warning('Because vios unmirror_altcopy_mirror returns ' + ret.to_s + ' on "' + vios_best_disk.to_s + '", update cannot be run.')
+              # This does not prevent us from continuing on next pair
+              next
+            end
           end
         end
       end
