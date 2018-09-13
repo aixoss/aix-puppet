@@ -107,11 +107,27 @@ with \"#{resource[:update_options]}\" update_options.")
             next
           end
         end
+
+        #
+        Log.log_debug('Getting SSP status on : ' + vios_pair.to_s + ' vios pair')
+        returned = Vios.get_vios_ssp_status(vios_pair,
+                                            nim_vios)
+        # Log.log_debug('After getting SSP status : ' + nim_vios.to_s + ' returned=' + returned.to_s)
+        if returned == 0
+          ssp_check = Vios.check_vios_ssp_status(vios_pair,
+                                                 nim_vios)
+          Log.log_debug('After checking SSP status : ssp_check=' + ssp_check.to_s)
+        end
+        Log.log_warning('SSP status KO on : ' + vios_pair.to_s + ' vios pair') unless ssp_check
+        unless ssp_check
+          # This does not prevent from continuing on another pair
+          next
+        end
       end
 
       #
       if actions.include? 'save'
-
+        #
         vios_mirrors = {}
         hvios = Vios.check_altinst_rootvg_pair(vios_pair)
         if force == 'no'
@@ -122,7 +138,6 @@ with \"#{resource[:update_options]}\" update_options.")
           end
         end
 
-        #
         # A priori, vios_pair is kept
         #  It won't be kept, if ever the check_rootvg_mirror test fails.
         b_vios_pair_kept = 1
@@ -206,13 +221,29 @@ with \"#{resource[:update_options]}\" update_options.")
               autocommit_cmd_ret = Vios.nim_updateios(autocommit_cmd, vios)
               Log.log_debug('autocommit_cmd_ret = ' + autocommit_cmd_ret.to_s)
             end
+
+            #
+            ssp_check = Vios.ssp_stop_start('stop',
+                                            vios,
+                                            vios_pair,
+                                            nim_vios)
+            Log.log_info('ssp_stop_start stop returning ' + ssp_check.to_s)
+
             # Prepare update command
             Log.log_info('Launching update of "' + vios.to_s + '" vios with "' + value_lpp_source.to_s + '" lpp_source.')
-            update_cmd = Vios.prepare_updateios_command(vios, value_lpp_source, update_options)
+            update_cmd = Vios.prepare_updateios_command(vios, value_lpp_source, options, update_options)
             # Perform update
             Log.log_info('vios update of "' + vios.to_s + '" vios with "' + update_cmd.to_s + '" command.')
             update_ret = Vios.nim_updateios(update_cmd, vios)
             Log.log_info('vios update of "' + vios.to_s + '" vios returns ' + update_ret.to_s)
+
+            #
+            ssp_check = Vios.ssp_stop_start('start',
+                                            vios,
+                                            vios_pair,
+                                            nim_vios)
+            Log.log_info('ssp_stop_start start returning ' + ssp_check.to_s)
+
           else
             Log.log_warning('Because there is no altinst_rootvg on "' + vios.to_s + '" vios, update cannot be run.')
           end

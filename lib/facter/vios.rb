@@ -58,7 +58,7 @@ Facter.add('vios') do
 
             ##### /etc/niminfo
             niminfo_str = ""
-            remote_cmd_rc = Remote.c_rsh(vios, "/bin/cat /etc/niminfo | \
+            remote_cmd_rc = Remote.c_rsh(vios, "/bin/cat /etc/niminfo |\
  /bin/grep '=' | /bin/sed 's/export //g'", niminfo_str)
             # Log.log_debug("remote_cmd_rc   =#{remote_cmd_rc}")
             if remote_cmd_rc == 0

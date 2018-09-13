@@ -1,6 +1,6 @@
 # ##############################################################################
 # To define constants
-# If run inside puppet some constants come from Facter, otherwise they are
+# If run inside Puppet some constants come from Facter, otherwise they are
 #  hard_coded.
 # ##############################################################################
 module Automation

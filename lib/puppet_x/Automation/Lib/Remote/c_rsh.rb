@@ -49,11 +49,13 @@ module Automation
         if !stderr.nil? && !stderr.strip.empty?
           Log.log_err("c_rsh stderr=#{stderr}")
         end
-        output[0] = if c_rsh_rc == 0
-                      stdout2
-                    else
-                      stderr
-                    end
+        if c_rsh_rc == 0
+          output[0] = stdout2
+        elsif !stderr.nil? and !stderr.empty?
+          output[0] = stderr
+        else
+          output[0] = stdout2
+        end
         c_rsh_rc
       end
     end # Module Remote

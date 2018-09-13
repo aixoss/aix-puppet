@@ -59,7 +59,7 @@ Puppet::Type.newtype(:vios) do
         Vios.check_input_vios_pair(vios_pair, kept, suppressed)
       end
 
-      Log.log_err('"vios_pairs" which cannot be kept : ' + suppressed.to_s)
+      Log.log_err('"vios_pairs" which cannot be kept : ' + suppressed.to_s) if suppressed.length > 0
       Log.log_info('"vios_pairs" which can be kept : ' + kept.to_s)
     end
 
@@ -127,7 +127,7 @@ associated to vios_pairs, used to perform update or install'
   # ############################################################################
   newparam(:actions) do
     desc '"actions" attribute: actions to be performed on vios. \
- Possible actions : "health", "check", "clean", "save", "autocommit", "update", "restore"'
+ Possible actions : "health", "check", "clean", "unmirror", "save", "autocommit", "update", "restore"'
     param_actions = []
     # To parse input
     validate do |values|
@@ -140,6 +140,7 @@ associated to vios_pairs, used to perform update or install'
         if action.to_s != 'health' &&
             action.to_s != 'check' &&
             action.to_s != 'clean' &&
+            action.to_s != 'unmirror' &&
             action.to_s != 'save' &&
             action.to_s != 'autocommit' &&
             action.to_s != 'update' &&
@@ -159,16 +160,53 @@ associated to vios_pairs, used to perform update or install'
   end
 
   # ############################################################################
+  # :options attribute to set options to be passed at update
+  #  Possible options are :
+  #   accept_licenses (default is to not accept license)
+  #   preview (default is to commit)
+  # Check :options against a short list, provide a default
+  # ############################################################################
+  newparam(:options) do
+    desc '"options" attribute: options to be passed to update. \
+ Possible options are : "accept_licenses, preview"'
+    param_options = []
+    # To parse input
+    validate do |values|
+      Log.log_debug('values=' + values.to_s)
+      param_options = values.scan(/\w+/)
+      Log.log_debug('param_options=' + param_options.to_s)
+      invalid_options = ''
+      param_options.each do |option|
+        Log.log_debug('option=' + option.to_s)
+        if option.to_s != 'accept_licenses' &&
+            option.to_s != 'preview'
+          Log.log_debug('invalid options=' + option.to_s)
+          invalid_options += ' ' + option
+        end
+      end
+      raise('"options" contains invalid options :' +
+                invalid_options) unless invalid_options.empty?
+    end
+
+    munge do |_values|
+      param_options
+    end
+  end
+
+  # ############################################################################
   # :update_options attribute to set options to be passed at update
   #  Possible update options are :
-  #   accept_licenses (default is not not accept license)
-  #   commit  (default is to do preview only)
-  #   remove  (default is to perform install)
+  # https://www.ibm.com/support/knowledgecenter/en/ssw_aix_72/com.ibm.aix.install/nim_op_updateios.htm
+  #   install
+  #   commit
+  #   remove
+  #   reject
+  #   cleanup
   # Check :update_options against a short list, provide a default
   # ############################################################################
   newparam(:update_options) do
     desc '"update_options" attribute: options to be passed to update. \
- Possible update_options are : "accept_licenses", "commit", "remove"'
+ Possible update_options are : "install", "commit", "remove", "reject", "cleanup"'
     param_update_options = []
     # To parse input
     validate do |values|
@@ -178,14 +216,15 @@ associated to vios_pairs, used to perform update or install'
       invalid_update_options = ''
       param_update_options.each do |update_option|
         Log.log_debug('update_option=' + update_option.to_s)
-        if update_option.to_s != 'accept_licenses' &&
+        if update_option.to_s != 'install' &&
             update_option.to_s != 'commit' &&
-            update_option.to_s != 'remove'
+            update_option.to_s != 'remove' &&
+            update_option.to_s != 'reject' &&
+            update_option.to_s != 'cleanup'
           Log.log_debug('invalid update_options=' + update_option.to_s)
           invalid_update_options += ' ' + update_option
         end
       end
-
       raise('"update_options" contains invalid update options :' +
                 invalid_update_options) unless invalid_update_options.empty?
     end

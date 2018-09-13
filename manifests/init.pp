@@ -7,6 +7,15 @@
 #   -a Action=Preview -a DLTarget=/tmp/lpp_sources/SP/7200-01-02-1717/7200-01-03-1720 \
 #   -a FilterDir=/tmp/lpp_sources/SP/7200-01-02-1717/7200-01-03-1720
 class aixautomation {
+  # fix { "example of eFix installation":
+  #   provider => flrtvc,
+  #   name     => "example of eFix installation",
+  #   ensure   => present,
+  #   to_step  => "installResource",
+  #   targets  => "quimby01 quimby02 quimby03 quimby04 quimby05 quimby06 quimby07 quimby08 quimby09 quimby10 quimby11 quimby12",
+  #   force    => "no",
+  #   root     => "/export/extra/puppet/flrtvc",
+  # }
   # vios { 'vios0':
   #   ensure  => present,
   #   name => 'vios0',
@@ -17,23 +26,29 @@ class aixautomation {
   #   ensure               => present,
   #   name                 => 'vios',
   #   # actions => 'check,save,update',
-  #   actions              => 'check,save,autocommit,update',
-  #   update_options       => 'accept_licenses, commit',
-  #   #vios_pairs           => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
-  #   vios_pairs           => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
-  #   altinst_rootvg_force => 'yes',
-  #   #vios_lpp_sources     => 'p7juav1=vios_update_22560,p7juav2=vios_update_22621',
-  #   vios_lpp_sources     => 'p7juav1=vios_update_2261,p7juav2=vios_update_2261',
+  #   actions              => 'check',
+  #   options              => 'accept_licenses, preview',
+  #   # update_options       => 'install, commit, reject, cleanup, remove',
+  #   update_options       => 'commit',
+  #   ##  All of that get into '-a updateios_flags=-%s
+  #   # vios_pairs           => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
+  #
+  #   vios_pairs           => '(castor_gdr_vios2,castor_gdr_vios3), (castor_gdr_vios1)',
+  #   # altinst_rootvg_force => 'yes',
+  #   # vios_lpp_sources     => 'p7juav1=vios_update_22560,p7juav2=vios_update_22621',
+  #   # vios_lpp_sources     => 'p7juav1=vios_update_2261,p7juav2=vios_update_2261',
   # }
   vios { 'vios12':
     # Test case where vios pair is constituted with only one vios
     ensure               => present,
     name                 => 'vios',
     # actions => 'health,check,save,update',
-    actions              => 'check,save',
+    actions              => 'check',
     #vios_pairs           => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
     vios_pairs           => '(p7juav1,p7juav2),(quimby-vios2)',
-    update_options       => 'accept_licenses,commit',
+    options              => 'accept_licenses, preview',
+    # update_options       => 'install, commit, reject, cleanup, remove',
+    update_options       => 'reject',
     altinst_rootvg_force => 'reuse',
     # vios_altinst_rootvg  => 'p7juav1=hdisk0',
     vios_lpp_sources     => 'p7juav1=vios_update_22623,p7juav2=vios_update_22623',
