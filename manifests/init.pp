@@ -43,7 +43,7 @@ class aixautomation {
     ensure               => present,
     name                 => 'vios',
     # actions => 'health,check,save,update',
-    actions              => 'check',
+    actions              => 'check,save,update',
     #vios_pairs           => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
     vios_pairs           => '(p7juav1,p7juav2),(quimby-vios2)',
     options              => 'accept_licenses, preview',

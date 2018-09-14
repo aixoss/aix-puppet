@@ -125,7 +125,7 @@ Facter.add('vios') do
                   vios_hash['SSP_CLUSTER_NAME'] = ''
                 end
               else
-                Log.log_warning('No SSP cluster on this \"' + vios + '\" vios, this is NOT an error, and above error message is NOT an error.')
+                Log.log_warning('No SSP cluster on this "' + vios + '" vios, this is NOT an error, and above error message is NOT an error.')
                 vios_hash['SSP_CLUSTER_NAME'] = ''
               end
 

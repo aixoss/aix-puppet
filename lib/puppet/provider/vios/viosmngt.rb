@@ -65,7 +65,7 @@ with \"#{resource[:update_options]}\" update_options.")
     end
 
     # We loop against vios_pairs
-    Log.log_info('We loop againts vios_pairs=' + vios_pairs.to_s)
+    Log.log_info('We loop against vios_pairs=' + vios_pairs.to_s)
     vios_pairs.each do |vios_pair|
       Log.log_info('vios_pair=' + vios_pair.to_s)
       #
