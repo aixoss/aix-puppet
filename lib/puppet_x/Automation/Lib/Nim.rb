@@ -119,7 +119,7 @@ module Automation
 -a filesets='#{filesets}' #{target}"
         Log.log_debug("NIM install efixes cust operation: #{nim_command}")
         Log.log_debug("Start patching machine(s) '#{target}'.")
-         exit_status = Open3.popen3({ 'LANG' => 'C' }, nim_command) \
+        exit_status = Open3.popen3({'LANG' => 'C'}, nim_command) \
 do |_stdin, stdout, stderr, wait_thr|
           thr = Thread.new do
             loop do
@@ -187,7 +187,7 @@ target + ') lpp_source=' + lpp_source)
                 next unless !efix.nil? && !efix.strip.empty?
                 efix = efix.chomp
                 Log.log_info('Removing (' + index_efix.to_s + '/' +
-                                  nb_of_efixes.to_s + ') ' + efix)
+                                 nb_of_efixes.to_s + ') ' + efix)
                 remote_cmd = '/usr/sbin/emgr -r -L ' + efix
                 remote_cmd_rc = Remote.c_rsh(target,
                                              remote_cmd,
@@ -241,7 +241,7 @@ target + ') lpp_source=' + lpp_source)
         #
         Log.log_debug("NIM updateios operation: #{nim_command}")
         Log.log_debug("Start patching machine(s) '#{vios}'.")
-        exit_status = Open3.popen3({ 'LANG' => 'C' }, nim_command) do |_stdin, stdout, stderr, wait_thr|
+        exit_status = Open3.popen3({'LANG' => 'C'}, nim_command) do |_stdin, stdout, stderr, wait_thr|
           thr = Thread.new do
             loop do
               print '.'

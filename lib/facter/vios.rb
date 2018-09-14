@@ -94,8 +94,44 @@ Facter.add('vios') do
                 end
               end
 
+              # SSP cluster name
+              remote_cmd1 = '/usr/ios/cli/ioscli lsdev -dev vioscluster0 -attr clustername'
+              remote_output1 = []
+              remote_cmd_rc1 = Remote.c_rsh(vios,
+                                            remote_cmd1,
+                                            remote_output1)
+              #
+              Log.log_debug('remote_output1[0]=' + remote_output1[0].to_s + ' remote_cmd_rc1=' + remote_cmd_rc1.to_s)
+              #
+              if remote_cmd_rc1 == 0
+                # Cluster exists on this vios
+                if !remote_output1[0].nil? and !remote_output1[0].empty?
+                  remote_output1_lines = remote_output1[0].split("\n")
+                  # Log.log_debug('remote_output1_lines=' + remote_output1_lines.to_s)
+                  remote_output1_lines.each do |remote_output1_line|
+                    remote_output1_line.chomp!
+                    Log.log_debug('remote_output1_line=' + remote_output1_line.to_s)
+                    if remote_output1_line =~ /value/
+                      next
+                    elsif remote_output1_line.empty?
+                      next
+                    else
+                      cluster_name = remote_output1_line
+                      vios_hash['SSP_CLUSTER_NAME'] = cluster_name
+                    end
+                  end
+                else
+                  Log.log_debug('remote_output1[] empty')
+                  vios_hash['SSP_CLUSTER_NAME'] = ''
+                end
+              else
+                Log.log_warning('No SSP cluster on this \"' + vios + '\" vios, this is NOT an error, and above error message is NOT an error.')
+                vios_hash['SSP_CLUSTER_NAME'] = ''
+              end
+
+
               # yeah, we keep it !
-              # Log.log_debug("vios_hash   =#{vios_hash}")
+              # Log.log_debug(" vios_hash = #{vios_hash}")
               vios_kept[vios] = vios_hash
             else
               Log.log_err("error while doing c_rsh '/bin/cat /etc/niminfo' on " + vios)

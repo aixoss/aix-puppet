@@ -45,6 +45,9 @@ with \"#{resource[:update_options]}\" update_options.")
     vios_lppsources = resource[:vios_lpp_sources]
     Log.log_debug('vios_lppsources=' + vios_lppsources.to_s)
     #
+    options = resource[:options]
+    Log.log_debug('options=' + options.to_s)
+    #
     update_options = resource[:update_options]
     Log.log_debug('update_options=' + update_options.to_s)
 
@@ -109,19 +112,46 @@ with \"#{resource[:update_options]}\" update_options.")
         end
 
         #
-        Log.log_debug('Getting SSP status on : ' + vios_pair.to_s + ' vios pair')
-        returned = Vios.get_vios_ssp_status(vios_pair,
-                                            nim_vios)
-        # Log.log_debug('After getting SSP status : ' + nim_vios.to_s + ' returned=' + returned.to_s)
-        if returned == 0
-          ssp_check = Vios.check_vios_ssp_status(vios_pair,
-                                                 nim_vios)
-          Log.log_debug('After checking SSP status : ssp_check=' + ssp_check.to_s)
-        end
-        Log.log_warning('SSP status KO on : ' + vios_pair.to_s + ' vios pair') unless ssp_check
-        unless ssp_check
-          # This does not prevent from continuing on another pair
-          next
+        Log.log_debug('Checking SSP cluster on : ' + vios_pair.to_s + ' vios pair')
+        cluster_name = Vios.check_ssp_cluster(vios_pair,
+                                              nim_vios)
+        #
+        if !cluster_name.empty?
+          #
+          Log.log_debug('Checking SSP cluster on : ' + vios_pair.to_s + ' vios pair')
+          returned = Vios.get_vios_ssp_status(vios_pair,
+                                              nim_vios)
+          # Log.log_debug('After getting SSP status : ' + nim_vios.to_s + ' returned=' + returned.to_s)
+          if returned == 0
+            ssp_check = Vios.check_vios_ssp_status(vios_pair,
+                                                   nim_vios)
+            Log.log_debug('After checking SSP status : ssp_check=' + ssp_check.to_s)
+          end
+          Log.log_warning('SSP status KO on : ' + vios_pair.to_s + ' vios pair') unless ssp_check
+          unless ssp_check
+            # This does not prevent from continuing on another pair
+            next
+          end
+
+          # Only for quick testing
+          # vios_pair.each do |vios|
+          #   Log.log_info('vios=' + vios.to_s)
+          #   ssp_check = Vios.ssp_stop_start('stop',
+          #                                   vios,
+          #                                   vios_pair,
+          #                                   nim_vios)
+          #   Log.log_info('ssp_stop_start stop returning ' + ssp_check.to_s)
+          #
+          #   ssp_check = Vios.ssp_stop_start('start',
+          #                                   vios,
+          #                                   vios_pair,
+          #                                   nim_vios)
+          #   Log.log_info('ssp_stop_start stop returning ' + ssp_check.to_s)
+          # end
+
+
+        else
+          Log.log_debug('No need to check SSP cluster on : ' + vios_pair.to_s + ' vios pair')
         end
       end
 
@@ -231,7 +261,10 @@ with \"#{resource[:update_options]}\" update_options.")
 
             # Prepare update command
             Log.log_info('Launching update of "' + vios.to_s + '" vios with "' + value_lpp_source.to_s + '" lpp_source.')
-            update_cmd = Vios.prepare_updateios_command(vios, value_lpp_source, options, update_options)
+            update_cmd = Vios.prepare_updateios_command(vios,
+                                                        value_lpp_source,
+                                                        options,
+                                                        update_options)
             # Perform update
             Log.log_info('vios update of "' + vios.to_s + '" vios with "' + update_cmd.to_s + '" command.')
             update_ret = Vios.nim_updateios(update_cmd, vios)

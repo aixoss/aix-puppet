@@ -170,89 +170,89 @@ module Automation
         # Log.log_debug('get_flrtvc_name type=' + type.to_s + ' target=' +
         #                  target.to_s + ' name_suffix=' + name_suffix.to_s)
         case type
-        when :temp_dir
-          returned = ::File.join(@root_dir,
-                                 'temp')
-          # check it exist
-          Utils.check_directory(returned)
-          # clean it
-          FileUtils.rm_rf Dir.glob("#{returned}/*")
-        when :tar_dir
-          returned = ::File.join(@root_dir,
-                                 'tar_dir')
-          Utils.check_directory(returned)
-        when :tempftp_download
-          returned = ::File.join(@root_dir,
-                                 'tempftp_download')
-          Utils.check_directory(returned)
-        when :common_efixes
-          returned = ::File.join(@root_dir,
-                                 'common_efixes')
-          Utils.check_directory(returned)
-        when :efixes
-          returned = ::File.join(Constants.output_dir,
-                                 'flrtvc')
-          Utils.check_directory(returned)
-          returned = ::File.join(returned,
-                                 "#{target}_#{name_suffix}")
-        when :emgr
-          returned = ::File.join(Constants.output_dir,
-                                 'flrtvc')
-          Utils.check_directory(returned)
-          returned = ::File.join(returned,
-                                 "#{target}_emgr.txt")
-        when :filesets
-          returned = ::File.join(Constants.output_dir,
-                                 'flrtvc')
-          Utils.check_directory(returned)
-          returned = ::File.join(returned,
-                                 "#{target}_filesets.txt")
-        when :flrtvc
-          returned = ::File.join(Constants.output_dir,
-                                 'flrtvc')
-          Utils.check_directory(returned)
-          returned = ::File.join(returned,
-                                 "#{target}_flrtvc.csv")
-        when :lslpp
-          returned = ::File.join(Constants.output_dir,
-                                 'flrtvc')
-          Utils.check_directory(returned)
-          returned = ::File.join(returned,
-                                 "#{target}_lslpp.txt")
-        when :NIM_dir
-          returned = ::File.join(@root_dir,
-                                 "#{target}_NIM",
-                                 'emgr',
-                                 'ppc')
-          Utils.check_directory(returned)
-        when :NIM_res
-          returned = "PAA_FLRTVC_#{target}"
-        when :URL
-          returned = ::File.join(Constants.output_dir,
-                                 'flrtvc')
-          Utils.check_directory(returned)
-          returned = ::File.join(returned,
-                                 "#{target}_URL.txt")
-        when :YML
-          returned = ::File.join(Constants.output_dir,
-                                 'flrtvc')
-          Utils.check_directory(returned)
-          returned = if name_suffix == 'lppminmax_of_fixes'
-                       ::File.join(returned,
-                                   "#{name_suffix}.yml")
-                     elsif name_suffix == 'all_listoffixes_per_url'
-                       ::File.join(returned,
-                                   "#{name_suffix}.yml")
-                     else
-                       ::File.join(returned,
-                                   "#{target}_#{name_suffix}.yml")
-                     end
-        else
-          returned = ::File.join(Constants.output_dir,
-                                 'flrtvc')
-          Utils.check_directory(returned)
-          returned = ::File.join(returned,
-                                 type + "_#{target}.txt")
+          when :temp_dir
+            returned = ::File.join(@root_dir,
+                                   'temp')
+            # check it exist
+            Utils.check_directory(returned)
+            # clean it
+            FileUtils.rm_rf Dir.glob("#{returned}/*")
+          when :tar_dir
+            returned = ::File.join(@root_dir,
+                                   'tar_dir')
+            Utils.check_directory(returned)
+          when :tempftp_download
+            returned = ::File.join(@root_dir,
+                                   'tempftp_download')
+            Utils.check_directory(returned)
+          when :common_efixes
+            returned = ::File.join(@root_dir,
+                                   'common_efixes')
+            Utils.check_directory(returned)
+          when :efixes
+            returned = ::File.join(Constants.output_dir,
+                                   'flrtvc')
+            Utils.check_directory(returned)
+            returned = ::File.join(returned,
+                                   "#{target}_#{name_suffix}")
+          when :emgr
+            returned = ::File.join(Constants.output_dir,
+                                   'flrtvc')
+            Utils.check_directory(returned)
+            returned = ::File.join(returned,
+                                   "#{target}_emgr.txt")
+          when :filesets
+            returned = ::File.join(Constants.output_dir,
+                                   'flrtvc')
+            Utils.check_directory(returned)
+            returned = ::File.join(returned,
+                                   "#{target}_filesets.txt")
+          when :flrtvc
+            returned = ::File.join(Constants.output_dir,
+                                   'flrtvc')
+            Utils.check_directory(returned)
+            returned = ::File.join(returned,
+                                   "#{target}_flrtvc.csv")
+          when :lslpp
+            returned = ::File.join(Constants.output_dir,
+                                   'flrtvc')
+            Utils.check_directory(returned)
+            returned = ::File.join(returned,
+                                   "#{target}_lslpp.txt")
+          when :NIM_dir
+            returned = ::File.join(@root_dir,
+                                   "#{target}_NIM",
+                                   'emgr',
+                                   'ppc')
+            Utils.check_directory(returned)
+          when :NIM_res
+            returned = "PAA_FLRTVC_#{target}"
+          when :URL
+            returned = ::File.join(Constants.output_dir,
+                                   'flrtvc')
+            Utils.check_directory(returned)
+            returned = ::File.join(returned,
+                                   "#{target}_URL.txt")
+          when :YML
+            returned = ::File.join(Constants.output_dir,
+                                   'flrtvc')
+            Utils.check_directory(returned)
+            returned = if name_suffix == 'lppminmax_of_fixes'
+                         ::File.join(returned,
+                                     "#{name_suffix}.yml")
+                       elsif name_suffix == 'all_listoffixes_per_url'
+                         ::File.join(returned,
+                                     "#{name_suffix}.yml")
+                       else
+                         ::File.join(returned,
+                                     "#{target}_#{name_suffix}.yml")
+                       end
+          else
+            returned = ::File.join(Constants.output_dir,
+                                   'flrtvc')
+            Utils.check_directory(returned)
+            returned = ::File.join(returned,
+                                   type + "_#{target}.txt")
         end
         # Log.log_debug('get_flrtvc_name returning ' + returned)
         returned
@@ -314,27 +314,27 @@ module Automation
         # Log.log_debug('Into run_step(' + step.to_s + ', ' +
         #                  target + ', ' + param.to_s + ')')
         case step
-        when :status
-          returned = step_status(step, target, param)
-        when :installFlrtvc
-          returned = step_install_flrtvc(step)
-        when :runFlrtvc
-          returned = step_run_flrtvc(step, target)
-        when :parseFlrtvc
-          returned = step_parse_flrtvc(step, target, param)
-        when :downloadFixes
-          returned = step_perform_downloads(step, target, param)
-        when :checkFixes
-          returned = step_check_fixes(step, target, param)
-        when :buildResource
-          returned = step_build_nim_resource(step, target, param)
-        when :installFixes
-          returned = step_install_fixes(step, target, param)
-        when :removeFixes
-          returned = step_remove_fixes(step, target)
-        else
-          Log.log_err('Unknown step ' + step.to_s)
-          returned = ''
+          when :status
+            returned = step_status(step, target, param)
+          when :installFlrtvc
+            returned = step_install_flrtvc(step)
+          when :runFlrtvc
+            returned = step_run_flrtvc(step, target)
+          when :parseFlrtvc
+            returned = step_parse_flrtvc(step, target, param)
+          when :downloadFixes
+            returned = step_perform_downloads(step, target, param)
+          when :checkFixes
+            returned = step_check_fixes(step, target, param)
+          when :buildResource
+            returned = step_build_nim_resource(step, target, param)
+          when :installFixes
+            returned = step_install_fixes(step, target, param)
+          when :removeFixes
+            returned = step_remove_fixes(step, target)
+          else
+            Log.log_err('Unknown step ' + step.to_s)
+            returned = ''
         end
         returned
       end
@@ -431,7 +431,7 @@ module Automation
             lslpp_output = ''
             remote_cmd_rc = Remote.c_rsh(target, cmd1, lslpp_output)
             if remote_cmd_rc == 0
-              File.open(lslpp_file, 'w') { |file| file.write(lslpp_output) }
+              File.open(lslpp_file, 'w') {|file| file.write(lslpp_output)}
               Log.log_debug(' lslpp_file ' + lslpp_file + ' written')
             end
             #
@@ -439,7 +439,7 @@ module Automation
             emgr_output = ''
             remote_cmd_rc = Remote.c_rsh(target, cmd2, emgr_output)
             if remote_cmd_rc == 0
-              File.open(emgr_file, 'w') { |file| file.write(emgr_output) }
+              File.open(emgr_file, 'w') {|file| file.write(emgr_output)}
               Log.log_debug(' emgr_file ' + emgr_file + ' written')
             end
           end
@@ -612,7 +612,7 @@ and #{filesets.size} filesets.")
                                 ') download url=' +
                                 url + ' already downloaded.')
               efixes_and_status_of_url = {}
-              listoffixes_already_downloaded.each { |x| efixes_and_status_of_url[x] = 0 }
+              listoffixes_already_downloaded.each {|x| efixes_and_status_of_url[x] = 0}
               Log.log_debug('Into step_perform_downloads (target=' +
                                 target +
                                 ') download url=' +
@@ -634,17 +634,17 @@ and #{filesets.size} filesets.")
           File.write(listoffixes_per_url_yml_file, @listoffixes_per_url.to_yaml)
 
           #
-          counter = efixes_and_downloadstatus.values.count { |v| v }
+          counter = efixes_and_downloadstatus.values.count {|v| v}
           Log.log_debug('Into step_perform_downloads (target=' + target +
                             ') efixes_and_downloadstatus=' + efixes_and_downloadstatus.to_s +
                             ' counter=' + counter.to_s)
           #
-          listoffixes_missing = efixes_and_downloadstatus.select { |_key, value| value == -1 }
+          listoffixes_missing = efixes_and_downloadstatus.select {|_key, value| value == -1}
           listoffixes_missing.each do |fix_missing|
             Log.log_err(' Error : download issue for ' + fix_missing.to_s)
           end
           #
-          listoffixes_got = efixes_and_downloadstatus.reject { |_key, value| value == -1 }
+          listoffixes_got = efixes_and_downloadstatus.reject {|_key, value| value == -1}
           listoffixes_got.each do |fix_got|
             Log.log_info(' Success : downloaded fix ' + fix_got.to_s)
           end
@@ -1037,72 +1037,72 @@ and #{filesets.size} filesets.")
           # URL ends with /, look into that directory #
           #############################################
           case protocol
-          when 'http', 'https'
-            begin
-              uri = URI(url_to_download)
-              http = Net::HTTP.new(uri.host, uri.port)
-              http.read_timeout = 10
-              http.open_timeout = 10
-              http.use_ssl = true if protocol.eql?('https')
-              http.verify_mode = OpenSSL::SSL::VERIFY_NONE if protocol.eql?('https')
-              request = Net::HTTP::Get.new(uri.request_uri)
-              response = http.request(request)
-              subcount = 0
-              if response.is_a?(Net::HTTPResponse)
-                b_download = 0
-                response.body.each_line do |response_line|
-                  next unless response_line =~ %r{<a href="(.*?.epkg.Z)">(.*?.epkg.Z)</a>}
-                  url_of_file_to_download = ::File.join(url_to_download, Regexp.last_match(1))
-                  local_path_of_file_to_download = \
+            when 'http', 'https'
+              begin
+                uri = URI(url_to_download)
+                http = Net::HTTP.new(uri.host, uri.port)
+                http.read_timeout = 10
+                http.open_timeout = 10
+                http.use_ssl = true if protocol.eql?('https')
+                http.verify_mode = OpenSSL::SSL::VERIFY_NONE if protocol.eql?('https')
+                request = Net::HTTP::Get.new(uri.request_uri)
+                response = http.request(request)
+                subcount = 0
+                if response.is_a?(Net::HTTPResponse)
+                  b_download = 0
+                  response.body.each_line do |response_line|
+                    next unless response_line =~ %r{<a href="(.*?.epkg.Z)">(.*?.epkg.Z)</a>}
+                    url_of_file_to_download = ::File.join(url_to_download, Regexp.last_match(1))
+                    local_path_of_file_to_download = \
                     ::File.join(common_efixes_dirname, Regexp.last_match(1))
-                  Log.log_debug('Consider downloading ' +
-                                    url_of_file_to_download +
-                                    ' into ' +
-                                    common_efixes_dirname +
-                                    ':' + count.to_s + '/' + total.to_s + ' fixes.')
-                  if !::File.exist?(local_path_of_file_to_download)
-                    # Download file
-                    Log.log_info('Downloading ' + url_of_file_to_download.to_s +
-                                     ' into ' + common_efixes_dirname.to_s +
-                                     ' and keeping into ' + local_path_of_file_to_download.to_s +
-                                     ':' + count.to_s + '/' + total.to_s + ' fixes.')
-                    b_download = download(target,
-                                          url_of_file_to_download,
-                                          local_path_of_file_to_download,
-                                          protocol)
-                  else
-                    Log.log_debug('Not downloading ' + url_of_file_to_download.to_s +
-                                      ' : already into ' + local_path_of_file_to_download.to_s +
+                    Log.log_debug('Consider downloading ' +
+                                      url_of_file_to_download +
+                                      ' into ' +
+                                      common_efixes_dirname +
                                       ':' + count.to_s + '/' + total.to_s + ' fixes.')
-                    b_download = 0
+                    if !::File.exist?(local_path_of_file_to_download)
+                      # Download file
+                      Log.log_info('Downloading ' + url_of_file_to_download.to_s +
+                                       ' into ' + common_efixes_dirname.to_s +
+                                       ' and keeping into ' + local_path_of_file_to_download.to_s +
+                                       ':' + count.to_s + '/' + total.to_s + ' fixes.')
+                      b_download = download(target,
+                                            url_of_file_to_download,
+                                            local_path_of_file_to_download,
+                                            protocol)
+                    else
+                      Log.log_debug('Not downloading ' + url_of_file_to_download.to_s +
+                                        ' : already into ' + local_path_of_file_to_download.to_s +
+                                        ':' + count.to_s + '/' + total.to_s + ' fixes.')
+                      b_download = 0
+                    end
+                    downloaded_filenames[::File.basename(local_path_of_file_to_download)] = b_download
+                    subcount += 1
                   end
-                  downloaded_filenames[::File.basename(local_path_of_file_to_download)] = b_download
-                  subcount += 1
+                  Log.log_debug('Into download_fct (target=' +
+                                    target +
+                                    ') http/https url_to_download=' +
+                                    url_to_download +
+                                    ', subcount=' +
+                                    subcount.to_s)
                 end
-                Log.log_debug('Into download_fct (target=' +
-                                  target +
-                                  ') http/https url_to_download=' +
-                                  url_to_download +
-                                  ', subcount=' +
-                                  subcount.to_s)
+              rescue Timeout::Error => error
+                Log.log_err("Timeout sending event to server: #{error}")
+                raise 'timeout error'
               end
-            rescue Timeout::Error => error
-              Log.log_err("Timeout sending event to server: #{error}")
-              raise 'timeout error'
-            end
-          when 'ftp'
-            #
-            ftp_download_result = ftp_download(target,
-                                               url_to_download,
-                                               count,
-                                               total,
-                                               srv,
-                                               dir,
-                                               common_efixes_dirname)
-            Log.log_debug('After download_fct name.empty ftp')
-            downloaded_filenames.merge(ftp_download_result)
-          else
-            raise "protocol must be either 'http', 'https', ftp'"
+            when 'ftp'
+              #
+              ftp_download_result = ftp_download(target,
+                                                 url_to_download,
+                                                 count,
+                                                 total,
+                                                 srv,
+                                                 dir,
+                                                 common_efixes_dirname)
+              Log.log_debug('After download_fct name.empty ftp')
+              downloaded_filenames.merge(ftp_download_result)
+            else
+              raise "protocol must be either 'http', 'https', ftp'"
           end
         elsif name.end_with?('.tar')
           #####################
@@ -1146,7 +1146,7 @@ into #{temp_dir} : #{count}/#{total} fixes.")
               Log.log_debug("Not downloading #{url_to_download} : already \
 into #{tar_dir}: #{count}/#{total} fixes.")
               tarfiles = tar_tf(local_path_of_file_to_download)
-              tarfiles.each { |x| downloaded_filenames[::File.basename(x)] = 0 }
+              tarfiles.each {|x| downloaded_filenames[::File.basename(x)] = 0}
             else
               Log.log_err("Error while downloading #{url_to_download} \
 into #{tar_dir}: #{count}/#{total} fixes.")
@@ -1156,7 +1156,7 @@ into #{tar_dir}: #{count}/#{total} fixes.")
             Log.log_debug("Already downloaded : not downloading #{url_to_download} \
 into #{tar_dir}: #{count}/#{total} fixes.")
             tarfiles = tar_tf(local_path_of_file_to_download)
-            tarfiles.each { |x| downloaded_filenames[::File.basename(x)] = 0 }
+            tarfiles.each {|x| downloaded_filenames[::File.basename(x)] = 0}
           end
         elsif name.end_with?('.epkg.Z')
           #######################
@@ -1586,7 +1586,7 @@ hour.to_s + '_' + minute.to_s + '_' + second.to_s
           # Sometimes added to . we can find - as separator
           lvl_a = command_output[0].split(/[.-]/)
           # Fill with 0 any missing field
-          (lvl_a.length..3).each { |i|
+          (lvl_a.length..3).each {|i|
             lvl_a[i] = 0
           }
           lvl = SpLevel.new(lvl_a[0], lvl_a[1], lvl_a[2], lvl_a[3])
@@ -1619,14 +1619,16 @@ when checking!")
       # return hach table efix=>package_names filtered by locked filesets
       # description : filtering  fixes list by locked filesets
       # ########################################################################
-      def filter_lock_fixes (lpp_source_dir, efixes_basenames, target)
+      def filter_lock_fixes (lpp_source_dir,
+                             efixes_basenames,
+                             target)
         locked_pkg = []
         list_pkg_name = {}
         # get locked package from client
         begin
           locked_pkg = get_locked_packages(target)
         rescue EmgrCmdError => e
-            Log.log_debug("filter_lock_fixes -> get_locked_packages Error for client #{target}:#{e}")
+          Log.log_debug("filter_lock_fixes -> get_locked_packages Error for client #{target}:#{e}")
         end
         Log.log_debug("Locked package list for client [#{target}]: #{locked_pkg}")
         # get package name from efix list
@@ -1635,7 +1637,7 @@ when checking!")
         Log.log_debug("Package list name: #{list_pkg_name}")
         # remove efix from list if package is locked
         locked_pkg.each do |item|
-          list_pkg_name.delete_if { |_, v| v.include?(item) }
+          list_pkg_name.delete_if {|_, v| v.include?(item)}
         end
         # remove efix with package name doublon
         unlock_efixes_basenames = {}
@@ -1647,7 +1649,7 @@ when checking!")
             list_pkg_name.each do |ky, va|
               del_key << ky if va.include?(item)
             end
-            list_pkg_name.delete_if { |kk, _| del_key.include?(kk) }
+            list_pkg_name.delete_if {|kk, _| del_key.include?(kk)}
           end
         end
         # next if efix list to apply is empty
@@ -1690,7 +1692,7 @@ when checking!")
         locked_packages = []
         emgr_s = "/usr/lpp/bos.sysmgt/nim/methods/c_rsh #{machine} \"/usr/sbin/emgr -P\""
         Log.log_debug("EMGR listing package locks: #{emgr_s}")
-        exit_status = Open3.popen3({ 'LANG' => 'C' }, emgr_s) do |_stdin, stdout, stderr, wait_thr|
+        exit_status = Open3.popen3({'LANG' => 'C'}, emgr_s) do |_stdin, stdout, stderr, wait_thr|
           stdout.each_line do |line|
             next if line =~ /^PACKAGE\s*INSTALLER\s*LABEL/
             next if line =~ /^=*\s\=*\s\=*/
@@ -1705,7 +1707,7 @@ when checking!")
           wait_thr.value # Process::Status object returned.
         end
         raise EmgrCmdError, "Error: Command \"#{emgr_s}\" returns above error!" unless exit_status.success?
-        locked_packages.delete_if { |item| item.nil? || item.empty? }
+        locked_packages.delete_if {|item| item.nil? || item.empty?}
         locked_packages
       end
 
@@ -1722,15 +1724,15 @@ when checking!")
         pkg_names = []
         cmd_s = "/usr/sbin/emgr -d -e #{lpp_source_dir}/#{fileset} -v3 | /bin/grep -w 'PACKAGE:' | /bin/cut -c16-"
         Log.log_debug("get_pkg_name: #{cmd_s}")
-        Open3.popen3({ 'LANG' => 'C' }, cmd_s) do |_stdin, stdout, stderr, wait_thr|
+        Open3.popen3({'LANG' => 'C'}, cmd_s) do |_stdin, stdout, stderr, wait_thr|
           stderr.each_line do |line|
             Log.log_debug("[STDERR] #{line.chomp}")
           end
           unless wait_thr.value.success?
-            stdout.each_line { |line| Log.log_debug("[STDOUT] #{line.chomp}") }
+            stdout.each_line {|line| Log.log_debug("[STDOUT] #{line.chomp}")}
             raise EmgrCmdError, "Error: Command \"#{cmd_s}\" returns above error!"
           end
-           stdout.each_line do |line|
+          stdout.each_line do |line|
             Log.log_debug("[STDOUT] #{line.chomp}")
             # match "  devices.pciex.df1060e214103404.com"
             next unless line =~ /^\s*(\S*[.]\S*)\s*$/
@@ -1784,7 +1786,7 @@ when checking!")
           mounts << items[6]
         end
         # Get longest match
-        mount = mounts.sort_by!(&:length).reverse!.detect { |mnt| path =~ /#{Regexp.quote(mnt.to_s)}/ }
+        mount = mounts.sort_by!(&:length).reverse!.detect {|mnt| path =~ /#{Regexp.quote(mnt.to_s)}/}
         # Then increase by 100 MB
         command_output = []
         Utils.execute2("/usr/sbin/chfs -a size=+100M #{mount}",

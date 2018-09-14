@@ -1483,6 +1483,40 @@ specific constraints before performing an altinst_rootvg."
         ret
       end
 
+      # ##################################################################
+      # name : check_ssp_cluster
+      # param : in:vios_pair:array of two vios [vios1,vios2]
+      # param : inout:nim_vios:hashtable
+      # description : Check there is or not a SSP cluster and get its
+      #   name.
+      # returns : cluster name if it is the same on both vios,
+      #   empty string otherwise.
+      # ##################################################################
+      def self.check_ssp_cluster(vios_pair,
+          nim_vios)
+        Log.log_debug('Checking SSP cluster on ' + vios_pair.to_s + ' vios pair with nim_vios' + nim_vios.to_s)
+        cluster_name = ''
+        # Get the SSP status on both vios of the pair
+        vios_pair.each do |vios|
+          if cluster_name == ''
+            cluster_name = nim_vios[vios]['SSP_CLUSTER_NAME']
+            msg = "There is one SSP cluster on the \"#{vios}\" vios and its name is \"#{cluster_name}\""
+            Log.log_debug(msg)
+            Vios.add_vios_msg(vios, msg)
+          elsif cluster_name != nim_vios[vios]['SSP_CLUSTER_NAME']
+            msg = 'SSP cluster name is not the same of both vios of the pair'
+            Log.log_err(msg)
+            Vios.add_vios_msg(vios, msg)
+            cluster_name = ''
+          else
+            msg = "There is one SSP cluster on the \"#{vios}\" vios and its name is \"#{cluster_name}\""
+            Log.log_debug(msg)
+            Vios.add_vios_msg(vios, msg)
+          end
+        end
+        cluster_name
+      end
+
 
       # ##################################################################
       # name : get_vios_ssp_status
@@ -1500,8 +1534,6 @@ specific constraints before performing an altinst_rootvg."
         #
         returned = 0
         vios_ssp_status = {}
-        vios1 = ''
-        vios2 = ''
         #
         if vios_pair.length >= 1
           vios1 = vios_pair[0]
@@ -1542,10 +1574,10 @@ specific constraints before performing an altinst_rootvg."
               remote_output1_line.chomp!
               Log.log_debug("remote_output1_line=" + remote_output1_line.to_s)
               if remote_output1_line =~ /^Cluster does not exist.$/
-                msg = "There is no SSP cluster on the \"#{vios}\" vios or the \"#{vios}\" node is DOWN"
+                nim_vios[vios]['cluster_ssp_vios_status'] = "DOWN"
+                msg = "SSP cluster on the \"#{vios}\" vios is DOWN"
                 Log.log_debug(msg)
                 Vios.add_vios_msg(vios, msg)
-                nim_vios[vios]['cluster_ssp_vios_status'] = "DOWN"
               else
                 nim_vios[vios]['cluster_ssp_vios_status'] = "UP"
                 if remote_output1_line =~ /^(\S+):(\S+):(\S+):\S+:\S+:(\S+):.*/
@@ -1595,7 +1627,8 @@ specific constraints before performing an altinst_rootvg."
       # ##################################################################
       # name : check_vios_ssp_status
       # param : in:vios_pair:array of two vios [vios1,vios2]
-      # param : inout:nim_vios:hashtable
+      # param : inout:nim_vios:hashtable containing result of
+      #   get_vios_ssp_status
       # description : Check the SSP status on each VIOS of the VIOS pair.
       #  As a matter of fact, update IOS can only be performed when both
       #  VIOSes in the tuple refer to the same cluster and have the same
@@ -1635,7 +1668,6 @@ specific constraints before performing an altinst_rootvg."
         end
 
         if vios_pair.length >= 2
-          #
           # cluster_ssp_vios_status2_ = nim_vios[vios2]
           # Log.log_debug('cluster_ssp_vios_status2_=' + cluster_ssp_vios_status2_.to_s)
           #
@@ -1644,6 +1676,7 @@ specific constraints before performing an altinst_rootvg."
           #
           ssp_vios_status2 = nim_vios[vios2]['ssp_vios_status']
           # Log.log_debug('ssp_vios_status2=' + ssp_vios_status2.to_s)
+          #
         end
 
         # If both vios have a SSP cluster, then they must have the same output
@@ -1678,9 +1711,6 @@ specific constraints before performing an altinst_rootvg."
       # param : inout:nim_vios:hashtable
       # description : Stop or start the SSP for a VIOS
       # returns : true if OK, false otherwise
-      #
-      #  TO BE IMPLEMENTED
-      #
       # ##################################################################
       def self.ssp_stop_start(action,
           vios_to_action,
@@ -1691,41 +1721,50 @@ specific constraints before performing an altinst_rootvg."
         returned = false
         perform_action = false
         ssp_name = ''
+        #
         vios_pair.each do |vios|
-          ssp_vios_status_vios = 'None'
+          ssp_name = nim_vios[vios]['SSP_CLUSTER_NAME']
+          Log.log_debug(' ssp_name=' + ssp_name.to_s)
+
+          # ssp_vios_status_vios = 'None'
           #
           cluster_ssp_vios_status = nim_vios[vios]['cluster_ssp_vios_status']
           Log.log_debug(' cluster_ssp_vios_status=' + cluster_ssp_vios_status.to_s)
           #
-          ssp_vios_status = nim_vios[vios]['ssp_vios_status']
-          Log.log_debug(' ssp_vios_status=' + ssp_vios_status.to_s)
-          #
-          if !ssp_vios_status.nil? and !ssp_vios_status.empty?
-            #
-            ssp_vios_status_vios = ssp_vios_status[vios]
-            Log.log_debug(' ssp_vios_status_vios=' + ssp_vios_status_vios.to_s + ' ' + ssp_vios_status_vios.class.to_s)
-            #
-            if !ssp_vios_status_vios.nil? and !ssp_vios_status_vios.empty?
-              #
-              ssp_name = ssp_vios_status_vios[0]
-              Log.log_debug(' ssp_name=' + ssp_name.to_s)
-              #
-              ssp_status = ssp_vios_status_vios[2]
-              Log.log_debug(' ssp_status=' + ssp_status.to_s)
-              #
-              if ssp_status == 'OK' and action == 'stop'
-                perform_action = true
-              elsif cluster_ssp_vios_status == 'DOWN' and action == 'start'
-                perform_action = true
-              end
-            end
-          else
-            # if cluster_ssp_vios_status == 'DOWN' and action == 'start'
-            #   perform_action = true
-            # elsif cluster_ssp_vios_status == 'UP' and action == 'stop'
-            #   perform_action = true
-            # end
+          if cluster_ssp_vios_status == 'DOWN' and action == 'start'
+            perform_action = true
+          elsif cluster_ssp_vios_status == 'UP' and action == 'stop'
+            perform_action = true
           end
+          #
+          # #
+          # ssp_vios_status = nim_vios[vios]['ssp_vios_status']
+          # Log.log_debug(' ssp_vios_status=' + ssp_vios_status.to_s)
+          # #
+          # if !ssp_vios_status.nil? and !ssp_vios_status.empty?
+          #   ssp_vios_status_vios = ssp_vios_status[vios]
+          #   Log.log_debug(' ssp_vios_status_vios=' + ssp_vios_status_vios.to_s + ' ' + ssp_vios_status_vios.class.to_s)
+          #   #
+          #   if !ssp_vios_status_vios.nil? and !ssp_vios_status_vios.empty?
+          #     #
+          #     ssp_status = ssp_vios_status_vios[2]
+          #     Log.log_debug(' ssp_status=' + ssp_status.to_s)
+          #     #
+          #     if ssp_status == 'OK' and action == 'stop'
+          #       perform_action = true
+          #     elsif cluster_ssp_vios_status == 'DOWN' and action == 'start'
+          #       perform_action = true
+          #     end
+          #   end
+          # end
+
+          # else
+          # if cluster_ssp_vios_status == 'DOWN' and action == 'start'
+          #   perform_action = true
+          # elsif cluster_ssp_vios_status == 'UP' and action == 'stop'
+          #   perform_action = true
+          # end
+          # end
 
           if perform_action
             remote_cmd1 = "/usr/sbin/clctrl -#{action} -n #{ssp_name} -m #{vios_to_action}"
@@ -1788,8 +1827,8 @@ specific constraints before performing an altinst_rootvg."
             Vios.add_vios_msg(vios_to_action, msg)
             returned = false
           end
+          returned
         end
-        returned
       end
 
 
@@ -1885,6 +1924,7 @@ specific constraints before performing an altinst_rootvg."
         Vios.add_vios_msg(vios, msg)
       end
 
+      # '"LC_ALL=C /usr/ios/cli/ioscli cluster -list &&' ' /usr/ios/cli/ioscli cluster -status -fmt : ; echo rc=$?"'
 
       # ##################################################################
       # name : nim_updateios

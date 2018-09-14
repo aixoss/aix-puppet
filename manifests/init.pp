@@ -48,8 +48,8 @@ class aixautomation {
     vios_pairs           => '(p7juav1,p7juav2),(quimby-vios2)',
     options              => 'accept_licenses, preview',
     # update_options       => 'install, commit, reject, cleanup, remove',
-    update_options       => 'reject',
-    altinst_rootvg_force => 'reuse',
+    update_options       => 'commit',
+    altinst_rootvg_force => 'yes',
     # vios_altinst_rootvg  => 'p7juav1=hdisk0',
     vios_lpp_sources     => 'p7juav1=vios_update_22623,p7juav2=vios_update_22623',
   }
