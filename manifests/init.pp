@@ -38,18 +38,48 @@ class aixautomation {
   #   # vios_lpp_sources     => 'p7juav1=vios_update_22560,p7juav2=vios_update_22621',
   #   # vios_lpp_sources     => 'p7juav1=vios_update_2261,p7juav2=vios_update_2261',
   # }
+  # vios { 'vios1':
+  #   # Test case where vios pair is constituted with only one vios
+  #   ensure               => present,
+  #   name                 => 'vios1',
+  #   # actions => 'health,check,save,update',
+  #   actions              => 'check,save,update',
+  #   #vios_pairs           => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
+  #   vios_pairs           => '(p7juav1)',
+  #   options              => 'accept_licenses',
+  #   # update_options       => 'install, commit, reject, cleanup, remove',
+  #   update_options       => 'commit',
+  #   altinst_rootvg_force => 'reuse',
+  #   # vios_altinst_rootvg  => 'p7juav1=hdisk0',
+  #   vios_lpp_sources     => 'p7juav1=vios_update_22623',
+  # }
+  # vios { 'vios2':
+  #   # Test case where vios pair is constituted with only one vios
+  #   ensure               => present,
+  #   name                 => 'vios2',
+  #   # actions => 'health,check,save,update',
+  #   actions              => 'check,save,autocommit,update',
+  #   #vios_pairs           => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
+  #   vios_pairs           => '(p7juav2)',
+  #   options              => 'accept_licenses',
+  #   # update_options       => 'install, commit, reject, cleanup, remove',
+  #   update_options       => 'commit',
+  #   altinst_rootvg_force => 'reuse',
+  #   # vios_altinst_rootvg  => 'p7juav1=hdisk0',
+  #   vios_lpp_sources     => 'p7juav2=vios_update_22623',
+  # }
   vios { 'vios12':
     # Test case where vios pair is constituted with only one vios
     ensure               => present,
-    name                 => 'vios',
+    name                 => 'vios12',
     # actions => 'health,check,save,update',
-    actions              => 'check,save,update',
+    actions              => 'check,save,autocommit,update',
     #vios_pairs           => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
-    vios_pairs           => '(p7juav1,p7juav2),(quimby-vios2)',
-    options              => 'accept_licenses, preview',
+    vios_pairs           => '(p7juav1,p7juav2)',
+    options              => 'accept_licenses',
     # update_options       => 'install, commit, reject, cleanup, remove',
     update_options       => 'commit',
-    altinst_rootvg_force => 'yes',
+    altinst_rootvg_force => 'reuse',
     # vios_altinst_rootvg  => 'p7juav1=hdisk0',
     vios_lpp_sources     => 'p7juav1=vios_update_22623,p7juav2=vios_update_22623',
   }

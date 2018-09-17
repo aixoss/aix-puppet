@@ -129,7 +129,6 @@ Facter.add('vios') do
                 vios_hash['SSP_CLUSTER_NAME'] = ''
               end
 
-
               # yeah, we keep it !
               # Log.log_debug(" vios_hash = #{vios_hash}")
               vios_kept[vios] = vios_hash

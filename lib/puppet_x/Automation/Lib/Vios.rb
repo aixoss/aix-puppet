@@ -955,7 +955,9 @@ size_candidate_disk=#{size_candidate_disk}")
                   remote_cmd1 = '/usr/sbin/varyonvg  ' + vg
                   remote_output1 = []
                   remote_cmd_rc1 = Remote.c_rsh(vios, remote_cmd1, remote_output1)
-                  Log.log_debug('remote_cmd_rc1=' + remote_cmd_rc1.to_s + ' remote_output1[0]=' + remote_output1[0].to_s)
+                  Log.log_debug('On this command ' + remote_cmd1.to_s +
+                                    ', the ' + remote_cmd_rc1.to_s + ' return code and ' +
+                                    remote_output1[0].to_s + ' output are not necessarily an error.')
                   ret = Vios.perform_vg_clean_and_free_disk(vios, vg, alt_disk_name)
                 else
                   Log.log_info('There is one existing  ' + vg + ' on ' + vios.to_s + ' but we dont need to varyonvg it')
@@ -965,7 +967,6 @@ size_candidate_disk=#{size_candidate_disk}")
                 remote_output2 = []
                 remote_cmd_rc2 = Remote.c_rsh(vios, remote_cmd2, remote_output2)
                 if remote_cmd_rc2 == 0
-
                   Log.log_info('There is an ' + vg + ' on ' + vios.to_s)
                   # Meaning vg exists, we then need to remove it
                   ret = Vios.perform_vg_clean_and_free_disk(vios, vg, alt_disk_name)
@@ -1720,6 +1721,8 @@ specific constraints before performing an altinst_rootvg."
         #
         returned = false
         perform_action = false
+        # we need to start vios_to_action from other_vios
+        other_vios = ''
         ssp_name = ''
         #
         vios_pair.each do |vios|
@@ -1736,99 +1739,113 @@ specific constraints before performing an altinst_rootvg."
           elsif cluster_ssp_vios_status == 'UP' and action == 'stop'
             perform_action = true
           end
+          if vios != vios_to_action
+            other_vios = vios
+          end
+        end
+
+        #
+        # #
+        # ssp_vios_status = nim_vios[vios]['ssp_vios_status']
+        # Log.log_debug(' ssp_vios_status=' + ssp_vios_status.to_s)
+        # #
+        # if !ssp_vios_status.nil? and !ssp_vios_status.empty?
+        #   ssp_vios_status_vios = ssp_vios_status[vios]
+        #   Log.log_debug(' ssp_vios_status_vios=' + ssp_vios_status_vios.to_s + ' ' + ssp_vios_status_vios.class.to_s)
+        #   #
+        #   if !ssp_vios_status_vios.nil? and !ssp_vios_status_vios.empty?
+        #     #
+        #     ssp_status = ssp_vios_status_vios[2]
+        #     Log.log_debug(' ssp_status=' + ssp_status.to_s)
+        #     #
+        #     if ssp_status == 'OK' and action == 'stop'
+        #       perform_action = true
+        #     elsif cluster_ssp_vios_status == 'DOWN' and action == 'start'
+        #       perform_action = true
+        #     end
+        #   end
+        # end
+
+        # else
+        # if cluster_ssp_vios_status == 'DOWN' and action == 'start'
+        #   perform_action = true
+        # elsif cluster_ssp_vios_status == 'UP' and action == 'stop'
+        #   perform_action = true
+        # end
+        # end
+
+        if perform_action
           #
-          # #
-          # ssp_vios_status = nim_vios[vios]['ssp_vios_status']
-          # Log.log_debug(' ssp_vios_status=' + ssp_vios_status.to_s)
-          # #
-          # if !ssp_vios_status.nil? and !ssp_vios_status.empty?
-          #   ssp_vios_status_vios = ssp_vios_status[vios]
-          #   Log.log_debug(' ssp_vios_status_vios=' + ssp_vios_status_vios.to_s + ' ' + ssp_vios_status_vios.class.to_s)
-          #   #
-          #   if !ssp_vios_status_vios.nil? and !ssp_vios_status_vios.empty?
-          #     #
-          #     ssp_status = ssp_vios_status_vios[2]
-          #     Log.log_debug(' ssp_status=' + ssp_status.to_s)
-          #     #
-          #     if ssp_status == 'OK' and action == 'stop'
-          #       perform_action = true
-          #     elsif cluster_ssp_vios_status == 'DOWN' and action == 'start'
-          #       perform_action = true
-          #     end
-          #   end
-          # end
-
-          # else
-          # if cluster_ssp_vios_status == 'DOWN' and action == 'start'
-          #   perform_action = true
-          # elsif cluster_ssp_vios_status == 'UP' and action == 'stop'
-          #   perform_action = true
-          # end
-          # end
-
-          if perform_action
-            remote_cmd1 = "/usr/sbin/clctrl -#{action} -n #{ssp_name} -m #{vios_to_action}"
-            remote_output1 = []
-            Log.log_debug('Launching SSP action ' + action.to_s + ' on ' + vios_to_action.to_s)
-            remote_cmd_rc1 = Remote.c_rsh(vios_to_action,
-                                          remote_cmd1,
-                                          remote_output1)
-            #
-            if remote_cmd_rc1 == 0
-              if !remote_output1[0].nil? and !remote_output1[0].empty?
-                remote_output1_lines = remote_output1[0].split("\n")
-                # Log.log_debug('remote_output1_lines=' + remote_output1_lines.to_s)
-                remote_output1_lines.each do |remote_output1_line|
-                  remote_output1_line.chomp!
-                  Log.log_debug('remote_output1_line=' + remote_output1_line.to_s)
-                  # if remote_output1_line =~ /XYZ/ # TBI
-                  #   msg = "?????"
-                  #   Log.log_debug(msg)
-                  #   Vios.add_vios_msg(vios_to_ssp_stop_start, msg)
-                  #   nim_vios[vios]['cluster_ssp_vios_status'] = "DOWN"
-                  # elsif remote_output1_line =~ /XYZW/ # TBI
-                  #   msg = "????????"
-                  #   Log.log_debug(msg)
-                  #   Vios.add_vios_msg(vios_to_ssp_stop_start, msg)
-                  #   nim_vios[vios]['cluster_ssp_vios_status'] = "UP"
-                  # end
-                end
-                nim_vios[vios]['cluster_ssp_vios_status'] = if action == 'stop'
-                                                              "DOWN"
-                                                            else
-                                                              "OK"
-                                                            end
+          vios_to_c_rsh = ''
+          if action == 'start'
+            vios_to_c_rsh = other_vios
+          else
+            vios_to_c_rsh = vios_to_action
+          end
+          #
+          remote_cmd1 = "/usr/sbin/clctrl -#{action} -n #{ssp_name} -m #{vios_to_action}"
+          remote_output1 = []
+          Log.log_debug('Launching SSP action ' + action.to_s +
+                            ' on ' + vios_to_action.to_s +
+                            ' from to ' + vios_to_c_rsh.to_s + ' vios.')
+          remote_cmd_rc1 = Remote.c_rsh(vios_to_c_rsh,
+                                        remote_cmd1,
+                                        remote_output1)
+          #
+          if remote_cmd_rc1 == 0
+            if !remote_output1[0].nil? and !remote_output1[0].empty?
+              remote_output1_lines = remote_output1[0].split("\n")
+              # Log.log_debug('remote_output1_lines=' + remote_output1_lines.to_s)
+              remote_output1_lines.each do |remote_output1_line|
+                remote_output1_line.chomp!
+                Log.log_debug('remote_output1_line=' + remote_output1_line.to_s)
+                # if remote_output1_line =~ /XYZ/ # TBI
+                #   msg = "?????"
+                #   Log.log_debug(msg)
+                #   Vios.add_vios_msg(vios_to_ssp_stop_start, msg)
+                #   nim_vios[vios]['cluster_ssp_vios_status'] = "DOWN"
+                # elsif remote_output1_line =~ /XYZW/ # TBI
+                #   msg = "????????"
+                #   Log.log_debug(msg)
+                #   Vios.add_vios_msg(vios_to_ssp_stop_start, msg)
+                #   nim_vios[vios]['cluster_ssp_vios_status'] = "UP"
+                # end
+              end
+              nim_vios[vios_to_action]['cluster_ssp_vios_status'] = if action == 'stop'
+                                                                      "DOWN"
+                                                                    else
+                                                                      "OK"
+                                                                    end
+              msg = "#{action} cluster #{nim_vios[vios_to_action]['ssp_name']} on vios #{vios_to_action} succeeded."
+              Log.log_info(msg)
+              Vios.add_vios_msg(vios_to_action, msg)
+              returned = true
+            else
+              if action == 'stop'
+                nim_vios[vios_to_action]['cluster_ssp_vios_status'] = if action == 'stop'
+                                                                        "DOWN"
+                                                                      else
+                                                                        "OK"
+                                                                      end
                 msg = "#{action} cluster #{nim_vios[vios_to_action]['ssp_name']} on vios #{vios_to_action} succeeded."
                 Log.log_info(msg)
                 Vios.add_vios_msg(vios_to_action, msg)
                 returned = true
               else
-                if action == 'stop'
-                  nim_vios[vios]['cluster_ssp_vios_status'] = if action == 'stop'
-                                                                "DOWN"
-                                                              else
-                                                                "OK"
-                                                              end
-                  msg = "#{action} cluster #{nim_vios[vios_to_action]['ssp_name']} on vios #{vios_to_action} succeeded."
-                  Log.log_info(msg)
-                  Vios.add_vios_msg(vios_to_action, msg)
-                  returned = true
-                else
-                  msg = "Failed to #{action} cluster #{ssp_name} on vios #{vios_to_action}"
-                  Log.log_warning(msg)
-                  Vios.add_vios_msg(vios_to_action, msg)
-                  returned = false
-                end
+                msg = "Failed to #{action} cluster #{ssp_name} on vios #{vios_to_action}"
+                Log.log_warning(msg)
+                Vios.add_vios_msg(vios_to_action, msg)
+                returned = false
               end
             end
-          else
-            msg = "Nothing to be done, as far as SSP is concerned, on vios #{vios_to_action}."
-            Log.log_debug(msg)
-            Vios.add_vios_msg(vios_to_action, msg)
-            returned = false
           end
-          returned
+        else
+          msg = "Nothing to be done, as far as SSP is concerned, on vios #{vios_to_action}."
+          Log.log_debug(msg)
+          Vios.add_vios_msg(vios_to_action, msg)
+          returned = false
         end
+        returned
       end
 
 
@@ -1944,14 +1961,28 @@ specific constraints before performing an altinst_rootvg."
         # TBC - For testing, will be removed after test !!!
         # cmd_s = "/usr/sbin/lsnim -Z -a Cstate -a info -a Cstate_result #{vios}"
         # log_info("nim_updateios: overwrite cmd_s:'#{cmd_s}'")
-        exit_status = Open3.popen3({'LANG' => 'C'}, cmd) do |_stdin, stdout, stderr, wait_thr|
+        exit_status1 = Open3.popen3({'LANG' => 'C'}, cmd) do |_stdin, stdout, stderr, wait_thr|
           stdout.each_line {|line| Log.log_info("[STDOUT] #{line.chomp}")}
           stderr.each_line do |line|
             Log.log_err("[STDERR] #{line.chomp}")
           end
           wait_thr.value # Process::Status object returned.
         end
-        if exit_status.success?
+        # grep fileset statistics and parse ?
+        cmd2 = '/bin/grep -p "FILESET STATISTICS" stdout'
+        exit_status2 = Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin, stdout2, stderr2, wait_thr2|
+          Log.log_info(exit_status2.to_s)
+          Log.log_info(stdout2)
+          Vios.add_vios_msg(vios, stdout2)
+          stderr2.each_line do |line|
+            Log.log_err("[STDERR] #{line.chomp}")
+          end
+          wait_thr2.value # Process::Status object returned.
+
+        end
+
+
+        if exit_status1.success?
           if cmd.include? 'preview=yes'
             msg = 'NIM updateios operation of ' + vios.to_s + ' successful, update was done in preview only.'
           else
