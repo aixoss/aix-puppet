@@ -36,6 +36,9 @@ with \"#{resource[:update_options]}\" update_options.")
     actions = resource[:actions]
     Log.log_debug('actions=' + actions.to_s)
     #
+    vios_disks = resource[:altinst_rootvg]
+    Log.log_debug('vios_disks=' + vios_disks.to_s)
+    #
     force = resource[:altinst_rootvg_force].to_s
     Log.log_debug('force=' + force.to_s)
     #
@@ -122,6 +125,7 @@ with \"#{resource[:update_options]}\" update_options.")
           returned = Vios.get_vios_ssp_status(vios_pair,
                                               nim_vios)
           # Log.log_debug('After getting SSP status : ' + nim_vios.to_s + ' returned=' + returned.to_s)
+          ssp_check = false
           if returned == 0
             ssp_check = Vios.check_vios_ssp_status(vios_pair,
                                                    nim_vios)
@@ -173,7 +177,7 @@ with \"#{resource[:update_options]}\" update_options.")
         b_vios_pair_kept = 1
         vios_pair.each do |vios|
           Log.log_info('vios=' + vios.to_s)
-
+          #
           value_lpp_source = vios_lppsources[vios]
           if value_lpp_source.nil? or value_lpp_source.empty?
             msg = 'No lpp_source set on this "' + vios.to_s + '" vios. No update to be done. Therefore no need to perform "save"'
@@ -216,8 +220,10 @@ with \"#{resource[:update_options]}\" update_options.")
               # This does not prevent from continuing on another pair
               next
             end
+            # disk may have been chosen by user
+            chosen_disk = vios_disks[vios]
             #
-            vios_best_disk = Vios.find_best_alt_disk_vios(vios, hvios, force)
+            vios_best_disk = Vios.find_best_alt_disk_vios(vios, hvios, chosen_disk, force)
             # The 'vios_best_disk' output contains for vios the disk on which to perform alt_disk_copy.
             Log.log_info('vios_best_disk=' + vios_best_disk.to_s)
             #
@@ -247,8 +253,9 @@ with \"#{resource[:update_options]}\" update_options.")
               Log.log_info('Perform autocommit before NIM updateios for "' + vios.to_s + '" vios')
               autocommit_cmd = '/usr/sbin/nim -o updateios -a updateios_flags=-commit -a filesets=all ' + vios.to_s
               # Perform autocommit
-              Log.log_info('vios update of "' + vios.to_s + '" vios with "' + autocommit_cmd.to_s + '" command.')
-              autocommit_cmd_ret = Vios.nim_updateios(autocommit_cmd, vios)
+              msg = 'vios autocommit update'
+              Log.log_info(msg + ' of "' + vios.to_s + '" vios with "' + autocommit_cmd.to_s + '" command.')
+              autocommit_cmd_ret = Vios.nim_updateios(autocommit_cmd, vios, msg)
               Log.log_debug('autocommit_cmd_ret = ' + autocommit_cmd_ret.to_s)
             end
 
@@ -266,17 +273,16 @@ with \"#{resource[:update_options]}\" update_options.")
                                                         options,
                                                         update_options)
             # Perform update
-            Log.log_info('vios update of "' + vios.to_s + '" vios with "' + update_cmd.to_s + '" command.')
-            update_ret = Vios.nim_updateios(update_cmd, vios)
+            msg = 'vios update'
+            Log.log_info(msg + ' "' + vios.to_s + '" vios with "' + update_cmd.to_s + '" command.')
+            update_ret = Vios.nim_updateios(update_cmd, vios, msg)
             Log.log_info('vios update of "' + vios.to_s + '" vios returns ' + update_ret.to_s)
-
             #
             ssp_check = Vios.ssp_stop_start('start',
                                             vios,
                                             vios_pair,
                                             nim_vios)
             Log.log_info('ssp_stop_start start returning ' + ssp_check.to_s)
-
           else
             Log.log_warning('Because there is no altinst_rootvg on "' + vios.to_s + '" vios, update cannot be run.')
           end

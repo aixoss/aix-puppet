@@ -234,86 +234,6 @@ associated to vios_pairs, used to perform update or install'
     end
   end
 
-  #   # ############################################################################
-  #   # :alt_disk attribute to choose disks to be used to perform alt_disk_copy
-  #   #  disk needs to be given per vios, therefore we have this syntax
-  #   #  vios1:alt_disk1;vios2:alt_disk2;vios3:alt_disk3;  etc
-  #   # A control is performed to check that given disk are ok for this operation
-  #   # ############################################################################
-  #   newparam(:alt_disks) do
-  #     desc '"alt_disks" attribute: simple syntax to provide disk to be used \
-  # per vios to perform alt_disk_copy"'
-  #
-  #     vios_disks = []
-  #     invalid_vios_disks = []
-  #     valid_vios_disks = []
-  #
-  #     # To parse input
-  #     validate do |values|
-  #       Log.log_debug('values=' + values.to_s)
-  #       # To parse input
-  #       vios_disks = values.scan(/\w+:\w+/)
-  #       #
-  #       Log.log_debug('vios_disks=' + vios_disks.to_s)
-  #       vios_disks.each do |vios_disk|
-  #         ret = 0
-  #         Log.log_debug('vios_disk=' + vios_disk.to_s)
-  #         vios, disk = vios_disk.split(':')
-  #         if disk.nil? or disk.empty?
-  #
-  #         end
-  #       end
-  #       vios_disks.each do |vios_disk|
-  #         ret = 0
-  #         Log.log_debug('vios_disk=' + vios_disk.to_s)
-  #         vios, disk = vios_disk.split(':')
-  #         ret = Vios.check_vios_disk(vios, disk)
-  #         if ret == 1
-  #           invalid_vios_disks.push(vios_disk)
-  #         else
-  #           valid_vios_disks.push(vios_disk)
-  #         end
-  #       end
-  #
-  #       Log.log_err('"alt_disks" contains disks invalid to perform alt_disk_copy operation :' +
-  #                       invalid_vios_disks.to_s)
-  #       Log.log_info('"alt_disks" contains disks valid to perform alt_disk_copy operation :' +
-  #                        valid_vios_disks.to_s)
-  #     end
-  #
-  #     munge do |_values|
-  #       valid_vios_disks
-  #     end
-  #
-  #   end
-  #
-  #   # ############################################################################
-  #   # :vios attribute to provide vios name on which alt_disk_copy needs to be done
-  #   #   returning vios1:alt_disk1;vios1:alt_disk2;vios2:alt_disk2;  etc
-  #   #  to indicate the candidate disks which can be used
-  #   # ############################################################################
-  #   newparam(:vios) do
-  #     desc '"vios" attribute: vios names on which to perform alt_disk_copy"'
-  #
-  #     vios_names_disks = []
-  #
-  #     # To parse input
-  #     validate do |values|
-  #       Log.log_debug('values=' + values.to_s)
-  #       # To parse input
-  #       vios_name_array = values.split(':')
-  #       #
-  #       Log.log_debug('vios_name_array=' + vios_name_array.to_s)
-  #       vios_names_disks = Vios.find_best_alt_disks(vios_name_array)
-  #       Log.log_info('vios_names_disks='+vios_names_disks.to_s)
-  #     end
-  #
-  #     munge do |_values|
-  #       vios_names_disks
-  #     end
-  #
-  #   end
-
   # ############################################################################
   # :sync attribute to control if action is synchronous or asynchronous
   #
@@ -325,6 +245,55 @@ useful only for "action=update"'
     defaultto :yes
     newvalues(:yes, :no)
   end
+
+  # ############################################################################
+  # :altinst_rootvg is a attribute giving for each vios the name of the
+  #  disk to be used to perform altinst_rootvg
+  # To enable association with vios, altinst_rootvg disk must be given
+  #  with following syntax: "vios1=hdisk1,vios2=hdisk2"
+  # Check is done that disk provided are valid disk to be used for
+  #  altinst_rootvg.
+  # This parameter is not mandatory, disk can be choosen as well following
+  #  other rules.
+  # ############################################################################
+  newparam(:altinst_rootvg) do
+    desc '"altinst_rootvg" attribute: names of the disk, \
+associated to vios, used to perform altinst_rootvg'
+    h_vios_disks = {}
+
+    #
+    validate do |values|
+      Log.log_debug('values=' + values.to_s)
+      # To parse input
+      vios_disks = values.scan(/[\w\-]+=\w+/)
+      Log.log_debug('vios_disks=' + vios_disks.to_s)
+      unless vios_disks.nil?
+        vios_disks.each do |vios_disk|
+          Log.log_debug('result=' + vios_disk.to_s)
+          if vios_disk =~ /([\w\-]+)=(\w+)/
+            vios = Regexp.last_match(1)
+            Log.log_debug('vios=' + vios.to_s)
+            unless Vios.check_vios(vios)
+              raise('"vios_disks" "' + vios.to_s + '" vios is not a valid target.')
+            end
+            disk = Regexp.last_match(2)
+            Log.log_debug('disk=' + disk.to_s)
+            unless Utils.check_input_disk(vios, disk).success?
+              raise('"vios_disks" "' + disk.to_s + '" disk is not valid.')
+            end
+            h_vios_disks[vios.to_s] = disk.to_s
+          end
+        end
+      end
+    end
+
+    #
+    munge do |_values|
+      Log.log_debug('h_vios_disks=' + h_vios_disks.to_s)
+      h_vios_disks
+    end
+  end
+
 
   # ############################################################################
   # :altinst_rootvg_force attribute to control if save action can use potentially

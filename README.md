@@ -20,9 +20,9 @@
   executing Puppet agent. With AixAutomation Puppet module, only a Puppet Agent 
   runs on the host where the NIM server runs.<br>    
  This AixAutomation Puppet module enables automation of software maintenance 
-  operations on a list of AIX LPARs, by running this module on a NIM server 
-  managing these LPARs.<br>
- By software maintenance operations we mean: updates of AIX levels, 
+  operations on a list of AIX LPARs and VIOS, by running this module on a 
+  NIM server managing these LPARs and VIOS.<br>
+ By software maintenance operations we mean: updates of AIX or VIOS levels, 
   updates of eFix.<br>
  Operations desired by the user are written into a manifest file, using Puppet
   configuration language called DSL (Domain Specific Language). Specific 
@@ -30,10 +30,11 @@
   AixAutomation Puppet module, to control necessary operations to automatically 
   perform AIX updates and patch management. These new custom types enable
   to declare resources in manifest file. These types 'download', 'patchmngt', 
-  and 'fix' are described hereafter in detail.<br>
+  'fix', and 'vios' are described hereafter in detail.<br>
  AIX updates and patch management operations performed by this AixAutomation 
-  Puppet module are shortly described now:<br>          
-  - Necessary AIX level updates are automatically downloaded from FixCentral 
+  Puppet module are shortly described now.<br>
+  Firstly as far as AIX LPARs are concerned:<br>          
+ - Necessary AIX level updates are automatically downloaded from FixCentral 
   using 'suma' features, and are locally kept and shared between LPARs if 
   possible.<br>
  - Downloaded updates can then be automatically applied on a list of LPARs, 
@@ -50,7 +51,15 @@
   This operation is done by using NIM push mode (therefore as already said 
   without performing any operation on the LPARs themselves: without 
   installing anything on these LPARs).<br>
-
+  Secondly as far as AIX VIOS are concerned:<br>
+ - VIOS updates can be automatically applied on a list of VIOS, 
+  through 'NIM push' operations. As for LPARs updates, everything (i.e. all 
+  AixAutomation logic) runs from the NIM server, and nothing needs to be 
+  installed on VIOS themselves.<br> To bring trust in VIOS update operation,
+  a mandatory copy of rootvg is taken before performing update, and 
+  AIXAutomation logic takes into account the potential mirroring of rootvg, and 
+  possible SSP cluster membership.
+   
 ## Setup
 ### Setup Requirements 
  This AixAutomation module needs to run a the NIM server which manages LPARs 
@@ -208,17 +217,20 @@
       facter). Results can be found into ./output/facter/standalones_kept.yml 
       file, and into ./output/facter/standalones_skipped.yml file. This 
       'standalones' facter takes some time at the beginning of AixAutomation 
-      module, but is necessary to know the usable standalone.<br>
-    - (preparation for) vios: you'll find results on this factor into 
-       ./output/facter/vios_kept.yml file, and into 
-       ./output/facter/vios_skipped.yml file.<br> 
-        
+      module, but is necessary to know the usable standalones.<br>
+    - vios: to gather data on all VIOS managed by the NIM server. 
+      As a matter of fact list of VIOS is restricted to the ones really 
+      used in manifests/init.pp as explained above (refer to 'applied_manifest' 
+      facter). Results can be found into ./output/facter/vios_skipped.yml file
+      and ./output/facter/vios_kept.yml file.<br> 
+    - hmc: to gather data on all HMC managed by the NIM server. 
+  
     
  
 ### Custom types and providers
- Three custom type and their providers constitute the AixAutomation module.<br>
+ Four custom type and their providers constitute the AixAutomation module.<br>
  All custom types utilizations are documented into './examples/init.pp'<br>
- These tree custom types constitute the vocabulary which can be used as part of 
+ These four custom types constitute the vocabulary which can be used as part of 
   Puppet DSL into manifest file, to perform resources declaration. <br> 
  
  #### Custom type: download (provider: suma)
@@ -474,7 +486,61 @@ It is a good practice to regularly consider that the
    - <b>type</b>: type of desired eFix. Possible values: <b>hiper</b>, 
    <b>sec</b>, <b>all</b>. 
    By default, <b>all</b> is assumed, meaning all possible eFix are installed.       
-        
+
+#### Custom type: vios (provider: viosmngt)
+ ##### Explanations
+  The aim of this provider is to provide software maintenance operations on a 
+  list of VIOSs using NIM push mode. Everything is performed from the NIM server 
+  on which this AixAutomation Puppet module runs.<br>
+  To be able to perform VIOS updates, this NIM push mode need lpp_sources to exist, 
+  and these lpp_sources have to be manually built before using AIXAutomation 
+  Puppet module (as compared with LPAR updates for which it is possible to 
+  automatically build lpp_sources).  
+  Software maintenance operations include: updates.<br>
+  You'll find samples of VIOS updates into './examples/init.pp'.<br>
+  You can perform preview only depending on 'options' attribute.<br>
+  Several modes of updates exist: commit, reject. See several 
+   documented examples in './examples/init.pp'. 
+ ##### Attributes
+   - <b>provider</b>: this attribute is not mandatory, if mentioned it needs 
+   to contain name of the provider implementing the 'vios' custom type, 
+   therefore the value needs to be: <b>viosmngt</b>.  
+   - <b>ensure</b>: to control flow of execution, this attribute can take two 
+   values, either <b>present</b> or <b>absent</b>. By default <b>present</b> 
+   is assumed. If set the <b>present</b>, NIM push operation will be attempted 
+   so that what is set into attributes is performed.<br>
+   If set to <b>absent</b>,  <i> missing </i>.     
+   - <b>name</b>: not a mandatory attribute if you have only one 'vios' 
+   custom type in './manifests/init.pp'. Otherwise (multiple 'vios' 
+   custom types), this attribute is necessary to uniquely identify the VIOS  
+   update operation to be performed: you can have several 'vios' custom 
+   types in './manifests/init.pp', each of them being uniquely identified.<br> 
+  - <b>action</b>: action to be performed. This attribute can take several 
+   values: <b>health</b>,<b>check</b>,<b>save</b>,<b>autocommit</b>,<b>update</b>. 
+   By default, <b></b> is assumed. <b>health</b> action enables 
+   VIOS health check prior from making update, <b>check</b> action enables check, 
+   <b>save</b> action enables the save copy of teh rootvg to be taken prior from 
+   performing update, <b>autocommit</b> action enables autocommit to be done 
+   if necessary before applying new updates, <b>update</b> action enable 
+   update.<br>
+  - <b>vios_pairs</b>: pairs of VIOS on which to perform action.
+  - <b>mode</b>: mode of update. By default update is performed in apply mode, 
+   meaning the updates are only applied, <b>mode</b> is set to <b>apply</b>. 
+   It is possible to commit the updates, by setting this <b>mode</b> attribute 
+   to <b>commit</b>. Or you can set <b>mode</b> to <b>reject</b>, 
+   (but in that case <b>ensure</b> needs to be set to <b>absent</b>) to reject 
+    all updates.      
+  - <b>lpp_source</b>: name of the NIM lpp_source resource to be 
+   installed/un-installed or which needs to be used to performed system update. 
+   In case of update, this lpp_source is the one which was created by a previous 
+   'download' custom type (results of suma-downloads). 
+  - <b>sync</b>: if action needs to be done synchronously or asynchronously. 
+   Two possible values for this attribute: <b>yes</b> and <b>no</b>. 
+   By default, <b>no</b> is assumed.  
+  - <b>preview</b>: if only preview must be done. Two possible values for 
+   this attribute: <b>yes</b> and <b>no</b>. By default, <b>no</b> is assumed.  
+    
+         
 ## Limitations
  Refer to TODO.md<br>
 

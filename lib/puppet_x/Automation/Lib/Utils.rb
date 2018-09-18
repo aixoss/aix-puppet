@@ -77,6 +77,32 @@ module Automation
       end
 
       # ########################################################################
+      # name : check_input_disk
+      # param :input:vios:string
+      # param :input:disk:string
+      # return :size if it exists, 0 otherwise
+      # description : checks disk is valid on this vios and returns its size
+      # ########################################################################
+      def self.check_input_disk(vios, disk)
+        Log.log_debug('Into check_input_disk vios=' + vios + ' disk=' + disk)
+        size = 0
+        #
+        if !vios.empty? and !disk.empty?
+
+          remote_cmd1 = '/usr/ios/utils/bootinfo ' + disk
+          remote_output1 = []
+          remote_cmd_rc1 = Remote.c_rsh(vios, remote_cmd1, remote_output1)
+          if remote_cmd_rc1 == 0
+            size = remote_output1[0]
+          end
+        else
+          Log.log_debug("Either vios parameter is empty: \"#{vios}\" or disk parameter is empty: \"#{disk}\".")
+        end
+        Log.log_debug("size_returned = #{size}")
+        size
+      end
+
+      # ########################################################################
       # name : check_input_lppsource
       # param :input:lppsource:string
       # return :status

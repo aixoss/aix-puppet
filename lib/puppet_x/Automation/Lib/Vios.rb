@@ -391,6 +391,9 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
       #    "1" key contains an array with vios with    altinst_rootvg
       #    altinst_rootvg (if it exists on a vios) can be removed and
       #      its disk reused.
+      # param : in:chosen_disk: name of the disk chosen by user. My be empty
+      #    If set we try to use this one as first choice, if it fits, if it
+      #    does not fit, we do as this parameter was not set.
       # param : in:altinst_rootvg_force: yes or no. If set to yes, it indicates that
       #    altinst_rootvg (if it exists) can be removed and its disk reused.
       #    If set to no, existing altinst_rootvg is not touched.
@@ -402,12 +405,15 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
       # ########################################################################
       def self.find_best_alt_disk_vios(vios,
           hvios,
+          chosen_disk,
           altinst_rootvg_force)
         Log.log_debug('find_best_alt_disk_vios for "' + vios.to_s +
                           '" vios with hvios=' + hvios.to_s +
-                          ' force=' + altinst_rootvg_force.to_s)
-
+                          ' with chosen_disk=' + chosen_disk.to_s +
+                          ' with force=' + altinst_rootvg_force.to_s)
         vios_returned = []
+
+        #
         if altinst_rootvg_force.to_s == 'reuse' and hvios["1"].include? vios
           # If an altinst_rootvg already exists, we reuse it
           # There is no need to remove previous one, and to find the best
@@ -462,7 +468,14 @@ size_candidate_disk=#{size_candidate_disk}")
                 #
                 if added != 0
                   name_candidate_disk = ''
-                  if !alt_disk_to_reuse.nil? and
+                  if !chosen_disk.nil? and
+                      !chosen_disk.empty? and
+                      disks_kept.include? chosen_disk
+                    # If one disk was explicitly chosen by user and
+                    #  this disk is par of the disks_kept list,
+                    #  we take this one.
+                    name_candidate_disk = chosen_disk
+                  elsif !alt_disk_to_reuse.nil? and
                       !alt_disk_to_reuse.empty? and
                       disks_kept.include? alt_disk_to_reuse[0]
                     # If there was one disk previously used for altinst_rootvg
@@ -1727,12 +1740,8 @@ specific constraints before performing an altinst_rootvg."
         #
         vios_pair.each do |vios|
           ssp_name = nim_vios[vios]['SSP_CLUSTER_NAME']
-          Log.log_debug(' ssp_name=' + ssp_name.to_s)
-
-          # ssp_vios_status_vios = 'None'
-          #
           cluster_ssp_vios_status = nim_vios[vios]['cluster_ssp_vios_status']
-          Log.log_debug(' cluster_ssp_vios_status=' + cluster_ssp_vios_status.to_s)
+          Log.log_debug(' cluster_ssp_vios_status (as seen from ' + vios.to_s + ') of ' + ssp_name.to_s + ' cluster=' + cluster_ssp_vios_status.to_s)
           #
           if cluster_ssp_vios_status == 'DOWN' and action == 'start'
             perform_action = true
@@ -1947,56 +1956,61 @@ specific constraints before performing an altinst_rootvg."
       # name : nim_updateios
       # param : in:cmd:string
       # param : in:vios:string
+      # param : in:msg:string
       # return : 0 if success 1 otherwise
       # description :
       #  Run the NIM updateios operation on specified vios
       #  The command to run is built by prepare_updateios_command()
       # ##################################################################
       def self.nim_updateios(cmd,
-          vios)
+          vios,
+          msg)
         Log.log_debug('nim_updateios cmd="' + cmd +
                           '" vios="' + vios + '"')
         ret = 0
-        Vios.vios_levels('Before', vios)
-        # TBC - For testing, will be removed after test !!!
-        # cmd_s = "/usr/sbin/lsnim -Z -a Cstate -a info -a Cstate_result #{vios}"
-        # log_info("nim_updateios: overwrite cmd_s:'#{cmd_s}'")
-        exit_status1 = Open3.popen3({'LANG' => 'C'}, cmd) do |_stdin, stdout, stderr, wait_thr|
+        Vios.vios_levels('Before ' + msg, vios)
+        #
+        Open3.popen3({'LANG' => 'C'}, cmd) do |_stdin, stdout, stderr, wait_thr|
           stdout.each_line {|line| Log.log_info("[STDOUT] #{line.chomp}")}
           stderr.each_line do |line|
             Log.log_err("[STDERR] #{line.chomp}")
           end
-          wait_thr.value # Process::Status object returned.
-        end
-        # grep fileset statistics and parse ?
-        cmd2 = '/bin/grep -p "FILESET STATISTICS" stdout'
-        exit_status2 = Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin, stdout2, stderr2, wait_thr2|
-          Log.log_info(exit_status2.to_s)
-          Log.log_info(stdout2)
-          Vios.add_vios_msg(vios, stdout2)
-          stderr2.each_line do |line|
-            Log.log_err("[STDERR] #{line.chomp}")
+          #
+          if !stdout.read.nil? and !stdout.read.empty?
+            # grep fileset statistics and parse ?
+            Log.log_info(stdout.class.to_s +
+                             ' ' + stdout.read.class.to_s +
+                             ' ' + stdout.read.to_s.class.to_s)
+            Log.log_info(stdout.to_s + ' ' + stdout.read.to_s)
+            cmd2 = '/bin/grep -p "FILESET STATISTICS" ' + stdout.read.to_s
+            Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin2, stdout2, stderr2, wait_thr2|
+              stdout2.each_line do |line|
+                Log.log_info("[STDOUT] #{line.chomp}")
+                Vios.add_vios_msg(vios, line.chomp)
+              end
+              stderr2.each_line do |line|
+                Log.log_err("[STDERR] #{line.chomp}")
+              end
+              wait_thr2.value # Process::Status object returned.
+            end
           end
-          wait_thr2.value # Process::Status object returned.
 
-        end
-
-
-        if exit_status1.success?
-          if cmd.include? 'preview=yes'
-            msg = 'NIM updateios operation of ' + vios.to_s + ' successful, update was done in preview only.'
+          if wait_thr.value.success?
+            if cmd.include? 'preview=yes'
+              msg = 'NIM updateios operation of ' + vios.to_s + ' successful, update was done in preview only.'
+            else
+              msg = 'NIM updateios operation of ' + vios.to_s + ' successful, and update is committed.'
+            end
+            Log.log_info(msg)
+            Vios.add_vios_msg(vios, msg)
           else
-            msg = 'NIM updateios operation of ' + vios.to_s + ' successful, and update is committed.'
+            ret = 1
+            msg = 'Failed to fully perform NIM updateios operation on "' + vios.to_s + '" vios, see errors in log file and advise.'
+            Log.log_err(msg)
+            Vios.add_vios_msg(vios, msg)
           end
-          Log.log_info(msg)
-          Vios.add_vios_msg(vios, msg)
-        else
-          ret = 1
-          msg = 'Failed to fully perform NIM updateios operation on "' + vios.to_s + '" vios, see errors in log file and advise.'
-          Log.log_err(msg)
-          Vios.add_vios_msg(vios, msg)
         end
-        Vios.vios_levels('After', vios)
+        Vios.vios_levels('After ' + msg, vios)
         ret
       end
 
