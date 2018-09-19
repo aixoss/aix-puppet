@@ -247,7 +247,7 @@ useful only for "action=update"'
   end
 
   # ############################################################################
-  # :altinst_rootvg is a attribute giving for each vios the name of the
+  # :vios_altinst_rootvg is a attribute giving for each vios the name of the
   #  disk to be used to perform altinst_rootvg
   # To enable association with vios, altinst_rootvg disk must be given
   #  with following syntax: "vios1=hdisk1,vios2=hdisk2"
@@ -256,8 +256,8 @@ useful only for "action=update"'
   # This parameter is not mandatory, disk can be choosen as well following
   #  other rules.
   # ############################################################################
-  newparam(:altinst_rootvg) do
-    desc '"altinst_rootvg" attribute: names of the disk, \
+  newparam(:vios_altinst_rootvg) do
+    desc '"vios_altinst_rootvg" attribute: names of the disk, \
 associated to vios, used to perform altinst_rootvg'
     h_vios_disks = {}
 
@@ -278,7 +278,7 @@ associated to vios, used to perform altinst_rootvg'
             end
             disk = Regexp.last_match(2)
             Log.log_debug('disk=' + disk.to_s)
-            unless Utils.check_input_disk(vios, disk).success?
+            unless Utils.check_input_disk(vios, disk) != 0
               raise('"vios_disks" "' + disk.to_s + '" disk is not valid.')
             end
             h_vios_disks[vios.to_s] = disk.to_s

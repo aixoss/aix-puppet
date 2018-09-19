@@ -34,6 +34,23 @@ module Automation
       end
 
       # ########################################################################
+      # name : get_updateios_output_vios_file_name
+      # param : input:vios:string vios name
+      # param : input:step:string either autocommit or update
+      # return : file name
+      # One file per vios stores NIM updateios output (one per autocommit, and
+      #   one for update)
+      #   one for update)
+      # ########################################################################
+      def self.get_updateios_output_file_name(vios,
+          step = 'update')
+        updateios_output_dir = ::File.join(Constants.output_dir, 'vios')
+        Utils.check_directory(updateios_output_dir)
+        updateios_output_file = ::File.join(updateios_output_dir, 'updateios_output_' + step + '_' + vios + '.log ')
+        updateios_output_file
+      end
+
+      # ########################################################################
       # name : add_vios_msg
       # param : input:vios:string vios name
       # param : input:msg:string message containing vios status
@@ -801,17 +818,14 @@ size_candidate_disk=#{size_candidate_disk}")
                 end
 
                 if nim_cstate.downcase == 'ready for a nim operation'
-                  msg = "NIM alt_disk_install operation on #{vios} ended with #{nim_result}"
-                  Log.log_info(msg)
-                  Vios.add_vios_msg(vios, msg)
                   unless nim_result == 'success'
-                    msg = "Failed to perform NIM alt_disk_install operation on #{vios}: #{nim_info}"
+                    msg = "Failed to perform NIM alt_disk_install operation on \"#{vios}\" vios: #{nim_info}"
                     Log.log_err(msg)
                     Vios.add_vios_msg(vios, msg)
                     return 1
                   end
                   Log.log_info("\033[2K\r")
-                  msg = "NIM alt_disk_install operation on #{vios} succeeded"
+                  msg = "NIM alt_disk_install operation on \"#{vios}\" vios succeeded"
                   Log.log_info(msg)
                   Vios.add_vios_msg(vios, msg)
                   return 0 # here the operation succeeded
@@ -1612,9 +1626,8 @@ specific constraints before performing an altinst_rootvg."
             end
             vios_ssp_status[vios] = vios_ssp_status_vios
             nim_vios[vios]['ssp_vios_status'] = vios_ssp_status_vios
-            msg = 'SSP status of "' + vios.to_s + '" vios:' +
-                ' ssp_vios_status= ' + nim_vios[vios]['ssp_vios_status'].to_s +
-                ' and cluster_ssp_vios_status=' + nim_vios[vios]['cluster_ssp_vios_status']
+            msg = "SSP status of \" #{vios} \" vios: ssp_vios_status= #{nim_vios[vios]['ssp_vios_status']} \"
+and cluster_ssp_vios_status= #{nim_vios[vios]['cluster_ssp_vios_status']}"
             Vios.add_vios_msg(vios, msg)
             Log.log_info(msg)
           else
@@ -1709,7 +1722,8 @@ specific constraints before performing an altinst_rootvg."
           ssp_cluster_check = true
         end
         #
-        msg = 'Checking SSP status on ' + vios_pair.to_s + ' vios pair returning ' + ssp_cluster_check.to_s
+        msg = "Checking SSP status on #{vios_pair} vios pair returning #{ssp_cluster_check}:\
+therefore it is not possible to continue VIOS update on this pair."
         Vios.add_vios_msg(vios1, msg)
         Vios.add_vios_msg(vios2, msg)
         Log.log_debug(msg)
@@ -1724,6 +1738,13 @@ specific constraints before performing an altinst_rootvg."
       # param : in:vios_pair:array
       # param : inout:nim_vios:hashtable
       # description : Stop or start the SSP for a VIOS
+      #
+      #   If you don't stop SSP cluster before performing update, you risk :
+      #    0042-001 nim: processing error encountered on "master":
+      #    0042-001 m_updateios: processing error encountered on "p7juav2":
+      #    The requested operation is not allowed because partition is
+      #     a member of "p7juaclu" cluster.
+      #
       # returns : true if OK, false otherwise
       # ##################################################################
       def self.ssp_stop_start(action,
@@ -1741,7 +1762,7 @@ specific constraints before performing an altinst_rootvg."
         vios_pair.each do |vios|
           ssp_name = nim_vios[vios]['SSP_CLUSTER_NAME']
           cluster_ssp_vios_status = nim_vios[vios]['cluster_ssp_vios_status']
-          Log.log_debug(' cluster_ssp_vios_status (as seen from ' + vios.to_s + ') of ' + ssp_name.to_s + ' cluster=' + cluster_ssp_vios_status.to_s)
+          Log.log_debug('cluster_ssp_vios_status (as seen from ' + vios.to_s + ') of ' + ssp_name.to_s + ' cluster=' + cluster_ssp_vios_status.to_s)
           #
           if cluster_ssp_vios_status == 'DOWN' and action == 'start'
             perform_action = true
@@ -1752,36 +1773,6 @@ specific constraints before performing an altinst_rootvg."
             other_vios = vios
           end
         end
-
-        #
-        # #
-        # ssp_vios_status = nim_vios[vios]['ssp_vios_status']
-        # Log.log_debug(' ssp_vios_status=' + ssp_vios_status.to_s)
-        # #
-        # if !ssp_vios_status.nil? and !ssp_vios_status.empty?
-        #   ssp_vios_status_vios = ssp_vios_status[vios]
-        #   Log.log_debug(' ssp_vios_status_vios=' + ssp_vios_status_vios.to_s + ' ' + ssp_vios_status_vios.class.to_s)
-        #   #
-        #   if !ssp_vios_status_vios.nil? and !ssp_vios_status_vios.empty?
-        #     #
-        #     ssp_status = ssp_vios_status_vios[2]
-        #     Log.log_debug(' ssp_status=' + ssp_status.to_s)
-        #     #
-        #     if ssp_status == 'OK' and action == 'stop'
-        #       perform_action = true
-        #     elsif cluster_ssp_vios_status == 'DOWN' and action == 'start'
-        #       perform_action = true
-        #     end
-        #   end
-        # end
-
-        # else
-        # if cluster_ssp_vios_status == 'DOWN' and action == 'start'
-        #   perform_action = true
-        # elsif cluster_ssp_vios_status == 'UP' and action == 'stop'
-        #   perform_action = true
-        # end
-        # end
 
         if perform_action
           #
@@ -1808,24 +1799,13 @@ specific constraints before performing an altinst_rootvg."
               remote_output1_lines.each do |remote_output1_line|
                 remote_output1_line.chomp!
                 Log.log_debug('remote_output1_line=' + remote_output1_line.to_s)
-                # if remote_output1_line =~ /XYZ/ # TBI
-                #   msg = "?????"
-                #   Log.log_debug(msg)
-                #   Vios.add_vios_msg(vios_to_ssp_stop_start, msg)
-                #   nim_vios[vios]['cluster_ssp_vios_status'] = "DOWN"
-                # elsif remote_output1_line =~ /XYZW/ # TBI
-                #   msg = "????????"
-                #   Log.log_debug(msg)
-                #   Vios.add_vios_msg(vios_to_ssp_stop_start, msg)
-                #   nim_vios[vios]['cluster_ssp_vios_status'] = "UP"
-                # end
               end
               nim_vios[vios_to_action]['cluster_ssp_vios_status'] = if action == 'stop'
                                                                       "DOWN"
                                                                     else
                                                                       "OK"
                                                                     end
-              msg = "#{action} cluster #{nim_vios[vios_to_action]['ssp_name']} on vios #{vios_to_action} succeeded."
+              msg = "Cluster #{nim_vios[vios_to_action]['SSP_CLUSTER_NAME']} #{action} on '#{vios_to_action}' vios succeeded."
               Log.log_info(msg)
               Vios.add_vios_msg(vios_to_action, msg)
               returned = true
@@ -1836,20 +1816,41 @@ specific constraints before performing an altinst_rootvg."
                                                                       else
                                                                         "OK"
                                                                       end
-                msg = "#{action} cluster #{nim_vios[vios_to_action]['ssp_name']} on vios #{vios_to_action} succeeded."
+                msg = "Cluster #{nim_vios[vios_to_action]['SSP_CLUSTER_NAME']} #{action} on '#{vios_to_action}' vios succeeded."
                 Log.log_info(msg)
                 Vios.add_vios_msg(vios_to_action, msg)
                 returned = true
               else
-                msg = "Failed to #{action} cluster #{ssp_name} on vios #{vios_to_action}"
-                Log.log_warning(msg)
+                # Try to dump output to understand why it failed
+                if !remote_output1[0].nil? and !remote_output1[0].empty?
+                  remote_output1_lines = remote_output1[0].split("\n")
+                  remote_output1_lines.each do |remote_output1_line|
+                    remote_output1_line.chomp!
+                    Log.log_err('ERROR SSP START:' + remote_output1_line.to_s)
+                  end
+                end
+                msg = "Failed to #{action} '#{nim_vios[vios_to_action]['SSP_CLUSTER_NAME']}' cluster on '#{vios_to_action}' vios"
+                Log.log_err(msg)
                 Vios.add_vios_msg(vios_to_action, msg)
                 returned = false
               end
             end
+          else
+            # Try to dump output to understand why it failed
+            if !remote_output1[0].nil? and !remote_output1[0].empty?
+              remote_output1_lines = remote_output1[0].split("\n")
+              remote_output1_lines.each do |remote_output1_line|
+                remote_output1_line.chomp!
+                Log.log_err('ERROR SSP START:' + remote_output1_line.to_s)
+              end
+            end
+            msg = "Failed to #{action} '#{nim_vios[vios_to_action]['SSP_CLUSTER_NAME']}' cluster on '#{vios_to_action}' vios"
+            Log.log_err(msg)
+            Vios.add_vios_msg(vios_to_action, msg)
+            returned = false
           end
         else
-          msg = "Nothing to be done, as far as SSP is concerned, on vios #{vios_to_action}."
+          msg = "Nothing to be done, as far as SSP is concerned, on '#{vios_to_action}' vios."
           Log.log_debug(msg)
           Vios.add_vios_msg(vios_to_action, msg)
           returned = false
@@ -1911,7 +1912,11 @@ specific constraints before performing an altinst_rootvg."
 
         cmd << " #{vios}"
 
-        msg = 'Preparing update command for ' + vios.to_s + ' successful : "' + cmd.to_s + '"'
+        updateios_output_file = Vios.get_updateios_output_file_name(vios)
+
+        cmd << '> ' + updateios_output_file + ' 2>&1'
+
+        msg = "Preparing update command for \"#{vios}\" vios successful : #{cmd} "
         Log.log_info(msg)
         Vios.add_vios_msg(vios, msg)
 
@@ -1950,13 +1955,11 @@ specific constraints before performing an altinst_rootvg."
         Vios.add_vios_msg(vios, msg)
       end
 
-      # '"LC_ALL=C /usr/ios/cli/ioscli cluster -list &&' ' /usr/ios/cli/ioscli cluster -status -fmt : ; echo rc=$?"'
-
       # ##################################################################
       # name : nim_updateios
       # param : in:cmd:string
       # param : in:vios:string
-      # param : in:msg:string
+      # param : in:step:string either update or autocommit
       # return : 0 if success 1 otherwise
       # description :
       #  Run the NIM updateios operation on specified vios
@@ -1964,37 +1967,34 @@ specific constraints before performing an altinst_rootvg."
       # ##################################################################
       def self.nim_updateios(cmd,
           vios,
-          msg)
+          step)
+
         Log.log_debug('nim_updateios cmd="' + cmd +
                           '" vios="' + vios + '"')
+        msg_step = 'vios ' + step
+        Log.log_info(msg_step + ' of "' + vios.to_s + '" vios with "' + cmd.to_s + '" command.')
+
         ret = 0
-        Vios.vios_levels('Before ' + msg, vios)
-        #
-        Open3.popen3({'LANG' => 'C'}, cmd) do |_stdin, stdout, stderr, wait_thr|
-          stdout.each_line {|line| Log.log_info("[STDOUT] #{line.chomp}")}
-          stderr.each_line do |line|
-            Log.log_err("[STDERR] #{line.chomp}")
+        Vios.vios_levels('Before ' + msg_step, vios)
+
+        # stdout and stderr are redirected to updateios_output_file
+        Open3.popen3({'LANG' => 'C'}, cmd) do |_stdin, _stdout, _stderr, wait_thr|
+
+          updateios_output_file = Vios.get_updateios_output_file_name(vios, step)
+          Log.log_info('Refer to ' + updateios_output_file.to_s + ' to see output of ' + cmd.to_s)
+
+          cmd2 = '/bin/grep -p "FILESET STATISTICS" ' + updateios_output_file
+          Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin2, stdout2, stderr2, wait_thr2|
+            stdout2.each_line do |line|
+              Log.log_info("[STDOUT] #{line.chomp}")
+              Vios.add_vios_msg(vios, line.chomp)
+            end
+            stderr2.each_line do |line|
+              Log.log_err("[STDERR] #{line.chomp}")
+            end
+            wait_thr2.value # Process::Status object returned.
           end
           #
-          if !stdout.read.nil? and !stdout.read.empty?
-            # grep fileset statistics and parse ?
-            Log.log_info(stdout.class.to_s +
-                             ' ' + stdout.read.class.to_s +
-                             ' ' + stdout.read.to_s.class.to_s)
-            Log.log_info(stdout.to_s + ' ' + stdout.read.to_s)
-            cmd2 = '/bin/grep -p "FILESET STATISTICS" ' + stdout.read.to_s
-            Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin2, stdout2, stderr2, wait_thr2|
-              stdout2.each_line do |line|
-                Log.log_info("[STDOUT] #{line.chomp}")
-                Vios.add_vios_msg(vios, line.chomp)
-              end
-              stderr2.each_line do |line|
-                Log.log_err("[STDERR] #{line.chomp}")
-              end
-              wait_thr2.value # Process::Status object returned.
-            end
-          end
-
           if wait_thr.value.success?
             if cmd.include? 'preview=yes'
               msg = 'NIM updateios operation of ' + vios.to_s + ' successful, update was done in preview only.'
@@ -2010,7 +2010,8 @@ specific constraints before performing an altinst_rootvg."
             Vios.add_vios_msg(vios, msg)
           end
         end
-        Vios.vios_levels('After ' + msg, vios)
+
+        Vios.vios_levels('After ' + msg_step, vios)
         ret
       end
 

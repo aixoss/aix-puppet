@@ -524,16 +524,28 @@ It is a good practice to regularly consider that the
    if necessary before applying new updates, <b>update</b> action enable 
    update.<br>
   - <b>vios_pairs</b>: pairs of VIOS on which to perform action.
-  - <b>mode</b>: mode of update. By default update is performed in apply mode, 
-   meaning the updates are only applied, <b>mode</b> is set to <b>apply</b>. 
-   It is possible to commit the updates, by setting this <b>mode</b> attribute 
-   to <b>commit</b>. Or you can set <b>mode</b> to <b>reject</b>, 
-   (but in that case <b>ensure</b> needs to be set to <b>absent</b>) to reject 
-    all updates.      
-  - <b>lpp_source</b>: name of the NIM lpp_source resource to be 
-   installed/un-installed or which needs to be used to performed system update. 
-   In case of update, this lpp_source is the one which was created by a previous 
-   'download' custom type (results of suma-downloads). 
+  - <b>update_options</b>: possible values are <b>install</b>, <b>commit</b>, <b>reject</b>, <b>cleanup</b>, 
+  <b>remove</b>.      
+  - <b>options</b>: possible values are <b>accep_licenses</b>, <b>preview</b>.
+  - <b>vios_altinst_rootvg</b>: this attribute enables to designate a disk to be used to host altinst_rootvg. A disk
+  can be designated per vios following this given syntax : <b>vios1=hdisk1, vios2=hdisk2</b> etc. The given disk
+  will be used as a first choice, if this disk fits the necessary conditions to host a copy of the rootvg. If 
+  this disk cannot be used, the best disk possible will be chosen : a free disk large enough to host rootvg, 
+  but the samllest disk possible will be taken to spare resources.    
+  - <b>altinst_rootvg_force</b>: possible values are <b>no</b>, <b>yes</b>, <b>reuse</b>. <br>
+  <b>altinst_rootvg_force=no</b> means that if ever it already exists an altinst_rootvg, this one won't be overriden
+  and there its presence will prevent a new altinst_rootvg from being taken, preventing the overall process of VIOS
+  update to continue. <br>
+  <b>altinst_rootvg_force=yes</b> means that if ever it already exists an altinst_rootvg, this one is going to be 
+  cleaned and removed, allowing a new one to be taken just before VIOS update. <br> If no altinst_rootvg already 
+  exists, one altinst_rootvg will be taken of course. <br>
+  <b>altinst_rootvg_force=reuse</b> means that if ever it already exists an altinst_rootvg, this one is going to be 
+  kept and used, therfore no fresh altinst_rootvg is taken as we consider the existing one as valuable. If no 
+  altinst_rootvg exists, one altinst_rootvg will be taken of course. <br>
+  - <b>vios_lpp_sources</b>: this attribute enables to designate the NIM lpp_source resource to be used to perform  
+  VIOS update operation. A NIM lpp_source resource can be designated per vios following this given syntax : 
+  <b>vios1=lpp_source1, vios2=lpp_source2</b> etc. The given lpp_sources need to exists before launching Puppet 
+  AIXAutomation. <br>
   - <b>sync</b>: if action needs to be done synchronously or asynchronously. 
    Two possible values for this attribute: <b>yes</b> and <b>no</b>. 
    By default, <b>no</b> is assumed.  

@@ -25,6 +25,7 @@ Puppet::Type.type(:vios).provide(:viosmngt) do
     Log.log_info("Provider viosmngt 'exists?' method : we want to realize: \
                  \"#{resource[:ensure]}\" for \"#{resource[:actions]}\" actions \
 on \"#{resource[:vios_pairs]}\" targets \
+with \"#{resource[:vios_altinst_rootvg]}\" for vios_altinst_rootvg and \
 with \"#{resource[:altinst_rootvg_force]}\" for altinst_rootvg_force and \
 with \"#{resource[:vios_lpp_sources]}\" lpp_sources and
 with \"#{resource[:update_options]}\" update_options.")
@@ -36,7 +37,7 @@ with \"#{resource[:update_options]}\" update_options.")
     actions = resource[:actions]
     Log.log_debug('actions=' + actions.to_s)
     #
-    vios_disks = resource[:altinst_rootvg]
+    vios_disks = resource[:vios_altinst_rootvg]
     Log.log_debug('vios_disks=' + vios_disks.to_s)
     #
     force = resource[:altinst_rootvg_force].to_s
@@ -253,18 +254,26 @@ with \"#{resource[:update_options]}\" update_options.")
               Log.log_info('Perform autocommit before NIM updateios for "' + vios.to_s + '" vios')
               autocommit_cmd = '/usr/sbin/nim -o updateios -a updateios_flags=-commit -a filesets=all ' + vios.to_s
               # Perform autocommit
-              msg = 'vios autocommit update'
-              Log.log_info(msg + ' of "' + vios.to_s + '" vios with "' + autocommit_cmd.to_s + '" command.')
-              autocommit_cmd_ret = Vios.nim_updateios(autocommit_cmd, vios, msg)
-              Log.log_debug('autocommit_cmd_ret = ' + autocommit_cmd_ret.to_s)
+              step = 'autocommit'
+              autocommit_ret = Vios.nim_updateios(autocommit_cmd, vios, step)
+              if autocommit_ret == 0
+                Log.log_info('vios autocommit of "' + vios.to_s + '" vios returns ' + autocommit_ret.to_s)
+              else
+                Log.log_err('vios autocommit of "' + vios.to_s + '" vios returns ' + autocommit_ret.to_s)
+              end
             end
 
             #
-            ssp_check = Vios.ssp_stop_start('stop',
-                                            vios,
-                                            vios_pair,
-                                            nim_vios)
-            Log.log_info('ssp_stop_start stop returning ' + ssp_check.to_s)
+            ssp_start_stop_ret = Vios.ssp_stop_start('stop',
+                                                     vios,
+                                                     vios_pair,
+                                                     nim_vios)
+            if ssp_start_stop_ret == true
+              Log.log_info('SSP cluster stop returns ' + ssp_start_stop_ret.to_s)
+            else
+              Log.log_err('SSP cluster stop returns ' + ssp_start_stop_ret.to_s)
+            end
+
 
             # Prepare update command
             Log.log_info('Launching update of "' + vios.to_s + '" vios with "' + value_lpp_source.to_s + '" lpp_source.')
@@ -273,16 +282,24 @@ with \"#{resource[:update_options]}\" update_options.")
                                                         options,
                                                         update_options)
             # Perform update
-            msg = 'vios update'
-            Log.log_info(msg + ' "' + vios.to_s + '" vios with "' + update_cmd.to_s + '" command.')
-            update_ret = Vios.nim_updateios(update_cmd, vios, msg)
-            Log.log_info('vios update of "' + vios.to_s + '" vios returns ' + update_ret.to_s)
+            step = 'update'
+            update_ret = Vios.nim_updateios(update_cmd, vios, step)
+            if update_ret == 0
+              Log.log_info('vios update of "' + vios.to_s + '" vios returns ' + update_ret.to_s)
+            else
+              Log.log_err('vios update of "' + vios.to_s + '" vios returns ' + update_ret.to_s)
+            end
+
             #
-            ssp_check = Vios.ssp_stop_start('start',
-                                            vios,
-                                            vios_pair,
-                                            nim_vios)
-            Log.log_info('ssp_stop_start start returning ' + ssp_check.to_s)
+            ssp_start_stop_ret = Vios.ssp_stop_start('start',
+                                                     vios,
+                                                     vios_pair,
+                                                     nim_vios)
+            if ssp_start_stop_ret == true
+              Log.log_info('SSP cluster stop returns ' + ssp_start_stop_ret.to_s)
+            else
+              Log.log_err('SSP cluster stop returns ' + ssp_start_stop_ret.to_s)
+            end
           else
             Log.log_warning('Because there is no altinst_rootvg on "' + vios.to_s + '" vios, update cannot be run.')
           end

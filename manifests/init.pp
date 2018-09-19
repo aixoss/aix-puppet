@@ -79,7 +79,7 @@ class aixautomation {
     options              => 'accept_licenses',
     # update_options       => 'install, commit, reject, cleanup, remove',
     update_options       => 'commit',
-    # altinst_rootvg       => 'p7juav1=hdisk2,p7juav1=hdisk0',
+    vios_altinst_rootvg  => 'p7juav1=hdisk2,p7juav1=hdisk0',
     altinst_rootvg_force => 'reuse',
     # vios_altinst_rootvg  => 'p7juav1=hdisk0',
     vios_lpp_sources     => 'p7juav1=vios_update_22623,p7juav2=vios_update_22623',
