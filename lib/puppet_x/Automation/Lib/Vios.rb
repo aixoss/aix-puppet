@@ -536,136 +536,6 @@ size_candidate_disk=#{size_candidate_disk}")
         vios_returned
       end
 
-      # ########################################################################
-      # name : find_best_alt_disks
-      # param : in:vios_pair: an array of two vios names on which we may
-      #  desire performing alt_disk_copy
-      # param : in:hvios: hastable with "0" and "1" keys.
-      #    "0" key contains an array with vios without altinst_rootvg
-      #    "1" key contains an array with vios with    altinst_rootvg
-      #    altinst_rootvg (if it exists on a vios) can be removed and
-      #      its disk reused.
-      # param : in:altinst_rootvg_force: yes or no. If set to yes, it indicates that
-      #    altinst_rootvg (if it exists) can be removed and its disk reused.
-      #    If set to no, existing altinst_rootvg is not touched.
-      # return : an array of two arrays, insider array contains three
-      #   strings : name,pvid,size
-      # description : for each vios in input parameter, find the best free disk
-      #   to perform alt_fisk_copy, this disk needs to be free, be large enough
-      #   to contain rootvg of vios, but the smaller one of all possible disks
-      #   should be chosen.
-      # ########################################################################
-      #       def self.find_best_alt_disks(vios_pair,
-      #           hvios,
-      #           altinst_rootvg_force)
-      #         Log.log_debug('find_best_alt_disks for each vios of ' + vios_pair.to_s +
-      #                           ' hvios=' + hvios.to_s + ' force=' + altinst_rootvg_force.to_s)
-      #
-      #         vios_pair_returned = []
-      #         vios_pair.each do |vios|
-      #           vios_returned = []
-      #           if altinst_rootvg_force.to_s == 'reuse' and hvios["1"].include? vios
-      #             # If an altinst_rootvg already exists, we reuse it
-      #             # There is no need to remove previous one, and to find the best
-      #             #  disk to do it
-      #             msg = 'We reuse existing altinst_rootvg on ' + vios.to_s
-      #             Log.log_info(msg)
-      #             Vios.add_vios_msg(vios, msg)
-      #             vios_returned.push([vios])
-      #           else
-      #             # This 'else' covers the following cases :
-      #             #  - altinst_rootvg_force.to_s == 'reuse' and !hvios["1"].include? vios
-      #             #  - altinst_rootvg_force.to_s == 'yes'
-      #             #  - altinst_rootvg_force.to_s == 'no'
-      #             Log.log_info('find_best_alt_disks on: ' + vios.to_s)
-      #             alt_disk_to_reuse = []
-      #             Log.log_info('Call to altvg_find_and_remove: ' + vios.to_s)
-      #             ret = Vios.altvg_find_and_remove(vios, alt_disk_to_reuse)
-      #             if ret == 0
-      #               Log.log_info('There was a altinst_rootvg on ' + vios.to_s + ' which has been cleaned.')
-      #             end
-      #
-      #             Log.log_info('find_best_alt_disks on: ' + vios.to_s)
-      #             size_rootvg, size_used_rootvg = Vios.get_vg_size(vios, 'rootvg')
-      #             Log.log_info('find_best_alt_disks on: ' + vios.to_s + ' rootvg size: ' +
-      #                              size_rootvg.to_s + ' rootvg used size:' + size_used_rootvg.to_s)
-      #             #
-      #             if size_used_rootvg.to_i != 0
-      #               remote_cmd1 = "/usr/ios/cli/ioscli lspv -free | /bin/grep -v NAME"
-      #               remote_output1 = []
-      #               remote_cmd_rc1 = Remote.c_rsh(vios, remote_cmd1, remote_output1)
-      #               if remote_cmd_rc1 == 0
-      #                 added = 0
-      #                 if !remote_output1[0].nil? and !remote_output1[0].empty?
-      #                   Log.log_debug('remote_output1[0]=' + remote_output1[0].to_s)
-      #                   remote_output1_lines = remote_output1[0].split("\n")
-      #                   Log.log_debug('remote_output1_lines=' + remote_output1_lines.to_s)
-      #                   # As there might be several disks possible, in a first pass we
-      #                   #  keep them into disks_kept, and in a second pass we'll select
-      #                   #  smaller one
-      #                   disks_kept = []
-      #                   remote_output1_lines.each do |remote_output1_line|
-      #                     Log.log_debug('remote_output_lines=' + remote_output1_line.to_s)
-      #                     name_candidate_disk, pvid_candidate_disk, size_candidate_disk = remote_output1_line.split
-      #                     Log.log_debug("name_candidate_disk= #{name_candidate_disk} \
-      # pvid_candidate_disk=#{pvid_candidate_disk} \
-      # size_candidate_disk=#{size_candidate_disk}")
-      #                     if size_used_rootvg.to_i < size_candidate_disk.to_i
-      #                       disks_kept.push([name_candidate_disk, size_candidate_disk])
-      #                       added += 1
-      #                     end
-      #                   end
-      #                   #
-      #                   if added != 0
-      #                     name_candidate_disk = ''
-      #                     if !alt_disk_to_reuse.nil? and
-      #                         !alt_disk_to_reuse.empty? and
-      #                         disks_kept.include? alt_disk_to_reuse[0]
-      #                       # If there was one disk previously used for altinst_rootvg
-      #                       #  and this disk is still into the list of possible disks,
-      #                       #  we take this one.
-      #                       name_candidate_disk = alt_disk_to_reuse[0]
-      #                     else
-      #                       # If there was no disk previously used for altinst_rootvg
-      #                       # If there is one or several disks kept
-      #                       #  we keep only the smaller one
-      #                       min = disks_kept[0][1]
-      #                       disks_kept.each do |disk_kept|
-      #                         if disk_kept[1].to_i <= min.to_i
-      #                           min = disk_kept[1]
-      #                           name_candidate_disk = disk_kept[0]
-      #                         end
-      #                       end
-      #                     end
-      #                     msg = "Best disk to perform alt_disk_install operation on #{vios} is #{name_candidate_disk}"
-      #                     Log.log_info(msg)
-      #                     Vios.add_vios_msg(vios, msg)
-      #                     vios_returned.push([vios, name_candidate_disk])
-      #                   end
-      #                 else
-      #                   Log.log_err('find_best_alt_disks: no free disk')
-      #                   vios_returned.push([vios])
-      #                 end
-      #               else
-      #                 Log.log_err('find_best_alt_disks: cannot get free disk')
-      #                 vios_returned.push([vios])
-      #               end
-      #             else
-      #               Log.log_err('find_best_alt_disks: rootvg size = 0?')
-      #               vios_returned.push([vios])
-      #             end
-      #           end
-      #           #
-      #           Log.log_debug('vios_returned=' + vios_returned.to_s)
-      #           unless vios_returned.empty?
-      #             vios_pair_returned.push(vios_returned)
-      #           end
-      #         end
-      #         #
-      #         Log.log_debug('find_best_alt_disks on: ' + vios_pair.to_s + ' returning:' + vios_pair_returned.to_s)
-      #         vios_pair_returned
-      #       end
-
 
       # ########################################################################
       # name : get_vg_size
@@ -1968,7 +1838,6 @@ therefore it is not possible to continue VIOS update on this pair."
       def self.nim_updateios(cmd,
           vios,
           step)
-
         Log.log_debug('nim_updateios cmd="' + cmd +
                           '" vios="' + vios + '"')
         msg_step = 'vios ' + step
@@ -1983,7 +1852,7 @@ therefore it is not possible to continue VIOS update on this pair."
           updateios_output_file = Vios.get_updateios_output_file_name(vios, step)
           Log.log_info('Refer to ' + updateios_output_file.to_s + ' to see output of ' + cmd.to_s)
 
-          cmd2 = '/bin/grep -p "FILESET STATISTICS" ' + updateios_output_file
+          cmd2 = '/bin/grep -p STATISTICS ' + updateios_output_file
           Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin2, stdout2, stderr2, wait_thr2|
             stdout2.each_line do |line|
               Log.log_info("[STDOUT] #{line.chomp}")
@@ -1992,7 +1861,8 @@ therefore it is not possible to continue VIOS update on this pair."
             stderr2.each_line do |line|
               Log.log_err("[STDERR] #{line.chomp}")
             end
-            wait_thr2.value # Process::Status object returned.
+            Log.log_info(' cmd ' + cmd2.to_s + ' returns ' + wait_thr2.value.to_s)
+            # Process::Status object returned.
           end
           #
           if wait_thr.value.success?

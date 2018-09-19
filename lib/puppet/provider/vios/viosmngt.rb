@@ -252,7 +252,9 @@ with \"#{resource[:update_options]}\" update_options.")
             if actions.include? 'autocommit'
               # Commit applied lpps if asked
               Log.log_info('Perform autocommit before NIM updateios for "' + vios.to_s + '" vios')
-              autocommit_cmd = '/usr/sbin/nim -o updateios -a updateios_flags=-commit -a filesets=all ' + vios.to_s
+              autocommit_output_file = Vios.get_updateios_output_file_name(vios, 'automcommit')
+              autocommit_cmd = '/usr/sbin/nim -o updateios -a updateios_flags=-commit -a filesets=all ' +
+                  vios.to_s + ' >' + autocommit_output_file + ' 2>&1'
               # Perform autocommit
               step = 'autocommit'
               autocommit_ret = Vios.nim_updateios(autocommit_cmd, vios, step)
