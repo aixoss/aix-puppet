@@ -17,7 +17,11 @@
 #  https://docs.puppet.com/guides/tests_smoke.html
 #
 /*
-  1. Samples of suma-downloads
+  I. Samples of AIX updates
+   Using 'download', 'fix', and patchmngt' custom types.
+*/
+/*
+  I.1. Samples of suma-downloads
    Declaration used here is 'download'.
 */
 /*
@@ -114,7 +118,7 @@ class aixautomation {
 */
 
 /*
- 2. Samples of NIM push update
+ I.2. Samples of NIM push update
    Declaration used here is 'patchmngt'.
 */
 /*
@@ -210,7 +214,7 @@ class aixautomation {
   }
 */
 /*
- 3. Samples of efix installation
+ I.3. Samples of efix installation
    Declaration used here is 'fix'.
 */
 /*
@@ -256,7 +260,7 @@ class aixautomation {
 
 
 /*
- 4. Samples of install and remove
+ I.4. Samples of install and remove
    Declaration used here is 'patchmngt'.
 */
 /*
@@ -297,7 +301,7 @@ class aixautomation {
 }
 */
 /*
-5. Samples with all steps together:
+I.5. Samples with all steps together:
    Declarations used here are 'download', 'patchmngt', and 'fix'.
  This sample shows how to update one LPAR 'castor8' to the last 721 SP, and
   install all efixes.
@@ -334,4 +338,25 @@ class aixautomation {
     root     => "/exports/extra/test-puppet/flrtvc",
   }
 }
+*/
+/*
+ II. Samples of VIOS update
+   Using 'vios' custom type.
+  */
+/*
+ II.1 VIOS update samples
+  */
+/*
+  vios { 'vios update':
+    # Test case where vios pair is constituted with only one vios
+    ensure               => present,
+    name                 => 'vios12',
+    actions              => 'health,check,save,unmirror,autocommit,update',
+    vios_pairs           => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
+    options              => 'accept_licenses',
+    update_options       => 'commit',
+    vios_altinst_rootvg  => 'p7juav2=hdisk2,p7juav1=hdisk0',
+    altinst_rootvg_force => 'yes',
+    vios_lpp_sources     => 'p7juav1=vios_update_22623,p7juav2=vios_update_22623',
+  }
 */

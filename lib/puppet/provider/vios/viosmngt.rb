@@ -252,7 +252,7 @@ with \"#{resource[:update_options]}\" update_options.")
             if actions.include? 'autocommit'
               # Commit applied lpps if asked
               Log.log_info('Perform autocommit before NIM updateios for "' + vios.to_s + '" vios')
-              autocommit_output_file = Vios.get_updateios_output_file_name(vios, 'automcommit')
+              autocommit_output_file = Vios.get_updateios_output_file_name(vios, 'autocommit')
               autocommit_cmd = '/usr/sbin/nim -o updateios -a updateios_flags=-commit -a filesets=all ' +
                   vios.to_s + ' >' + autocommit_output_file + ' 2>&1'
               # Perform autocommit
@@ -270,12 +270,11 @@ with \"#{resource[:update_options]}\" update_options.")
                                                      vios,
                                                      vios_pair,
                                                      nim_vios)
-            if ssp_start_stop_ret == true
+            if ssp_start_stop_ret
               Log.log_info('SSP cluster stop returns ' + ssp_start_stop_ret.to_s)
             else
               Log.log_err('SSP cluster stop returns ' + ssp_start_stop_ret.to_s)
             end
-
 
             # Prepare update command
             Log.log_info('Launching update of "' + vios.to_s + '" vios with "' + value_lpp_source.to_s + '" lpp_source.')
@@ -297,10 +296,10 @@ with \"#{resource[:update_options]}\" update_options.")
                                                      vios,
                                                      vios_pair,
                                                      nim_vios)
-            if ssp_start_stop_ret == true
-              Log.log_info('SSP cluster stop returns ' + ssp_start_stop_ret.to_s)
+            if ssp_start_stop_ret
+              Log.log_info('SSP cluster start returns ' + ssp_start_stop_ret.to_s)
             else
-              Log.log_err('SSP cluster stop returns ' + ssp_start_stop_ret.to_s)
+              Log.log_err('SSP cluster start returns ' + ssp_start_stop_ret.to_s)
             end
           else
             Log.log_warning('Because there is no altinst_rootvg on "' + vios.to_s + '" vios, update cannot be run.')

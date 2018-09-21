@@ -348,19 +348,23 @@ it is set to "no"'
     #
     actions = self[:actions]
 
-    # what is done here : consistency between actions, mode and lpp_source
-    if (actions.include? 'update') && (self[:mode] == :apply) && (self[:vios_lpp_sources].nil?)
-      raise('"vios_lpp_sources" attribute: required when "actions" contains "update"" and mode
+    if !actions.nil?
+      # what is done here : consistency between actions, mode and lpp_source
+      if (actions.include? 'update') && (self[:mode] == :apply) && (self[:vios_lpp_sources].nil?)
+        raise('"vios_lpp_sources" attribute: required when "actions" contains "update"" and mode
 is "apply"')
+      end
+
+      # what is done here : consistency between actions and vios_pairs
+      if (actions.include? 'check') && (self[:vios_pairs].nil? or self[:vios_pairs].empty?)
+        raise('"vios_pairs" attribute : cannot be empty when "actions" contains "check"')
+      end
+
+      # what is done here : consistency between actions and vios_pairs
+      if (actions.include? 'save') && (self[:vios_pairs].nil? or self[:vios_pairs].empty?)
+        raise('"vios_pairs" attribute : cannot be empty when "actions" contains "save"')
+      end
     end
 
-    # what is done here : consistency between actions and vios_pairs
-    if (actions.include? 'check') && (self[:vios_pairs].nil? or self[:vios_pairs].empty?)
-      raise('"vios_pairs" attribute : cannot be empty when "actions" contains "check"')
-    end
-    # what is done here : consistency between actions and vios_pairs
-    if (actions.include? 'save') && (self[:vios_pairs].nil? or self[:vios_pairs].empty?)
-      raise('"vios_pairs" attribute : cannot be empty when "actions" contains "save"')
-    end
   end
 end

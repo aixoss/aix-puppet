@@ -496,11 +496,28 @@ It is a good practice to regularly consider that the
   and these lpp_sources have to be manually built before using AIXAutomation 
   Puppet module (as compared with LPAR updates for which it is possible to 
   automatically build lpp_sources).  
-  Software maintenance operations include: updates.<br>
+  Software maintenance operations include: VIOS updates.<br>
   You'll find samples of VIOS updates into './examples/init.pp'.<br>
   You can perform preview only depending on 'options' attribute.<br>
   Several modes of updates exist: commit, reject. See several 
-   documented examples in './examples/init.pp'. 
+   documented examples in './examples/init.pp'.
+  Puppet AixAutomation takes into account following facts : <br> 
+   - for each pair of VIOS, a health check is done to verify that both VIOS of
+   the pair share the same view of mapping on all types of storage: SCSI, FC, NPIV, etc.
+   If it is not the case, VIOS update cannot be done.
+   - Before performing a VIOS update a copy of its rootvg must be taken, as Puppet 
+   AixAutomation wants to be sure to offer warranty to be able to come back on previous 
+   state if anything proves to be wrong. A copy of rootvg is taken using alt_disk_copy 
+   and will be able to be used to reboot onto : altinst_rootvg. 
+   - If ever rootvg is mirrored, it is necessary to un-mirror it before taking the 
+   altinst_rootvg, and then to re-establised the mirroring after this operation. 
+   But un-mirror and mirror operations won't be done without an explicit paramater 
+   into manifest file, so that Puppet AixAutomation lets the user be informed and choose.
+   - If ever VIOS is part of a SSP cluster, it is necessary that either SSP cluster is 
+   either UP or DOWN on both VIOS of the pair. As it is not possible to update a
+   VIOS with is a UP SSP cluster node, SSP cluster node is stopped before performing 
+   update and started back after the operation.
+                
  ##### Attributes
    - <b>provider</b>: this attribute is not mandatory, if mentioned it needs 
    to contain name of the provider implementing the 'vios' custom type, 
@@ -515,17 +532,28 @@ It is a good practice to regularly consider that the
    custom types), this attribute is necessary to uniquely identify the VIOS  
    update operation to be performed: you can have several 'vios' custom 
    types in './manifests/init.pp', each of them being uniquely identified.<br> 
-  - <b>action</b>: action to be performed. This attribute can take several 
-   values: <b>health</b>,<b>check</b>,<b>save</b>,<b>autocommit</b>,<b>update</b>. 
-   By default, <b></b> is assumed. <b>health</b> action enables 
-   VIOS health check prior from making update, <b>check</b> action enables check, 
-   <b>save</b> action enables the save copy of teh rootvg to be taken prior from 
-   performing update, <b>autocommit</b> action enables autocommit to be done 
-   if necessary before applying new updates, <b>update</b> action enable 
-   update.<br>
+  - <b>action</b>: actions to be performed. This attribute can take several 
+   values: <b>health</b>,<b>check</b>,<b>save</b>,<b>mirror</b>,<b>autocommit</b>,
+   <b>update</b>. 
+   By default, <b></b> is assumed. 
+   <b>health</b> action enables VIOS health check prior from making update, if this 
+   health check is negative, BIOS update operation is not pursued. <br>
+   <b>check</b> action enables mirror and SSP cluster checks. 
+   <b>save</b> action enables the save copy of the rootvg to be taken prior from 
+   performing update, as a matter of fact this action is mandatory as no VIOS update can 
+   be done without the presence of an altinst_rootvg, as we want to be sure to be able 
+   to come back on previosu state if ever something gors wrong. <br>   
+   <b>autocommit</b> action enables autocommit of 'applied only' updates to be done 
+   if necessary before performing VIOS update. VIOS update is not possible if ever 
+   all previous installations are not committed. <br>
+   <b>mirror</b> action is necessary to unmirror rootvg before performing the save 
+   operation (taking an altinst_rootvg), and if unmirror is done, mirror will be retablished 
+   afterwards. <br>
+   <b>update</b> action to perform VIOS update operation itself. If ever this action is not 
+   set, Puppet AixAutomation performs only all other steps which are preparation steps.  
   - <b>vios_pairs</b>: pairs of VIOS on which to perform action.
   - <b>update_options</b>: possible values are <b>install</b>, <b>commit</b>, <b>reject</b>, <b>cleanup</b>, 
-  <b>remove</b>.      
+  <b>remove</b>. So far only <b>commit</b> has been tested.       
   - <b>options</b>: possible values are <b>accep_licenses</b>, <b>preview</b>.
   - <b>vios_altinst_rootvg</b>: this attribute enables to designate a disk to be used to host altinst_rootvg. A disk
   can be designated per vios following this given syntax : <b>vios1=hdisk1, vios2=hdisk2</b> etc. The given disk
@@ -533,25 +561,19 @@ It is a good practice to regularly consider that the
   this disk cannot be used, the best disk possible will be chosen : a free disk large enough to host rootvg, 
   but the samllest disk possible will be taken to spare resources.    
   - <b>altinst_rootvg_force</b>: possible values are <b>no</b>, <b>yes</b>, <b>reuse</b>. <br>
-  <b>altinst_rootvg_force=no</b> means that if ever it already exists an altinst_rootvg, this one won't be overriden
-  and there its presence will prevent a new altinst_rootvg from being taken, preventing the overall process of VIOS
-  update to continue. <br>
+  <b>altinst_rootvg_force=no</b> means that if ever it already exists an altinst_rootvg, this one won't be overriden.
+   Then its presence will prevent a new altinst_rootvg from being taken, therefore the overall process of VIOS
+  update from continuing. If no altinst_rootvg exists, a new one is created just before VIOS update.<br>
   <b>altinst_rootvg_force=yes</b> means that if ever it already exists an altinst_rootvg, this one is going to be 
-  cleaned and removed, allowing a new one to be taken just before VIOS update. <br> If no altinst_rootvg already 
-  exists, one altinst_rootvg will be taken of course. <br>
+  cleaned and removed, allowing a new one to be taken just before VIOS update.<br> If no altinst_rootvg already 
+  exists, one altinst_rootvg will be taken just before VIOS update. <br>
   <b>altinst_rootvg_force=reuse</b> means that if ever it already exists an altinst_rootvg, this one is going to be 
-  kept and used, therfore no fresh altinst_rootvg is taken as we consider the existing one as valuable. If no 
-  altinst_rootvg exists, one altinst_rootvg will be taken of course. <br>
+  kept and used, therefore no 'fresh' altinst_rootvg is taken as we consider the existing one as valuable. If no 
+  altinst_rootvg exists, one altinst_rootvg will be taken just before VIOS update. <br>
   - <b>vios_lpp_sources</b>: this attribute enables to designate the NIM lpp_source resource to be used to perform  
   VIOS update operation. A NIM lpp_source resource can be designated per vios following this given syntax : 
-  <b>vios1=lpp_source1, vios2=lpp_source2</b> etc. The given lpp_sources need to exists before launching Puppet 
+  <b>vios1=lpp_source1, vios2=lpp_source2</b> etc. Theses given lpp_sources need to exist before launching Puppet 
   AIXAutomation. <br>
-  - <b>sync</b>: if action needs to be done synchronously or asynchronously. 
-   Two possible values for this attribute: <b>yes</b> and <b>no</b>. 
-   By default, <b>no</b> is assumed.  
-  - <b>preview</b>: if only preview must be done. Two possible values for 
-   this attribute: <b>yes</b> and <b>no</b>. By default, <b>no</b> is assumed.  
-    
          
 ## Limitations
  Refer to TODO.md<br>

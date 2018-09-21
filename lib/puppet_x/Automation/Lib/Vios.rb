@@ -979,107 +979,6 @@ size_candidate_disk=#{size_candidate_disk}")
       end
 
 
-      # ########################################################################
-      # name : unmirror_altcopy_mirror
-      # param : in:vios_pair_best_disks:
-      # param : in:vios_mirrors:
-      # description : Perform the unmirror, then the alt_disk_copy, then the
-      #  mirror
-      # return: 0 is success, 1 otherwise
-      # ########################################################################
-      # def self.unmirror_altcopy_mirror(vios_pair_best_disks,
-      #     vios_mirrors)
-      #   Log.log_debug('unmirror_altcopy_mirror on ' + vios_pair_best_disks.to_s + ' ' + vios_mirrors.to_s)
-      #   ret = 0
-      #   # Loop against each vios
-      #   vios_pair_best_disks.each do |vios_disk|
-      #     #
-      #     Log.log_info('vios_disk=' + vios_disk.to_s)
-      #     # As already said, there must be 2 elements into vios_disk array :
-      #     #  - first element is vios name
-      #     #  - second element is best disk to use to perform alt_disk_copy
-      #     if vios_disk.length > 1
-      #       Log.log_info('We can attempt an alt_disk_copy on ' + vios_disk.to_s)
-      #       Log.log_debug('vios_mirrors=' + vios_mirrors.to_s)
-      #       Log.log_debug('vios_mirrors[vios_disk[0]]=' + vios_mirrors[vios_disk[0]].to_s)
-      #       Log.log_debug('!vios_mirrors[vios_disk[0]].nil?=' + (!vios_mirrors[vios_disk[0]].nil?).to_s)
-      #       unless vios_mirrors[vios_disk[0]].nil?
-      #         Log.log_debug('vios_mirrors[vios_disk[0]].length=' + (vios_mirrors[vios_disk[0]].length).to_s)
-      #         if vios_mirrors[vios_disk[0]].length > 1
-      #           # If mirroring is active on the rootvg of this vios
-      #           #  unmirroring needs to be done here
-      #           # Vios.perform_unmirror(vios)
-      #           # If unmirroring has been correctly done, we can go on
-      #           #  otherwise we must give up
-      #           Log.log_info('The rootvg of this vios is mirrored on ' + vios_disk.to_s)
-      #           Log.log_info('Attempting now to perform unmirror of rootvg on ' + vios_disk.to_s)
-      #           ret = Vios.perform_unmirror(vios_disk[0], 'rootvg')
-      #           Log.log_info('Perform unmirror returns ' + ret.to_s)
-      #           if ret != 0
-      #             return ret
-      #           end
-      #         else
-      #           # No need to un-mirror
-      #           Log.log_info('No need to un-mirror on ' + vios_disk.to_s)
-      #         end
-      #       end
-      #
-      #       Log.log_info('Attempting now an alt_disk_copy on ' + vios_disk.to_s)
-      #       ret = Vios.perform_alt_disk_install(vios_disk[0], vios_disk[1])
-      #       Log.log_info('Perform alt_disk_copy returns returns ' + ret.to_s)
-      #       if ret == 0
-      #         Log.log_info('Waiting for alt_disk_copy to be done')
-      #         ret = Vios.wait_alt_disk_install(vios_disk[0])
-      #         Log.log_info('Perform wait_alt_disk_copy returns returns ' + ret.to_s)
-      #         if ret == -1
-      #           msg = "Manual intervention is required to verify the NIM alt_disk_install operation for #{vios_disk} being done!"
-      #           Log.log_err(msg)
-      #           return ret
-      #         else
-      #           Log.log_debug('vios_mirrors=' + vios_mirrors.to_s)
-      #           Log.log_debug('vios_mirrors[vios_disk[0]]=' + vios_mirrors[vios_disk[0]].to_s)
-      #           Log.log_debug('!vios_mirrors[vios_disk[0]].nil?=' + (!vios_mirrors[vios_disk[0]].nil?).to_s)
-      #           unless vios_mirrors[vios_disk[0]].nil?
-      #             Log.log_info('Performing now back again mirroring of rootvg on ' + vios_disk.to_s)
-      #             Log.log_debug('vios_mirrors[vios_disk[0]].length=' + (vios_mirrors[vios_disk[0]].length).to_s)
-      #             if vios_mirrors[vios_disk[0]].length > 1
-      #               # if mirroring was active on the rootvg of this vios
-      #               #   and if unmirroring has been done
-      #               #  then we need to mirror again this rootvg
-      #               disk_copies = []
-      #               disk_copies.push(vios_mirrors[vios_disk[0]][2])
-      #               if vios_mirrors[vios_disk[0]].length > 2
-      #                 disk_copies.push(vios_mirrors[vios_disk[0]][3])
-      #               end
-      #               Log.log_info('Attempting now to perform mirror of rootvg on ' + vios_disk.to_s)
-      #               Log.log_debug('disk_copies=' + disk_copies.to_s)
-      #               ret = Vios.perform_mirror(vios_disk[0],
-      #                                         'rootvg',
-      #                                         disk_copies)
-      #               Log.log_info('Perform mirror returns ' + ret.to_s)
-      #               Log.log_info('The rootvg of this vios was mirrored on ' + vios_disk.to_s)
-      #             else
-      #               # No need to mirror as we didn't un-mirror
-      #               Log.log_info('No need to mirror as we didn t un-mirror on ' + vios_disk.to_s)
-      #             end
-      #           end
-      #         end
-      #       else
-      #         # Alt_disk_copy failed
-      #         Log.log_err('Alt_disk_copy failed')
-      #         return ret
-      #       end
-      #     else
-      #       # We cannot do alt_disk_copy as we only have one parameter
-      #       Log.log_info('We cannot attempt a alt_disk_copy on ' + vios_disk.to_s)
-      #       Log.log_info('This is not an error')
-      #     end
-      #     break
-      #   end
-      #   ret
-      # end
-
-
       # ##################################################################
       # name : perform_vg_clean_and_free_disk
       # param : in:vios:string
@@ -1592,11 +1491,14 @@ and cluster_ssp_vios_status= #{nim_vios[vios]['cluster_ssp_vios_status']}"
           ssp_cluster_check = true
         end
         #
-        msg = "Checking SSP status on #{vios_pair} vios pair returning #{ssp_cluster_check}:\
+        if !ssp_cluster_check
+          msg = "Checking SSP status on #{vios_pair} vios pair returning #{ssp_cluster_check}: \
 therefore it is not possible to continue VIOS update on this pair."
-        Vios.add_vios_msg(vios1, msg)
-        Vios.add_vios_msg(vios2, msg)
-        Log.log_debug(msg)
+          Vios.add_vios_msg(vios1, msg)
+          Vios.add_vios_msg(vios2, msg)
+          Log.log_debug(msg)
+        end
+
         ssp_cluster_check
       end
 
@@ -1653,14 +1555,14 @@ therefore it is not possible to continue VIOS update on this pair."
             vios_to_c_rsh = vios_to_action
           end
           #
-          remote_cmd1 = "/usr/sbin/clctrl -#{action} -n #{ssp_name} -m #{vios_to_action}"
+          remote_cmd1 = "PATH=$PATH:/usr/bin /usr/sbin/clctrl -#{action} -n #{ssp_name} -m #{vios_to_action}"
           remote_output1 = []
           Log.log_debug('Launching SSP action ' + action.to_s +
                             ' on ' + vios_to_action.to_s +
                             ' from to ' + vios_to_c_rsh.to_s + ' vios.')
-          remote_cmd_rc1 = Remote.c_rsh(vios_to_c_rsh,
-                                        remote_cmd1,
-                                        remote_output1)
+          remote_cmd_rc1 = Remote.c_rsh2(vios_to_c_rsh,
+                                         remote_cmd1,
+                                         remote_output1)
           #
           if remote_cmd_rc1 == 0
             if !remote_output1[0].nil? and !remote_output1[0].empty?
@@ -1673,7 +1575,7 @@ therefore it is not possible to continue VIOS update on this pair."
               nim_vios[vios_to_action]['cluster_ssp_vios_status'] = if action == 'stop'
                                                                       "DOWN"
                                                                     else
-                                                                      "OK"
+                                                                      "UP"
                                                                     end
               msg = "Cluster #{nim_vios[vios_to_action]['SSP_CLUSTER_NAME']} #{action} on '#{vios_to_action}' vios succeeded."
               Log.log_info(msg)
@@ -1681,29 +1583,14 @@ therefore it is not possible to continue VIOS update on this pair."
               returned = true
             else
               if action == 'stop'
-                nim_vios[vios_to_action]['cluster_ssp_vios_status'] = if action == 'stop'
-                                                                        "DOWN"
-                                                                      else
-                                                                        "OK"
-                                                                      end
-                msg = "Cluster #{nim_vios[vios_to_action]['SSP_CLUSTER_NAME']} #{action} on '#{vios_to_action}' vios succeeded."
-                Log.log_info(msg)
-                Vios.add_vios_msg(vios_to_action, msg)
-                returned = true
+                nim_vios[vios_to_action]['cluster_ssp_vios_status'] = "DOWN"
               else
-                # Try to dump output to understand why it failed
-                if !remote_output1[0].nil? and !remote_output1[0].empty?
-                  remote_output1_lines = remote_output1[0].split("\n")
-                  remote_output1_lines.each do |remote_output1_line|
-                    remote_output1_line.chomp!
-                    Log.log_err('ERROR SSP START:' + remote_output1_line.to_s)
-                  end
-                end
-                msg = "Failed to #{action} '#{nim_vios[vios_to_action]['SSP_CLUSTER_NAME']}' cluster on '#{vios_to_action}' vios"
-                Log.log_err(msg)
-                Vios.add_vios_msg(vios_to_action, msg)
-                returned = false
+                nim_vios[vios_to_action]['cluster_ssp_vios_status'] = "UP"
               end
+              msg = "Cluster #{nim_vios[vios_to_action]['SSP_CLUSTER_NAME']} #{action} on '#{vios_to_action}' vios succeeded."
+              Log.log_info(msg)
+              Vios.add_vios_msg(vios_to_action, msg)
+              returned = true
             end
           else
             # Try to dump output to understand why it failed
@@ -1723,7 +1610,7 @@ therefore it is not possible to continue VIOS update on this pair."
           msg = "Nothing to be done, as far as SSP is concerned, on '#{vios_to_action}' vios."
           Log.log_debug(msg)
           Vios.add_vios_msg(vios_to_action, msg)
-          returned = false
+          returned = true
         end
         returned
       end
@@ -1847,23 +1734,12 @@ therefore it is not possible to continue VIOS update on this pair."
         Vios.vios_levels('Before ' + msg_step, vios)
 
         # stdout and stderr are redirected to updateios_output_file
+        updateios_output_file = ''
         Open3.popen3({'LANG' => 'C'}, cmd) do |_stdin, _stdout, _stderr, wait_thr|
 
           updateios_output_file = Vios.get_updateios_output_file_name(vios, step)
           Log.log_info('Refer to ' + updateios_output_file.to_s + ' to see output of ' + cmd.to_s)
 
-          cmd2 = '/bin/grep -p STATISTICS ' + updateios_output_file
-          Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin2, stdout2, stderr2, wait_thr2|
-            stdout2.each_line do |line|
-              Log.log_info("[STDOUT] #{line.chomp}")
-              Vios.add_vios_msg(vios, line.chomp)
-            end
-            stderr2.each_line do |line|
-              Log.log_err("[STDERR] #{line.chomp}")
-            end
-            Log.log_info(' cmd ' + cmd2.to_s + ' returns ' + wait_thr2.value.to_s)
-            # Process::Status object returned.
-          end
           #
           if wait_thr.value.success?
             if cmd.include? 'preview=yes'
@@ -1875,12 +1751,46 @@ therefore it is not possible to continue VIOS update on this pair."
             Vios.add_vios_msg(vios, msg)
           else
             ret = 1
-            msg = 'Failed to fully perform NIM updateios operation on "' + vios.to_s + '" vios, see errors in log file and advise.'
-            Log.log_err(msg)
-            Vios.add_vios_msg(vios, msg)
+            Log.log_info('step=' + step.to_s)
+            if step == 'autocommit'
+              cmd2 = '/bin/grep "There are no uncommitted updates" ' + updateios_output_file
+              Log.log_info('cmd2=' + cmd2.to_s)
+              Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin2, _stdout2, _stderr2, wait_thr2|
+                Log.log_info('wait_thr2.value=' + wait_thr2.value.to_s)
+                if wait_thr2.value.success?
+                  ret = 0
+                end
+              end
+            elsif step == 'update'
+              cmd2 = '/bin/grep -p STATISTICS ' + updateios_output_file
+              Log.log_info('cmd2=' + cmd2.to_s)
+              Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin2, stdout2, stderr2, wait_thr2|
+                Log.log_info('wait_thr2.value=' + wait_thr2.value.to_s)
+                stdout2.each_line do |line|
+                  if line =~ /\s0  Total to be installed/
+                    ret = 0
+                  end
+                  Log.log_debug("[STDOUT] #{line.chomp}")
+                  Vios.add_vios_msg(vios, line.chomp)
+                end
+                stderr2.each_line do |line|
+                  Log.log_err("[STDERR] #{line.chomp}")
+                end
+                Log.log_debug(' cmd ' + cmd2.to_s + ' returns ' + ret.to_s)
+                # Process::Status object returned.
+              end
+            end
+            if ret == 1
+              msg = 'Failed to fully perform NIM updateios ' + step + ' operation on "' + vios.to_s + '" vios, see errors in log file and advise.'
+              Log.log_err(msg)
+              Vios.add_vios_msg(vios, msg)
+            else
+              msg = 'NIM updateios ' + step + ' operation on "' + vios.to_s + '" vios succeeded, verify in log file.'
+              Log.log_info(msg)
+              Vios.add_vios_msg(vios, msg)
+            end
           end
         end
-
         Vios.vios_levels('After ' + msg_step, vios)
         ret
       end
