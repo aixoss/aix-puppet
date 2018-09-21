@@ -1,6 +1,7 @@
 require_relative '../../puppet_x/Automation/Lib/Vios.rb'
 require_relative '../../puppet_x/Automation/Lib/Log.rb'
 
+
 # ##############################################################################
 # name : "vios" custom-type
 # description : this custom-type enables to automate VIOS install and update (and
@@ -348,7 +349,7 @@ it is set to "no"'
     #
     actions = self[:actions]
 
-    if !actions.nil?
+    unless actions.nil?
       # what is done here : consistency between actions, mode and lpp_source
       if (actions.include? 'update') && (self[:mode] == :apply) && (self[:vios_lpp_sources].nil?)
         raise('"vios_lpp_sources" attribute: required when "actions" contains "update"" and mode

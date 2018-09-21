@@ -517,7 +517,7 @@ It is a good practice to regularly consider that the
    either UP or DOWN on both VIOS of the pair. As it is not possible to update a
    VIOS with is a UP SSP cluster node, SSP cluster node is stopped before performing 
    update and started back after the operation.
-                
+               
  ##### Attributes
    - <b>provider</b>: this attribute is not mandatory, if mentioned it needs 
    to contain name of the provider implementing the 'vios' custom type, 

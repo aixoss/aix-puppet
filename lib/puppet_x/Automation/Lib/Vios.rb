@@ -2,6 +2,7 @@ require_relative './Constants.rb'
 require 'fileutils'
 require 'yaml'
 
+
 module Automation
   module Lib
 
@@ -1491,7 +1492,7 @@ and cluster_ssp_vios_status= #{nim_vios[vios]['cluster_ssp_vios_status']}"
           ssp_cluster_check = true
         end
         #
-        if !ssp_cluster_check
+        unless ssp_cluster_check
           msg = "Checking SSP status on #{vios_pair} vios pair returning #{ssp_cluster_check}: \
 therefore it is not possible to continue VIOS update on this pair."
           Vios.add_vios_msg(vios1, msg)
@@ -1734,7 +1735,6 @@ therefore it is not possible to continue VIOS update on this pair."
         Vios.vios_levels('Before ' + msg_step, vios)
 
         # stdout and stderr are redirected to updateios_output_file
-        updateios_output_file = ''
         Open3.popen3({'LANG' => 'C'}, cmd) do |_stdin, _stdout, _stderr, wait_thr|
 
           updateios_output_file = Vios.get_updateios_output_file_name(vios, step)
@@ -1767,7 +1767,7 @@ therefore it is not possible to continue VIOS update on this pair."
               Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin2, stdout2, stderr2, wait_thr2|
                 Log.log_info('wait_thr2.value=' + wait_thr2.value.to_s)
                 stdout2.each_line do |line|
-                  if line =~ /\s0  Total to be installed/
+                  if line =~ /\s0\sTotal to be installed/
                     ret = 0
                   end
                   Log.log_debug("[STDOUT] #{line.chomp}")

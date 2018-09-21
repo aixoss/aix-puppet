@@ -1,6 +1,7 @@
 require_relative '../../../puppet_x/Automation/Lib/Vios.rb'
 require_relative '../../../puppet_x/Automation/Lib/Log.rb'
 
+
 # ##############################################################################
 # name : 'viosmngt' provider of the 'vios' custom-type.
 # description :
