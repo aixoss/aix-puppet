@@ -1750,7 +1750,12 @@ therefore it is not possible to continue VIOS update on this pair."
             Log.log_info(msg)
             Vios.add_vios_msg(vios, msg)
           else
-            ret = 1
+            if cmd.include? 'preview=yes'
+              Log.log_info('Preview always returns error (by nature), this error code can be considered as normal')
+              ret = 0
+            else
+              ret = 1
+            end
             Log.log_info('step=' + step.to_s)
             if step == 'autocommit'
               cmd2 = '/bin/grep "There are no uncommitted updates" ' + updateios_output_file

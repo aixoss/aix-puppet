@@ -84,21 +84,37 @@ class aixautomation {
   #   # vios_altinst_rootvg  => 'p7juav1=hdisk0',
   #   # vios_lpp_sources     => 'p7juav1=vios_update_22623,p7juav2=vios_update_22623',
   # }
-  vios { 'vios12':
+  # vios { 'vios12':
+  #   # Test case where vios pair is constituted with only one vios
+  #   ensure               => present,
+  #   name                 => 'vios12',
+  #   # actions => 'health,check,save,update',
+  #   #actions              => 'health,check,save,unmirror,autocommit,update',
+  #   actions              => 'health,check',
+  #   #vios_pairs           => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
+  #   vios_pairs           => '(p7juav1,p7juav2)',
+  #   #options              => 'accept_licenses',
+  #   # update_options       => 'install, commit, reject, cleanup, remove',
+  #   #update_options       => 'commit',
+  #   #vios_altinst_rootvg  => 'p7juav2=hdisk2,p7juav1=hdisk0',
+  #   #altinst_rootvg_force => 'yes',
+  #   # vios_altinst_rootvg  => 'p7juav1=hdisk0',
+  #   #vios_lpp_sources     => 'p7juav1=vios_update_22623,p7juav2=vios_update_22623',
+  # }
+  vios { 'vios13':
     # Test case where vios pair is constituted with only one vios
     ensure               => present,
-    name                 => 'vios12',
+    name                 => 'vios13',
     # actions => 'health,check,save,update',
-    actions              => 'health,check,save,unmirror,autocommit,update',
+    actions              => 'check, save, update',
     #vios_pairs           => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
-    vios_pairs           => '(p7juav1,p7juav2)',
+    vios_pairs           => '(castor_gdr_vios1,castor_gdr_vios2), (castor_gdr_vios2,castor_gdr_vios3)',
     options              => 'accept_licenses',
-    # update_options       => 'install, commit, reject, cleanup, remove',
     update_options       => 'commit',
-    vios_altinst_rootvg  => 'p7juav2=hdisk2,p7juav1=hdisk0',
-    altinst_rootvg_force => 'yes',
+    # vios_altinst_rootvg  => 'p7juav2=hdisk2,p7juav1=hdisk0',
+    altinst_rootvg_force => 'reuse',
     # vios_altinst_rootvg  => 'p7juav1=hdisk0',
-    vios_lpp_sources     => 'p7juav1=vios_update_22623,p7juav2=vios_update_22623',
+    vios_lpp_sources     => 'castor_gdr_vios2=vios_update_iso,castor_gdr_vios3=vios_update_iso',
   }
   # vios { 'vios12':
   #   ensure               => present,

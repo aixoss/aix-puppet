@@ -180,14 +180,23 @@ with \"#{resource[:update_options]}\" update_options.")
         vios_pair.each do |vios|
           Log.log_info('vios=' + vios.to_s)
           #
-          value_lpp_source = vios_lppsources[vios]
-          if value_lpp_source.nil? or value_lpp_source.empty?
-            msg = 'No lpp_source set on this "' + vios.to_s + '" vios. No update to be done. Therefore no need to perform "save"'
+          if !vios_lppsources.nil?
+            value_lpp_source = vios_lppsources[vios]
+            if value_lpp_source.nil? or value_lpp_source.empty?
+              msg = 'No lpp_source set on this "' + vios.to_s + '" vios. No update to be done. Therefore no need to perform "save"'
+              Vios.add_vios_msg(vios, msg)
+              Log.log_info(msg)
+              # This does not prevent us from continuing on next vios
+              next
+            end
+          else
+            msg = 'No lpp_source set. No update to be done. Therefore no need to perform "save"'
             Vios.add_vios_msg(vios, msg)
             Log.log_info(msg)
             # This does not prevent us from continuing on next vios
             next
           end
+
 
           # If vios already has an altinst_rootvg and we have force="reuse"
           #  then there is no need:
