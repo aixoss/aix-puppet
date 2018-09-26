@@ -1579,6 +1579,11 @@ therefore it is not possible to continue VIOS update on this pair."
           end
         end
 
+        # If ever both SSP node were DOWN ate the beginning, not needed to restart
+        if action == 'start' and nim_vios[other_vios]['cluster_ssp_vios_status'] == 'DOWN'
+          perform_action = false
+        end
+
         if perform_action
           #
           vios_to_c_rsh = ''
