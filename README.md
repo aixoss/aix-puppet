@@ -16,24 +16,24 @@
  This AixAutomation Puppet module has been developed against Puppet 5.3.3, and 
  has been tested against Puppet 5.3.3 and Puppet 5.3.5.<br>
  This AixAutomation Puppet module runs by using the "puppet apply" command, 
-  therefore not canonical way of using Puppet: no Puppet master, no nodes 
-  executing Puppet agent. With AixAutomation Puppet module, only a Puppet Agent 
-  runs on the host where the NIM server runs.<br>    
+  therefore this is not the canonical way of using Puppet: no Puppet master, 
+  no nodes executing Puppet agent. With AixAutomation Puppet module, 
+  only a Puppet Agent runs on the host where the NIM server runs.<br>    
  This AixAutomation Puppet module enables automation of software maintenance 
   operations on a list of AIX LPARs and VIOS, by running this module on a 
   NIM server managing these LPARs and VIOS.<br>
  By software maintenance operations we mean: updates of AIX or VIOS levels, 
   updates of eFix.<br>
  Operations desired by the user are written into a manifest file, using Puppet
-  configuration language called DSL (Domain Specific Language). Specific 
-  custom types have been implemented (with their related providers) for 
+  configuration language called DSL (Domain Specific Language), explained below. 
+  Specific custom types have been implemented (with their related providers) for 
   AixAutomation Puppet module, to control necessary operations to automatically 
   perform AIX updates and patch management. These new custom types enable
   to declare resources in manifest file. These types 'download', 'patchmngt', 
   'fix', and 'vios' are described hereafter in detail.<br>
  AIX updates and patch management operations performed by this AixAutomation 
-  Puppet module are shortly described now.<br>
-  Firstly as far as AIX LPARs are concerned:<br>          
+  Puppet module are shortly described now.<br><br>
+  **Firstly** as far as AIX LPARs are concerned:<br>          
  - Necessary AIX level updates are automatically downloaded from FixCentral 
   using 'suma' features, and are locally kept and shared between LPARs if 
   possible.<br>
@@ -47,18 +47,21 @@
   between LPARs. Each LPAR has its own list of eFix to be applied, depending on 
   its level and depending on the current list of eFix already applied. 
   These eFix are then applied on each LPAR of the list (after being sorted 
-  by 'PACKAGING DATE': so that most recent ones are applied first). 
-  This operation is done by using NIM push mode (therefore as already said 
-  without performing any operation on the LPARs themselves: without 
-  installing anything on these LPARs).<br>
-  Secondly as far as AIX VIOS are concerned:<br>
+  by 'PACKAGING DATE': so that most recent ones are applied first. Moreover an
+  'interlock' logic is coded to prevent two eFix locking the same fileset 
+  from being installed : if a previsible 'interlock is detected between two 
+  eFix, no attempt is done to install the second one). 
+  This eFix apply operation is done by using NIM push mode (therefore 
+  as already said without performing any operation on the LPARs themselves: 
+  without installing anything on these LPARs).<br><br>
+  **Secondly** as far as AIX VIOS are concerned:<br>
  - VIOS updates can be automatically applied on a list of VIOS, 
   through 'NIM push' operations. As for LPARs updates, everything (i.e. all 
   AixAutomation logic) runs from the NIM server, and nothing needs to be 
   installed on VIOS themselves.<br> To bring trust in VIOS update operation,
   a mandatory copy of rootvg is taken before performing update, and 
   AIXAutomation logic takes into account the potential mirroring of rootvg, and 
-  possible SSP cluster membership.
+  possible SSP cluster membership. See more explanations below.
    
 ## Setup
 ### Setup Requirements 
@@ -231,9 +234,11 @@
  Four custom type and their providers constitute the AixAutomation module.<br>
  All custom types utilizations are documented into './examples/init.pp'<br>
  These four custom types constitute the vocabulary which can be used as part of 
-  Puppet DSL into manifest file, to perform resources declaration. <br> 
+  Puppet AixAutomation DSL into manifest file, to perform resources 
+  declaration. <br> 
  
  #### Custom type: download (provider: suma)
+ Used for AIX LPARs software maintenance operations.
  ##### Explanations
  The aim of this provider is to provide download services using suma 
  functionality.<br>
@@ -351,6 +356,7 @@ It is a good practice to regularly consider that the
   (even if this NIM lpp_source resource already exists). 
  
  #### Custom type: patchmngt (provider: nimpush)
+ Used for AIX LPARs software maintenance operations.
  ##### Explanations
   The aim of this provider is to provide software maintenance operations on a 
   list of LPARs using NIM push mode. Everything is performed from the NIM server 
@@ -406,6 +412,7 @@ It is a good practice to regularly consider that the
    this attribute: <b>yes</b> and <b>no</b>. By default, <b>no</b> is assumed.  
     
  #### Custom type: fix (provider: flrtvc)
+ Used for AIX LPARs software maintenance operations.
  ##### Explanations
  The aim of this provider is to provide appropriate eFix installations using 
   flrtvc functionality to compute list of eFix to be installable, and NIM push 
@@ -488,35 +495,48 @@ It is a good practice to regularly consider that the
    By default, <b>all</b> is assumed, meaning all possible eFix are installed.       
 
 #### Custom type: vios (provider: viosmngt)
+ Used for AIX VIOS software maintenance operations.
  ##### Explanations
   The aim of this provider is to provide software maintenance operations on a 
   list of VIOSs using NIM push mode. Everything is performed from the NIM server 
   on which this AixAutomation Puppet module runs.<br>
-  To be able to perform VIOS updates, this NIM push mode need lpp_sources to exist, 
-  and these lpp_sources have to be manually built before using AIXAutomation 
-  Puppet module (as compared with LPAR updates for which it is possible to 
-  automatically build lpp_sources).  
+  To be able to perform VIOS updates, this NIM push mode need NIM lppsource 
+  resources to exist prior from using AixAutomation. These NIM lppsource resources
+  have to be manually built before using AIXAutomation Puppet module 
+  (if we compare with LPAR updates, in which building NIM lppsource resources is 
+  one Puppet AixAUtomation step, and can automatically done).<br>  
   Software maintenance operations include: VIOS updates.<br>
-  You'll find samples of VIOS updates into './examples/init.pp'.<br>
-  You can perform preview only depending on 'options' attribute.<br>
-  Several modes of updates exist: commit, reject. See several 
-   documented examples in './examples/init.pp'.
-  Puppet AixAutomation takes into account following facts : <br> 
-   - for each pair of VIOS, a health check is done to verify that both VIOS of
-   the pair share the same view of mapping on all types of storage: SCSI, FC, NPIV, etc.
-   If it is not the case, VIOS update cannot be done.
-   - Before performing a VIOS update a copy of its rootvg must be taken, as Puppet 
-   AixAutomation wants to be sure to offer warranty to be able to come back on previous 
-   state if anything proves to be wrong. A copy of rootvg is taken using alt_disk_copy 
-   and will be able to be used to reboot onto : altinst_rootvg. 
-   - If ever rootvg is mirrored, it is necessary to un-mirror it before taking the 
-   altinst_rootvg, and then to re-establised the mirroring after this operation. 
-   But un-mirror and mirror operations won't be done without an explicit paramater 
-   into manifest file, so that Puppet AixAutomation lets the user be informed and choose.
-   - If ever VIOS is part of a SSP cluster, it is necessary that either SSP cluster is 
-   either UP or DOWN on both VIOS of the pair. As it is not possible to update a
-   VIOS with is a UP SSP cluster node, SSP cluster node is stopped before performing 
-   update and started back after the operation.
+  You'll find samples of manifest declarations in Puppet AixAutomation DSL language 
+  for VIOS updates into './examples/init.pp'.<br>
+  The VIOS update operation can be performed in 'preview' mode only depending on 
+  'options' attribute.<br> 
+  Several modes of updates may exist exist in the future, but so far only one 
+  is coded: "commit", using the 'update_options' attribute. See documented example 
+  in './examples/init.pp'. <br>
+  Puppet AixAutomation brings a complete logic to verify VIOS update is safe, and to 
+  warranty a rollback to previous version is possible in case of issue during update: <br> 
+   - for each pair of VIOS, a health check can be performed to verify that both VIOS of
+   the pair share the same view of mappings on all types of storage: SCSI, FC, NPIV, etc.
+   This health check should be always run as a preliminary step, and in case of 
+   unsuccessful result, VIOS update cannot be done on any VIOS of the pair. 
+   The health check is not mandatory, and can be skipped.   
+   - Before performing a VIOS update, Puppet AixAutomation insures a copy of rootvg exists 
+   or is taken, to offer warranty to be able to come back on previous state if anything 
+   proves to be wrong. The copy of rootvg is taken using 'alt_disk_copy' and results in 
+   a "altinst_rootvg" vg on a dedicated disk. No VIOS update is run without an existing  
+   altinst_rootvg.    
+   - If ever rootvg is mirrored, as it is not possible to perform 'alt_disk_copy' on a 
+   mirrored disk, the un-mirror operation of the rootvg disk is launched before performing
+   it, and this mirroring is re-establised after performing it. But these 'un-mirror' 
+   and 'mirror' operations won't be done without an explicit parameter into manifest file, 
+   so that this is an explicit choice from the user: thanks to this explicit parameter, 
+   Puppet AixAutomation knows that the user is informed of what is being done.
+   - Moreover as it is not possible to update a VIOS with is a UP SSP cluster node, if 
+   ever the VIOS proves to be part of a SSP cluster, a check is done on SSP cluster nodes:
+   as a matter of fact, it is necessary that SSP cluster is either UP or DOWN on both VIOS 
+   of the pair. If ever both SSP cluster nodes are UP before launching the VIOS updates, 
+   each SSP node is stopped juste performing VIOS update operation on this very node, and 
+   restarted when this VIOS update operation is finised. 
                
  ##### Attributes
    - <b>provider</b>: this attribute is not mandatory, if mentioned it needs 
@@ -532,48 +552,64 @@ It is a good practice to regularly consider that the
    custom types), this attribute is necessary to uniquely identify the VIOS  
    update operation to be performed: you can have several 'vios' custom 
    types in './manifests/init.pp', each of them being uniquely identified.<br> 
-  - <b>action</b>: actions to be performed. This attribute can take several 
-   values: <b>health</b>,<b>check</b>,<b>save</b>,<b>mirror</b>,<b>autocommit</b>,
-   <b>update</b>. 
-   By default, <b></b> is assumed. 
+  - <b>actions</b>: actions to be performed. This attribute is a multi-valuated attribute.
+   Several values can be chosen amongst the various values: <b>health</b>,<b>check</b>,
+   <b>save</b>,<b>mirror</b>,<b>autocommit</b>,<b>update</b>. 
+   By default, no value is assumed. <br>
    <b>health</b> action enables VIOS health check prior from making update, if this 
-   health check is negative, BIOS update operation is not pursued. <br>
-   <b>check</b> action enables mirror and SSP cluster checks. 
+   health check is negative, VIOS update operation is not pursued. This action 
+   should be always run, but is independent and can be skipped by omitting the 'health'
+   key-word into actions attribute.<br>
+   <b>check</b> action enables mirror and SSP cluster checks.<br> 
    <b>save</b> action enables the save copy of the rootvg to be taken prior from 
-   performing update, as a matter of fact this action is mandatory as no VIOS update can 
-   be done without the presence of an altinst_rootvg, as we want to be sure to be able 
-   to come back on previosu state if ever something gors wrong. <br>   
+   performing update. As already said, an 'altinst_rootvg' needs to exist on a given 
+   VIOS before VIOS update can be launched on this specific VIOS. Several ways of 
+   providing a 'altinst_rootvg' or insuring that this 'altinst_rootvg' exists are 
+   brought by this 'save' action. <br>   
    <b>autocommit</b> action enables autocommit of 'applied only' updates to be done 
    if necessary before performing VIOS update. VIOS update is not possible if ever 
    all previous installations are not committed. <br>
-   <b>mirror</b> action is necessary to unmirror rootvg before performing the save 
-   operation (taking an altinst_rootvg), and if unmirror is done, mirror will be retablished 
-   afterwards. <br>
-   <b>update</b> action to perform VIOS update operation itself. If ever this action is not 
-   set, Puppet AixAutomation performs only all other steps which are preparation steps.  
+   <b>mirror</b> action is necessary to un-mirror rootvg before performing the save 
+   operation (taking an altinst_rootvg), and if un-mirror is done, mirror will 
+   be retablished afterwards. No 'un-mirror' and 'mirror' operations will be done 
+   without this explicit key-word into 'actions' attribute.<br> 
+   <b>update</b> action to perform VIOS update operation itself. If ever this action 
+   is not set, Puppet AixAutomation performs only all other preparation steps which
+   are listed into 'actions' attribute.  
   - <b>vios_pairs</b>: pairs of VIOS on which to perform action.
-  - <b>update_options</b>: possible values are <b>install</b>, <b>commit</b>, <b>reject</b>, <b>cleanup</b>, 
-  <b>remove</b>. So far only <b>commit</b> has been tested.       
-  - <b>options</b>: possible values are <b>accep_licenses</b>, <b>preview</b>.
-  - <b>vios_altinst_rootvg</b>: this attribute enables to designate a disk to be used to host altinst_rootvg. A disk
-  can be designated per vios following this given syntax : <b>vios1=hdisk1, vios2=hdisk2</b> etc. The given disk
-  will be used as a first choice, if this disk fits the necessary conditions to host a copy of the rootvg. If 
-  this disk cannot be used, the best disk possible will be chosen : a free disk large enough to host rootvg, 
-  but the samllest disk possible will be taken to spare resources.    
+  - <b>update_options</b>: only possible value is <b>commit</b>. Potential future 
+   values are <b>install</b>, <b>commit</b>, <b>reject</b>, <b>cleanup</b>, 
+   <b>remove</b>.<br>       
+  - <b>options</b>: possible values are <b>accept_licenses</b> and <b>preview</b>.
+   <b>options=accept_licenses</b> is necessary when <b>actions</b> contains <b>update</b> 
+   otherwise update fails on 'accept_licences' condition. Explicit agreement is needed to 
+   accept licences. <br> 
+   <b>options=preview</b> can be set to perform VIOS update in preview mode only. Without 
+   <b>options=preview</b>, VIOS update is really performed.<br> 
+  - <b>vios_altinst_rootvg</b>: this attribute enables to designate a disk to be used 
+  to host altinst_rootvg. A disk can be designated per VIOS following this given syntax : 
+  <b>vios1=hdisk1, vios2=hdisk2</b> etc. The given disk will be used as a first choice, 
+  if this disk fits the necessary conditions to host a copy of the rootvg. If 
+  this disk cannot be used, the best disk possible will be chosen : a free disk large 
+  enough to host rootvg, but the smallest disk possible will be taken to spare resources.    
   - <b>altinst_rootvg_force</b>: possible values are <b>no</b>, <b>yes</b>, <b>reuse</b>. <br>
-  <b>altinst_rootvg_force=no</b> means that if ever it already exists an altinst_rootvg, this one won't be overriden.
-   Then its presence will prevent a new altinst_rootvg from being taken, therefore the overall process of VIOS
-  update from continuing. If no altinst_rootvg exists, a new one is created just before VIOS update.<br>
-  <b>altinst_rootvg_force=yes</b> means that if ever it already exists an altinst_rootvg, this one is going to be 
-  cleaned and removed, allowing a new one to be taken just before VIOS update.<br> If no altinst_rootvg already 
-  exists, one altinst_rootvg will be taken just before VIOS update. <br>
-  <b>altinst_rootvg_force=reuse</b> means that if ever it already exists an altinst_rootvg, this one is going to be 
-  kept and used, therefore no 'fresh' altinst_rootvg is taken as we consider the existing one as valuable. If no 
-  altinst_rootvg exists, one altinst_rootvg will be taken just before VIOS update. <br>
-  - <b>vios_lpp_sources</b>: this attribute enables to designate the NIM lpp_source resource to be used to perform  
-  VIOS update operation. A NIM lpp_source resource can be designated per vios following this given syntax : 
-  <b>vios1=lpp_source1, vios2=lpp_source2</b> etc. Theses given lpp_sources need to exist before launching Puppet 
-  AIXAutomation. <br>
+  <b>altinst_rootvg_force=no</b> means that if ever it already exists an altinst_rootvg, 
+  this one won't be overriden. As its presence will prevent a new altinst_rootvg from 
+  being taken, and will prevent the overall process of VIOS update from continuing. 
+  If no altinst_rootvg exists, a new one is created just before VIOS update.<br>
+  <b>altinst_rootvg_force=yes</b> means that if ever it already exists an altinst_rootvg, 
+  this one is going to be cleaned and removed, allowing a new one to be taken just before 
+  VIOS update.<br> If no altinst_rootvg already exists, one altinst_rootvg will be taken 
+  just before VIOS update. <br>
+  <b>altinst_rootvg_force=reuse</b> means that if ever it already exists an altinst_rootvg, 
+  this one is going to be kept and used, therefore no 'fresh' altinst_rootvg is taken 
+  as we consider the existing one as valuable. If no altinst_rootvg exists, one 
+  altinst_rootvg will be taken just before VIOS update. <br>
+  - <b>vios_lpp_sources</b>: this attribute enables to designate the NIM lppsource 
+  resource to be used to perform VIOS update operation. A NIM lppsource resource can be 
+  designated per vios following this given syntax : 
+  <b>vios1=lpp_source1, vios2=lpp_source2</b> etc. 
+  These given lppsources need to exist before launching Puppet AIXAutomation. <br>
          
 ## Limitations
  Refer to TODO.md<br>

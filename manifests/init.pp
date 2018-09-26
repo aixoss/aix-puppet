@@ -112,7 +112,7 @@ class aixautomation {
     options              => 'accept_licenses',
     update_options       => 'commit',
     # vios_altinst_rootvg  => 'p7juav2=hdisk2,p7juav1=hdisk0',
-    altinst_rootvg_force => 'reuse',
+    altinst_rootvg_force => 'yes',
     # vios_altinst_rootvg  => 'p7juav1=hdisk0',
     vios_lpp_sources     => 'castor_gdr_vios2=vios_update_iso,castor_gdr_vios3=vios_update_iso',
   }

@@ -28,14 +28,14 @@ Facter.add('hmc') do
         Log.log_err("[STDERR] #{line.chomp}")
       end
       unless wait_thr.value.success?
-        stdout.each_line { |line| Log.log_info("[STDOUT] #{line.chomp}") }
+        stdout.each_line {|line| Log.log_err("[STDOUT] #{line.chomp}")}
         raise NimHmcInfoError, "Error: Command \"#{cmd}\" returns above error!"
       end
 
       #
       hmc_key = ''
       stdout.each_line do |line|
-        Log.log_info("[STDOUT] #{line.chomp}")
+        Log.log_debug("[STDOUT] #{line.chomp}")
         # HMC name
         if line =~ /^(\S+):/
           hmc_key = Regexp.last_match(1)

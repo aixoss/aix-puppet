@@ -412,6 +412,9 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
       # param : in:chosen_disk: name of the disk chosen by user. My be empty
       #    If set we try to use this one as first choice, if it fits, if it
       #    does not fit, we do as this parameter was not set.
+      # param : in:nb_of_pp: number of physical partitions
+      #    of rootvg, to get the size of rootvg we need to multiply by the size
+      #    of one physical partition..
       # param : in:altinst_rootvg_force: yes or no. If set to yes, it indicates that
       #    altinst_rootvg (if it exists) can be removed and its disk reused.
       #    If set to no, existing altinst_rootvg is not touched.
@@ -424,10 +427,12 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
       def self.find_best_alt_disk_vios(vios,
           hvios,
           chosen_disk,
+          nb_of_pp,
           altinst_rootvg_force)
         Log.log_debug('find_best_alt_disk_vios for "' + vios.to_s +
                           '" vios with hvios=' + hvios.to_s +
                           ' with chosen_disk=' + chosen_disk.to_s +
+                          ' with nb_of_pp=' + nb_of_pp.to_s +
                           ' with force=' + altinst_rootvg_force.to_s)
         vios_returned = []
 
@@ -450,13 +455,18 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
           Log.log_info('Call to altvg_find_and_remove: ' + vios.to_s)
           ret = Vios.altvg_find_and_remove(vios, alt_disk_to_reuse)
           if ret == 0
-            Log.log_info('There was a altinst_rootvg on ' + vios.to_s + ' which has been cleaned.')
+            Log.log_info('There was an altinst_rootvg on ' + vios.to_s + ' which has been cleaned.')
           end
 
           Log.log_info('find_best_alt_disks on: ' + vios.to_s)
-          size_rootvg, size_used_rootvg = Vios.get_vg_size(vios, 'rootvg')
-          Log.log_info('find_best_alt_disk_vios on: ' + vios.to_s + ' rootvg size: ' +
-                           size_rootvg.to_s + ' rootvg used size:' + size_used_rootvg.to_s)
+          size_rootvg, size_used_rootvg, size_pp = Vios.get_vg_size(vios, 'rootvg')
+          Log.log_info('find_best_alt_disk_vios on: ' + vios.to_s +
+                           ' rootvg size: ' + size_rootvg.to_s +
+                           ' rootvg used size:' + size_used_rootvg.to_s +
+                           ' partition size:' + size_pp.to_s)
+          computed_size_rootvg = size_pp * nb_of_pp
+          Log.log_info('computed_size_rootvg: ' + computed_size_rootvg.to_s)
+
           #
           if size_used_rootvg.to_i != 0
             remote_cmd1 = "/usr/ios/cli/ioscli lspv -free | /bin/grep -v NAME"
@@ -478,7 +488,7 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
                   Log.log_debug("name_candidate_disk= #{name_candidate_disk} \
 pvid_candidate_disk=#{pvid_candidate_disk} \
 size_candidate_disk=#{size_candidate_disk}")
-                  if size_used_rootvg.to_i < size_candidate_disk.to_i
+                  if computed_size_rootvg.to_i < size_candidate_disk.to_i
                     disks_kept.push([name_candidate_disk, size_candidate_disk])
                     added += 1
                   end
@@ -505,6 +515,7 @@ size_candidate_disk=#{size_candidate_disk}")
                     # If there is one or several disks kept
                     #  we keep only the smaller one
                     min = disks_kept[0][1]
+                    Log.log_info("disks_kept=" + disks_kept.to_s + ' min=' + min.to_s)
                     disks_kept.each do |disk_kept|
                       if disk_kept[1].to_i <= min.to_i
                         Log.log_info("disk_kept=" + disk_kept.to_s + ' min=' + min.to_s)
@@ -543,13 +554,15 @@ size_candidate_disk=#{size_candidate_disk}")
       # param : in:vios:string
       # param : in:vg_name:string
       # return : [size1,size2]
-      # description : returns the total and used vg sizes in megabytes
+      # description : returns the total size, the used vg size, and the
+      #  partition size in megabytes
       # ########################################################################
       def self.get_vg_size(vios,
           vg_name)
         Log.log_debug('get_vg_size on ' + vios.to_s + ' for ' + vg_name.to_s)
         vg_size = 0
         used_size = 0
+        pp_size = 0
         remote_cmd1 = '/usr/ios/cli/ioscli lsvg ' + vg_name.to_s
         remote_output1 = []
         remote_cmd_rc1 = Remote.c_rsh(vios, remote_cmd1, remote_output1)
@@ -569,18 +582,18 @@ size_candidate_disk=#{size_candidate_disk}")
             elsif line =~ /.*USED PPs:\s+\d+\s+\((\d+)\s+megabytes\).*/
               used_size += Regexp.last_match(1).to_i
             elsif line =~ /.*PP SIZE:\s+(\d+)\s+megabyte\(s\).*/
-              used_size += Regexp.last_match(1).to_i
+              pp_size += Regexp.last_match(1).to_i
             end
           end
         else
           Log.log_err("Failed to get Volume Group '#{vg_name}' size: on #{vios}")
         end
         if vg_size == 0 || used_size == 0
-          Log.log_err("Failed to get Volume Group '#{vg_name}' size: TOTAL PPs=#{vg_size}, USED PPs+1=#{vg_size[1]} on #{vios}")
-          [0, 0]
+          Log.log_err("Failed to get Volume Group '#{vg_name}' size: TOTAL PPs=#{vg_size}, USED PPs+1=#{used_size}, PP SIZE=#{pp_size} MB on #{vios}")
+          [0, 0, 0]
         else
-          Log.log_info("VG '#{vg_name}' TOTAL PPs=#{vg_size} MB, USED PPs+1=#{used_size} MB")
-          [vg_size, used_size]
+          Log.log_info("VG '#{vg_name}' TOTAL PPs=#{vg_size} MB, USED PPs+1=#{used_size} MB, PP SIZE=#{pp_size} MB")
+          [vg_size, used_size, pp_size]
         end
       end
 
@@ -841,34 +854,37 @@ size_candidate_disk=#{size_candidate_disk}")
           remote_cmd_rc0 = Remote.c_rsh(vios, remote_cmd0, remote_output0)
           if remote_cmd_rc0 == 0
             if !remote_output0[0].nil? and !remote_output0[0].empty?
-              Log.log_debug('remote_output0[0]=' + remote_output0[0].to_s)
-              remote_output0.each do |remote_output0_line|
-                Log.log_debug('remote_output0_line=' + remote_output0_line.to_s)
-                alt_disk_name, _junk1, _junk2, active = remote_output0_line.split
+              remote_output0.each do |remote_output0_allinline|
+                Log.log_debug('remote_output0_allinline=' + remote_output0_allinline.to_s)
+                remote_output0_lines = remote_output0_allinline.split("\n")
+                remote_output0_lines.each do |remote_output0_line|
+                  Log.log_debug('remote_output0_line=' + remote_output0_line.to_s)
+                  alt_disk_name, _junk1, _junk2, active = remote_output0_line.split
+                  Log.log_debug('alt_disk_name=' + alt_disk_name.to_s)
+                  Log.log_debug('active=' + active.to_s)
+                  if active.nil? or active.empty?
+                    Log.log_info('There is one existing ' + vg + ' on ' + vios.to_s + ' and we need to varyonvg it')
+                    remote_cmd1 = '/usr/sbin/varyonvg ' + vg
+                    remote_output1 = []
+                    remote_cmd_rc1 = Remote.c_rsh(vios, remote_cmd1, remote_output1)
+                    Log.log_debug('On this command ' + remote_cmd1.to_s +
+                                      ', the ' + remote_cmd_rc1.to_s + ' return code and ' +
+                                      remote_output1[0].to_s + ' output are not necessarily an error.')
+                    ret = Vios.perform_vg_clean_and_free_disk(vios, vg, alt_disk_name)
+                  else
+                    Log.log_info('There is one existing  ' + vg + ' on ' + vios.to_s + ' but we dont need to varyonvg it')
+                  end
 
-                Log.log_debug('alt_disk_name=' + alt_disk_name.to_s)
-                Log.log_debug('active=' + active.to_s)
-                if active.nil? or active.empty?
-                  Log.log_info('There is one existing  ' + vg + ' on ' + vios.to_s + ' and we need to varyonvg it')
-                  remote_cmd1 = '/usr/sbin/varyonvg  ' + vg
-                  remote_output1 = []
-                  remote_cmd_rc1 = Remote.c_rsh(vios, remote_cmd1, remote_output1)
-                  Log.log_debug('On this command ' + remote_cmd1.to_s +
-                                    ', the ' + remote_cmd_rc1.to_s + ' return code and ' +
-                                    remote_output1[0].to_s + ' output are not necessarily an error.')
-                  ret = Vios.perform_vg_clean_and_free_disk(vios, vg, alt_disk_name)
-                else
-                  Log.log_info('There is one existing  ' + vg + ' on ' + vios.to_s + ' but we dont need to varyonvg it')
-                end
-                # check again
-                remote_cmd2 = '/usr/sbin/lsvg ' + vg
-                remote_output2 = []
-                remote_cmd_rc2 = Remote.c_rsh(vios, remote_cmd2, remote_output2)
-                if remote_cmd_rc2 == 0
-                  Log.log_info('There is an ' + vg + ' on ' + vios.to_s)
-                  # Meaning vg exists, we then need to remove it
-                  ret = Vios.perform_vg_clean_and_free_disk(vios, vg, alt_disk_name)
-                  used_alt_disk[0] = alt_disk_name
+                  # check again
+                  remote_cmd2 = '/usr/sbin/lsvg ' + vg
+                  remote_output2 = []
+                  remote_cmd_rc2 = Remote.c_rsh(vios, remote_cmd2, remote_output2)
+                  if remote_cmd_rc2 == 0
+                    Log.log_info('There is an ' + vg + ' on ' + vios.to_s)
+                    # Meaning vg exists, we then need to remove it
+                    ret = Vios.perform_vg_clean_and_free_disk(vios, vg, alt_disk_name)
+                    used_alt_disk[0] = alt_disk_name
+                  end
                 end
               end
             else
@@ -1040,6 +1056,8 @@ size_candidate_disk=#{size_candidate_disk}")
       # name : check_rootvg_mirror
       # param : in:vios:string
       # param : out:copies:hash
+      # param : out:nb_of_pp:[] first element of array
+      #   contains the number of physical partitions of rootvg copy 1.
       # return : 0, 1, -1
       #   0 is returned if disk is not mirrored
       #   1 is returned if disk is mirrored and check is ok
@@ -1048,18 +1066,26 @@ size_candidate_disk=#{size_candidate_disk}")
       #  that the mirror is not on same disk that the original. If it were
       #  the case, we wouldn't be able to un-mirror the rootvg, although this
       #  operation is mandatory before performing al_disk_copy.
+      # This check_rootvg_mirror is as well the opportunity to count the
+      #  number of physical partitions of the first copy (the partitions
+      #  on the first copy are suffixed with ":1") so that we know
+      #  the exact size of the rootvg.
       # ########################################################################
       def self.check_rootvg_mirror(vios,
-          copies)
+          copies,
+          nb_of_pp)
         Log.log_debug('check_rootvg_mirror for vios of ' + vios.to_s)
         # By default we return 0, meaning disk is not mirrored
         ret = 0
         hdisk_copy = {}
         copy_hdisk = {}
-        nb_lp = 0
+        # if not mirrored
+        number_of_pp = 0
+        # if mirrored
+        number_of_pp_1 = 0
         # copy indicates the number of copies
-        # copy=1 meaning only one copy (therefore no mirror)
-        # copy=2 (or above?) meaning more than one copies (therefore mirror)
+        #  copy=1 meaning only one copy (therefore no mirror)
+        #  copy=2 (or above?) meaning more than one copies (therefore mirror)
         copy = 0
 
         # ########################################################################
@@ -1081,7 +1107,7 @@ size_candidate_disk=#{size_candidate_disk}")
         # #########################################################################
         remote_cmd1 = "/usr/sbin/lsvg -M rootvg"
         remote_output1 = []
-        Log.log_debug('check_rootvg_mirror for vios of ' + vios.to_s)
+        Log.log_debug('running ' + remote_cmd1 + ' on ' + vios.to_s)
         remote_cmd_rc1 = Remote.c_rsh(vios,
                                       remote_cmd1,
                                       remote_output1)
@@ -1102,18 +1128,21 @@ size_candidate_disk=#{size_candidate_disk}")
                 ret = -1
                 break
               elsif remote_output1_line.strip =~ /^(\S+):\d+\s+\S+:\d+:(\d+)$/
-                #  case: hdisk8:257 hd10opt:1:2
+                #  case: hdisk8:257 hd10opt:1:1 or hdisk8:257 hd10opt:1:2 or hdisk8:257 hd10opt:1:3
                 hdisk = Regexp.last_match(1)
                 copy = Regexp.last_match(2).to_i
+                if remote_output1_line.strip =~ /^\S+:\d+\s+\S+:\d+:1$/
+                  #  only case: hdisk8:257 hd10opt:1:1
+                  number_of_pp_1 += 1
+                end
               elsif remote_output1_line.strip =~ /^(\S+):\d+\s+\S+:\d+$/
                 # case: hdisk8:258 hd10opt:2
                 hdisk = Regexp.last_match(1)
+                number_of_pp += 1
                 copy = 1
               else
                 next
               end
-              #
-              nb_lp += 1 if copy == 1
               # Log.log_info('hdisk=' + hdisk.to_s + ' copy=' + copy.to_s)
               # Log.log_info('hdisk_copy.key?(hdisk)=' + hdisk_copy.key?(hdisk).to_s)
               if hdisk_copy.key?(hdisk)
@@ -1167,11 +1196,12 @@ system from building an altinst_rootvg."
           else
             if copy != 0
               msg = "The \"#{vios}\" rootvg is partially or completely mirrored \
-and its mirroring is compatible with performing an altinst_rootvg. \
+and its mirroring is compatible with performing an altinst_rootvg.\
 Un-mirroring with be done before and mirroring will be redone after."
               Log.log_info(msg)
               Vios.add_vios_msg(vios, msg)
               copies[0] = copy_hdisk
+              nb_of_pp[0] = number_of_pp_1
               ret = 1
             else
               msg = "The \"#{vios}\" rootvg is not mirrored, then there is no \
@@ -1179,12 +1209,14 @@ specific constraints before performing an altinst_rootvg."
               Log.log_info(msg)
               Vios.add_vios_msg(vios, msg)
               copies[0] = copy_hdisk
+              nb_of_pp[0] = number_of_pp
             end
           end
         end
         #
         Log.log_debug('check_rootvg_mirror for vios of ' + vios.to_s +
-                          ' returning ' + copies.to_s + ' ret=' + ret.to_s)
+                          ' returning (' + copies.to_s + ',' +
+                          nb_of_pp.to_s + ') ret=' + ret.to_s)
         ret
       end
 

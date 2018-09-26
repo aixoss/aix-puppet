@@ -59,7 +59,7 @@ with \"#{resource[:update_options]}\" update_options.")
     facter_vios = {}
     facter_hmc = {}
 
-    if actions.include? 'check'
+    if actions.include? 'check' or actions.include? 'health'
       #
       Vios.check_vioshc
       facter_vios = Facter.value(:vios)
@@ -74,7 +74,7 @@ with \"#{resource[:update_options]}\" update_options.")
     vios_pairs.each do |vios_pair|
       Log.log_info('vios_pair=' + vios_pair.to_s)
       #
-      if actions.include? 'check'
+      if actions.include? 'check' or actions.include? 'health'
         #
         nim_vios = facter_vios
         hmc_id = ''
@@ -183,14 +183,14 @@ with \"#{resource[:update_options]}\" update_options.")
           if !vios_lppsources.nil?
             value_lpp_source = vios_lppsources[vios]
             if value_lpp_source.nil? or value_lpp_source.empty?
-              msg = 'No lpp_source set on this "' + vios.to_s + '" vios. No update to be done. Therefore no need to perform "save"'
+              msg = 'No vios_lpp_sources set on this "' + vios.to_s + '" vios. No update to be done. Therefore no need to perform "save"'
               Vios.add_vios_msg(vios, msg)
               Log.log_info(msg)
               # This does not prevent us from continuing on next vios
               next
             end
           else
-            msg = 'No lpp_source set. No update to be done. Therefore no need to perform "save"'
+            msg = 'No vios_lpp_sources set. No update to be done. Therefore no need to perform "save"'
             Vios.add_vios_msg(vios, msg)
             Log.log_info(msg)
             # This does not prevent us from continuing on next vios
@@ -214,8 +214,13 @@ with \"#{resource[:update_options]}\" update_options.")
           #
           unless skip_unmirror_find_mirror
             copies = []
-            ret = Vios.check_rootvg_mirror(vios, copies)
-            Log.log_info('check_rootvg_mirror=' + vios.to_s + ' ret=' + ret.to_s + ' copies=' + copies.to_s)
+            nb_of_physical_partitions = []
+            ret = Vios.check_rootvg_mirror(vios, copies, nb_of_physical_partitions)
+            Log.log_info('check_rootvg_mirror=' + vios.to_s +
+                             ' ret=' + ret.to_s +
+                             ' copies=' + copies.to_s +
+                             ' nb_of_physical_partitions=' + nb_of_physical_partitions.to_s)
+            #
             if ret == -1
               b_vios_pair_kept = 0
             else
@@ -231,10 +236,18 @@ with \"#{resource[:update_options]}\" update_options.")
               # This does not prevent from continuing on another pair
               next
             end
-            # disk may have been chosen by user
-            chosen_disk = vios_disks[vios]
+            chosen_disk = ''
+            unless vios_disks.nil?
+              # disk may have been chosen by user
+              chosen_disk = vios_disks[vios]
+            end
+
             #
-            vios_best_disk = Vios.find_best_alt_disk_vios(vios, hvios, chosen_disk, force)
+            vios_best_disk = Vios.find_best_alt_disk_vios(vios,
+                                                          hvios,
+                                                          chosen_disk,
+                                                          nb_of_physical_partitions[0],
+                                                          force)
             # The 'vios_best_disk' output contains for vios the disk on which to perform alt_disk_copy.
             Log.log_info('vios_best_disk=' + vios_best_disk.to_s)
             #
