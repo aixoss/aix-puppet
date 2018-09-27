@@ -2,7 +2,6 @@ require_relative './Constants.rb'
 require 'fileutils'
 require 'yaml'
 
-
 module Automation
   module Lib
 
@@ -1809,7 +1808,7 @@ therefore it is not possible to continue VIOS update on this pair."
               Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin2, stdout2, stderr2, wait_thr2|
                 Log.log_info('wait_thr2.value=' + wait_thr2.value.to_s)
                 stdout2.each_line do |line|
-                  if line =~ /\s0\sTotal to be installed/
+                  if line =~ /\s+0\s+Total to be installed/
                     ret = 0
                   end
                   Log.log_debug("[STDOUT] #{line.chomp}")
@@ -1818,7 +1817,7 @@ therefore it is not possible to continue VIOS update on this pair."
                 stderr2.each_line do |line|
                   Log.log_err("[STDERR] #{line.chomp}")
                 end
-                Log.log_debug(' cmd ' + cmd2.to_s + ' returns ' + ret.to_s)
+                Log.log_debug('cmd2 ' + cmd2.to_s + ' returns ' + ret.to_s)
                 # Process::Status object returned.
               end
             end
