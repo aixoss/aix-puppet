@@ -20,17 +20,17 @@
   no node executing Puppet agent. With Puppet AixAutomation module, 
   a unique Puppet Agent needs to run on the host where the NIM server runs.<br>    
  This Puppet AixAutomation module enables automation of software maintenance 
-  operations (updates of AIX or VIOS levels, updates of eFix)on a list of 
+  operations (updates of AIX or VIOS levels, updates of eFix) on a list of 
   AIX LPARs and AIX VIOS, by running this module on a NIM server managing 
   these LPARs and VIOS.<br>
  Operations desired by the user are declared into a manifest file, using Puppet
-  configuration language called DSL (Domain Specific Language), explained below. 
-  Specific custom types have been implemented (with their related providers) for 
-  Puppet AixAutomation module, to control necessary operations to automatically 
-  perform AIX updates and patch management. These new custom types enable
-  to declare resources in manifest file. These types '**download**', 
-  '**patchmngt**', '**fix**', and '**vios**' are described hereafter in 
-  detail.<br>
+  configuration language called DSL (Domain Specific Language), and using  
+  ad hoc syntax explained below. This syntax uses specific custom types that 
+  have been implemented (with their related providers) for Puppet AixAutomation
+   module, to control necessary operations to automatically perform AIX updates 
+   and patch management. These new custom types enable to declare resources in 
+   manifest file. These types '**download**', '**patchmngt**', '**fix**', and 
+   '**vios**' are described hereafter in detail.<br>
  AIX updates and patch management operations performed by this AixAutomation 
   Puppet module are shortly described now.<br><br>
   **Firstly** as far as AIX LPARs are concerned:<br>          
@@ -59,10 +59,11 @@
  - VIOS updates can be automatically applied on a list of VIOS, 
   by using '**NIM push**' operations. As for LPARs updates, everything (i.e. all 
   AixAutomation logic) runs from the NIM server, and nothing needs to be 
-  installed on VIOS themselves.<br> To bring trust in VIOS update operation,
-  a mandatory copy of rootvg is taken before performing update, and 
-  AIXAutomation logic takes into account the potential mirroring of rootvg, and 
-  possible SSP cluster membership. See more explanations below.
+  installed on VIOS themselves.<br> 
+  To bring trust in VIOS update operation, a mandatory copy of rootvg is taken 
+  before performing update, and AIXAutomation logic takes into account the 
+  potential mirroring of rootvg, and possible SSP cluster membership. 
+  See more explanations below. 
    
 ## Setup
 ### Setup Requirements 
@@ -229,8 +230,6 @@
       and ./output/facter/vios_kept.yml file.<br> 
     - hmc: to gather data on all HMC managed by the NIM server. 
   
-    
- 
 ### Custom types and providers
  Four custom type and their providers constitute the AixAutomation module.<br>
  All custom types utilizations are documented into './examples/init.pp'<br>
@@ -499,8 +498,9 @@ It is a good practice to regularly consider that the
  Used for AIX VIOS software maintenance operations.
  ##### Explanations
   The aim of this provider is to provide software maintenance operations on a 
-  list of VIOS using '**NIM push**' operations. Everything is performed from 
-  the NIM server on which this Puppet AixAutomation module runs.<br>
+  list of VIOS using '**NIM push**' operations, and using '**c_rsh**' operations. 
+  Everything is performed from the NIM server on which this Puppet AixAutomation
+   module runs.<br> 
   To be able to perform VIOS updates, this NIM push mode need NIM lppsource 
   resources to exist prior from using AixAutomation. These NIM lppsource resources
   have to be manually built before using AIXAutomation Puppet module 
@@ -513,34 +513,36 @@ It is a good practice to regularly consider that the
   'options' attribute.<br> 
   Several modes of updates may exist in the future, but so far only one 
   is coded: "commit", using the 'update_options' attribute. See documented example 
-  in './examples/init.pp'. <br>
+  in './examples/init.pp'.<br>
   Puppet AixAutomation brings a complete logic to verify VIOS update will be safely 
   performed. Rollback operation (i.e. coming back on previous VIOS version) will be 
   always possible in case of any issue during update, as rootvg is copied before 
   performing VIOS operation.<br> 
-  - For each pair of VIOS, a health check can be performed to verify that both VIOS of
-   the pair share the same view of mappings on all types of storage and virtual adapters: 
-   vSCSI, vFC, SEA, VNIC, etc. 
+  - For each pair of VIOS, a health check can be performed to verify that both 
+   VIOS of the pair share the same view of mappings on all types of storage and 
+   virtual adapters: vSCSI, vFC, SEA, VNIC, etc. 
    This health check should always be run as a preliminary step, and in case of 
    unsuccessful result, VIOS update cannot be done on any VIOS of the pair. 
-   The health check is not mandatory, and could be skipped, by omitting the '**health**' 
-   key-word from the 'actions' attribute.   
-  - Before performing a VIOS update, Puppet AixAutomation insures a copy of rootvg exists 
-   or is taken, to always offer possibility to come back on previousVIOS  version if anything 
-   proves to be wrong during or before the end of VIOS update. The copy of rootvg is taken 
-   using 'alt_disk_copy' command: the use of this command results into an "altinst_rootvg" vg 
-   on a dedicated disk. No VIOS update is run without an existing 'altinst_rootvg'.    
-  - If ever rootvg is mirrored, as it is not possible to perform 'alt_disk_copy' on a 
-   mirrored disk, the un-mirror operation of the rootvg disk is launched before performing
-   it, and this mirroring is re-established after performing it. But these 'un-mirror' 
-   and 'mirror' operations won't be done without an explicit parameter into manifest file, 
-   so that this is an explicit choice from the user.
-   - Moreover as it is not possible to update a VIOS with is a UP SSP cluster node, if 
-   ever the VIOS proves to be part of a SSP cluster, a check is done the VIOS being part of
-   a SSP cluster: as a matter of fact, it is necessary that SSP cluster is either UP 
-   or DOWN on both VIOS of the pair. If ever both SSP cluster nodes are UP before 
-   launching the VIOS updates, each SSP node is stopped juste performing VIOS update 
-   operation on this very node, and restarted when this VIOS update operation is finished. 
+   The health check is not mandatory, and could be skipped, by omitting the
+    '**health**' key-word from the 'actions' attribute.   
+  - Before performing a VIOS update, Puppet AixAutomation insures a copy of rootvg 
+   exists or is taken, to always offer possibility to come back on previous VIOS 
+   version if anything proves to be wrong during or before the end of VIOS update. 
+   The copy of rootvg is taken using 'alt_disk_copy' command: the use of this 
+   command results into an "altinst_rootvg" vg on a dedicated disk. 
+   No VIOS update is run without an existing 'altinst_rootvg'.    
+  - If ever rootvg is mirrored, as it is not possible to perform 'alt_disk_copy' 
+   on a mirrored disk, the un-mirror operation of the rootvg disk is launched 
+   before performing it, and this mirroring is re-established after performing it. 
+   But these 'un-mirror' and 'mirror' operations won't be done without an explicit
+    parameter into manifest file, so that this is an explicit choice from the user.
+   - Moreover as it is not possible to update a VIOS with is a UP SSP cluster node, 
+   if ever the VIOS proves to be part of a SSP cluster, a check is done the VIOS
+   being part of a SSP cluster: as a matter of fact, it is necessary that SSP 
+   cluster is either UP or DOWN on both VIOS of the pair. If ever both SSP 
+   cluster nodes are UP before launching the VIOS updates, each SSP node is 
+   stopped juste performing VIOS update operation on this very node, and 
+   restarted when this VIOS update operation is finished. 
    - VIOS update logs for each VIOS can be found into ./output/vios
         Each VIOS has its own log file: updateios_output_update_<vios_name>.log
    - VIOS update journal for each VIOS can be found into ./output/vios
@@ -557,27 +559,29 @@ It is a good practice to regularly consider that the
    custom types), this attribute is necessary to uniquely identify the VIOS  
    update operation to be performed: you can have several 'vios' custom 
    types in './manifests/init.pp', each of them being uniquely identified.<br> 
-  - <b>actions</b>: actions to be performed. This attribute is a multi-valuated attribute.
-   Several values can be chosen among the various values: <b>health</b>,<b>check</b>,
-   <b>save</b>,<b>mirror</b>,<b>autocommit</b>,<b>update</b>. 
-   By default, no value is assumed. <br>
-   <b>health</b> action enables VIOS health check prior from making update. If this 
-   health check is negative, VIOS update operation won't be pursued. This action 
-   should be always run, but is independent and can be skipped by omitting the 'health'
-   key-word from 'actions' attribute.<br>
+  - <b>actions</b>: actions to be performed. This attribute is a 
+   multi-valuated attribute. Several values can be chosen among 
+   the various values: <b>health</b>, <b>check</b>, <b>save</b>, <b>mirror</b>,
+    <b>autocommit</b>, <b>update</b>. By default, no value is assumed. <br>
+   <b>health</b> action enables VIOS health check prior from making update. 
+   If this health check is negative, VIOS update operation won't be 
+   pursued. This action should be always run, but is independent and can 
+   be skipped by omitting the 'health' key-word from 'actions' attribute.<br>
    <b>check</b> action enables mirror and SSP cluster checks.<br> 
-   <b>save</b> action enables the save copy of the rootvg to be taken prior from 
-   performing update. As already said, an 'altinst_rootvg' needs to exist on a given 
-   VIOS before VIOS update can be launched on this specific VIOS. Several ways of 
-   providing an 'altinst_rootvg' or insuring that this 'altinst_rootvg' exists are 
-   brought by this 'save' action. Refer to below <b>vios_altinst_rootvg</b> and 
-    <b>altinst_rootvg_force</b> attributes.<br>   
-   <b>autocommit</b> action enables autocommit of 'applied only' updates to be done 
-   if necessary before performing VIOS update. VIOS update is not possible if ever 
-   all previous installations are not committed. <br>
-   <b>mirror</b> action is necessary to un-mirror rootvg before performing the save 
-   operation (taking an altinst_rootvg), and if un-mirror is done, mirror will 
-   be retablished afterwards. No 'un-mirror' and 'mirror' operations will be done 
+   <b>save</b> action enables the save copy of the rootvg to be taken prior 
+   from performing update. As already said, an 'altinst_rootvg' needs to 
+   exist on a given VIOS before VIOS update can be launched on this 
+   specific VIOS. Several ways of providing an 'altinst_rootvg' or insuring 
+   that this 'altinst_rootvg' exists are brought by this 'save' action. 
+   Refer to below <b>vios_altinst_rootvg</b> and <b>altinst_rootvg_force</b> 
+   attributes.<br>   
+   <b>autocommit</b> action enables autocommit of 'applied only' updates 
+   to be done if necessary before performing VIOS update. VIOS update 
+   is not possible if ever all previous installations are not committed.<br>
+   <b>mirror</b> action is necessary to un-mirror rootvg before 
+   performing the save operation (taking an altinst_rootvg), and if 
+   un-mirror is done, mirror will be retablished afterwards. 
+   No 'un-mirror' and 'mirror' operations will be done  
    without this explicit key-word into 'actions' attribute.<br> 
    <b>update</b> action to perform VIOS update operation itself. If ever this action 
    is not set, Puppet AixAutomation performs only all other preparation steps which
@@ -599,9 +603,11 @@ It is a good practice to regularly consider that the
   this disk cannot be used, the best disk possible will be chosen : a free disk large 
   enough to host rootvg, but the smallest disk possible (between all large enough) will 
   be taken to spare resources.<br>    
-  - <b>altinst_rootvg_force</b>: possible values are <b>no</b>, <b>yes</b>, <b>reuse</b>. <br>
+  - <b>altinst_rootvg_force</b>: possible values are 
+  <b>no</b>, <b>yes</b>, <b>reuse</b>. <br>
   <b>altinst_rootvg_force=no</b> means that if ever it already exists an 'altinst_rootvg', 
-  this one won't be overriden. As the presence of an existing 'altinst_rootvg' will prevent a new 'altinst_rootvg' from 
+  this one won't be overriden. As the presence of an existing 
+  'altinst_rootvg' will prevent a new 'altinst_rootvg' from 
   being taken, and will prevent the overall process of VIOS update from continuing. 
   If no altinst_rootvg exists, a new one is created just before VIOS update.<br>
   <b>altinst_rootvg_force=yes</b> means that if ever it already exists an altinst_rootvg, 
@@ -643,7 +649,8 @@ It is a good practice to regularly consider that the
   
   Error:     emgr: 0645-007 ATTENTION: /usr/bin/lslpp returned an unexpected result.<br>
   Error:     emgr: 0645-044 Error processing installp fileset data.<br>
-  Error:     emgr: 0645-060 Unable to determine owning fileset for /opt/pconsole/bin/pconsole_config.<br>
+  Error:     emgr: 0645-060 Unable to determine owning fileset 
+                for /opt/pconsole/bin/pconsole_config.<br>
   Error:     emgr: 0645-097 Error processing inventory data for file number 1.<br>
   Error:     emgr: 0645-140 ATTENTION: emgr has issued 1 attention notice(s).<br>
   Error:     Such notices may not indicate an immediate failure, but may require<br>
