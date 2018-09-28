@@ -529,7 +529,7 @@ It is a good practice to regularly consider that the
    exists or is taken, to always offer possibility to come back on previous VIOS 
    version if anything proves to be wrong during or before the end of VIOS update. 
    The copy of rootvg is taken using 'alt_disk_copy' command: the use of this 
-   command results into an "altinst_rootvg" vg on a dedicated disk. 
+   command results into an 'altinst_rootvg' vg on a dedicated disk. 
    No VIOS update is run without an existing 'altinst_rootvg'.    
   - If ever rootvg is mirrored, as it is not possible to perform 'alt_disk_copy' 
    on a mirrored disk, the un-mirror operation of the rootvg disk is launched 
@@ -576,10 +576,14 @@ It is a good practice to regularly consider that the
    Refer to below <b>vios_altinst_rootvg</b> and <b>altinst_rootvg_force</b> 
    attributes.<br>   
    <b>autocommit</b> action enables autocommit of 'applied only' updates 
-   to be done if necessary before performing VIOS update. VIOS update 
-   is not possible if ever all previous installations are not committed.<br>
+   to be done if necessary before performing VIOS update. Omitting this 
+   <b>autocommit</b> action from the list often prevents VIOS update 
+   from being done, as a VIOS update requires that all previous installations
+   are committed. By setting this <b>autocommit</b> action, a first pass of 
+   NIM updateios is launched to commit all previous filesets, before the 
+   second pass of NIM updateios to perform the VIOS update itself.<br>
    <b>mirror</b> action is necessary to un-mirror rootvg before 
-   performing the save operation (taking an altinst_rootvg), and if 
+   performing the save operation (taking an 'altinst_rootvg'), and if 
    un-mirror is done, mirror will be retablished afterwards. 
    No 'un-mirror' and 'mirror' operations will be done  
    without this explicit key-word into 'actions' attribute.<br> 
@@ -604,20 +608,23 @@ It is a good practice to regularly consider that the
   enough to host rootvg, but the smallest disk possible (between all large enough) will 
   be taken to spare resources.<br>    
   - <b>altinst_rootvg_force</b>: possible values are 
-  <b>no</b>, <b>yes</b>, <b>reuse</b>. <br>
+  <b>no</b>, <b>yes</b>, <b>reuse</b>. Carefully read what follows: <br>
   <b>altinst_rootvg_force=no</b> means that if ever it already exists an 'altinst_rootvg', 
-  this one won't be overriden. As the presence of an existing 
-  'altinst_rootvg' will prevent a new 'altinst_rootvg' from 
-  being taken, and will prevent the overall process of VIOS update from continuing. 
-  If no altinst_rootvg exists, a new one is created just before VIOS update.<br>
-  <b>altinst_rootvg_force=yes</b> means that if ever it already exists an altinst_rootvg, 
+  this one won't be overriden. This is the safest option to preserve any existing 
+  'altinst_rootvg'. The presence of an existing 'altinst_rootvg' will prevent a 
+  new 'altinst_rootvg' from being taken, and will prevent the overall process 
+  of VIOS update from continuing. With <b>altinst_rootvg_force=no</b>, if no 'altinst_rootvg' 
+  exists, a new one is created just before VIOS update.<br>
+  <b>altinst_rootvg_force=yes</b> means that if ever it already exists an 'altinst_rootvg', 
   this one is going to be cleaned and removed, allowing a new one to be taken just before 
-  VIOS update.<br> If no altinst_rootvg already exists, one altinst_rootvg will be taken 
-  just before VIOS update. <br>
-  <b>altinst_rootvg_force=reuse</b> means that if ever it already exists an altinst_rootvg, 
-  this one is going to be kept and used, therefore no 'fresh' altinst_rootvg is taken 
-  as we consider the existing one as valuable. If no altinst_rootvg exists, one 
-  altinst_rootvg will be taken just before VIOS update. <br>
+  VIOS update. Use this option cautiously as an existing 'altinst_rootvg' will be overridden. 
+  If no 'altinst_rootvg' already exists, one 'altinst_rootvg' will be taken just before 
+  VIOS update. <br>
+  <b>altinst_rootvg_force=reuse</b> means that if ever it already exists an 'altinst_rootvg', 
+  this one is going to be kept and used, therefore no fresh 'altinst_rootvg' is taken 
+  as we consider the existing one as valuable. If no 'altinst_rootvg' exists, one 
+  'altinst_rootvg' will be taken just before VIOS update. This option is safe as an existing 
+  'altinst_rootvg' is not overridden. <br>
   - <b>vios_lpp_sources</b>: this attribute enables to designate the NIM lppsource 
   resource to be used to perform VIOS update operation. A NIM lppsource resource can be 
   designated per vios following this given syntax : 

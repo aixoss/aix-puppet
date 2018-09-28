@@ -1820,9 +1820,25 @@ therefore it is not possible to continue VIOS update on this pair."
                 Log.log_debug('cmd2 ' + cmd2.to_s + ' returns ' + ret.to_s)
                 # Process::Status object returned.
               end
+              #
+              cmd2 = '/bin/grep -p "Installation Summary" ' + updateios_output_file
+              Log.log_info('cmd2=' + cmd2.to_s)
+              Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin2, stdout2, stderr2, _wait_thr2|
+                ## Log.log_info('wait_thr2.value=' + wait_thr2.value.to_s)
+                stdout2.each_line do |line|
+                  Log.log_debug("[STDOUT] #{line.chomp}")
+                  Vios.add_vios_msg(vios, line.chomp)
+                end
+                stderr2.each_line do |line|
+                  Log.log_err("[STDERR] #{line.chomp}")
+                end
+                Log.log_debug('cmd2 ' + cmd2.to_s + ' returns ' + ret.to_s)
+                # Process::Status object returned.
+              end
+
             end
             if ret == 1
-              msg = 'Failed to fully perform NIM updateios ' + step + ' operation on "' + vios.to_s + '" vios, see errors in log file and advise.'
+              msg = 'Bad return code from NIM updateios ' + step + ' operation on ' + vios.to_s + '" vios, but maybe successfull update anyway, refer to log file and advise.'
               Log.log_err(msg)
               Vios.add_vios_msg(vios, msg)
             else
