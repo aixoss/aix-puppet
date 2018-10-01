@@ -33,7 +33,6 @@ Facter.add('standalones') do
 /bin/awk 'FNR!=1{print l}{l=$0};END{ORS=\"\";print l}' ORS=' '")
     standalones_array = standalones_str.split(' ')
 
-
     #
     standalones_array.each do |standalone|
       standalone_hash = {}
@@ -43,7 +42,6 @@ Facter.add('standalones') do
         standalones_skipped[standalone] = standalone_hash
         next
       end
-
 
       #### ping
       ping_cmd = '/usr/sbin/ping -c1 -w5 ' + standalone

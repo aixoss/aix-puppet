@@ -17,17 +17,27 @@ Facter.add('vios') do
   setcode do
     Log.log_info('Computing "vios" facter')
 
+    # Retrieves from :applied_manifest facter list of vios used in manifests/init.pp
+    applied_manifest = Facter.value(:applied_manifest)
+    allvios = applied_manifest['vios']
+
     vios_kept = {}
     vios_skipped = {}
 
     vios_str = Facter::Core::Execution.execute("/usr/sbin/lsnim -t vios | /bin/awk \
 'NR==FNR{print $1;next}{print $1}' | /bin/awk 'FNR!=1{print l}{l=$0};END{ORS=\"\";print l}' ORS=' '")
     vios_array = vios_str.split(' ')
-#
+    #
     vios_array.each do |vios|
       vios_hash = {}
       oslevel = ''
       ioslevel = ''
+
+      unless allvios.include? vios
+        vios_hash['WARNING'] = 'VIOS ' + vios + ' is not used in "manifests/init.pp. Skipping"'
+        vios_skipped[vios] = vios_hash
+        next
+      end
 
       remote_cmd_rc = Remote.c_rsh(vios, '/usr/bin/oslevel -s', oslevel)
       if remote_cmd_rc == 0
@@ -142,7 +152,6 @@ Facter.add('vios') do
           Log.log_err("stderr=#{stderr}")
           vios_skipped[vios] = vios_hash
         end
-
       else
         Log.log_err("error while doing '/usr/sbin/ping -c1 -w5 ' " + vios)
         Log.log_err("stderr=#{stderr}")
@@ -150,17 +159,17 @@ Facter.add('vios') do
       end
     end
 
-# Skipped
+    # Skipped
     Log.log_warning('vios not kept="' + vios_skipped.to_s + '"')
-# persist to yaml
+    # persist to yaml
     skipped_result_yml_file = ::File.join(Constants.output_dir,
                                           'facter',
                                           'vios_skipped.yml')
     File.write(skipped_result_yml_file, vios_skipped.to_yaml)
     Log.log_info('Refer to "' + skipped_result_yml_file + '" to have results of skipped "vios" facter.')
 
-# Kept
-# persist to yaml
+    # Kept
+    # persist to yaml
     kept_result_yml_file = ::File.join(Constants.output_dir,
                                        'facter',
                                        'vios_kept.yml')

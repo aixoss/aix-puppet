@@ -81,17 +81,17 @@ module Automation
       # ########################################################################
       def self.check_vios(vios)
         Log.log_debug('Into check_vios vios=' + vios.to_s)
-        bret = true
+        b_ret = true
         valid_vios = Facter.value(:vios)
         valid_vios_keys = valid_vios.keys
         # Log.log_info('valid_vios=' + valid_vios.to_s +
         #  ' valid_vios_keys=' + valid_vios_keys.to_s)
         Log.log_info('valid_vios_keys=' + valid_vios_keys.to_s)
         unless valid_vios_keys.include?(vios)
-          bret = false
+          b_ret = false
         end
-        Log.log_debug('Into check_vios vios=' + vios.to_s + ' returns ' + bret.to_s)
-        bret
+        Log.log_debug('Into check_vios vios=' + vios.to_s + ' returns ' + b_ret.to_s)
+        b_ret
       end
 
 
@@ -152,6 +152,8 @@ have been tested ok, and therefore this vios_pair is kept."
             Vios.add_vios_msg(vios, msg)
           end
         end
+        kept.uniq!
+        suppressed.uniq!
         Log.log_debug('Ending check_input_vios_pair suppressed=' + suppressed.to_s + ' kept=' + kept.to_s)
       end
 

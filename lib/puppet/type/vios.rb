@@ -96,7 +96,7 @@ associated to vios_pairs, used to perform update or install'
             vios = Regexp.last_match(1)
             Log.log_debug('vios=' + vios.to_s)
             unless Vios.check_vios(vios)
-              raise('"vios_lpp_sources" "' + vios.to_s + '" vios is not a valid target.')
+              raise('"vios_lpp_sources" "' + vios.to_s + '" vios is not a valid vios.')
             end
             lppsource = Regexp.last_match(2)
             Log.log_debug('lppsource=' + lppsource.to_s)

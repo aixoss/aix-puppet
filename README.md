@@ -200,11 +200,16 @@
     - props: to have shared configuration attributes.<br>
     - applied_manifest: to read, parse and display manifests/init.pp, so that 
       we can have into log file the exact contents of manifests/init.pp used at
-      runtime: this is an help for debugguing. Moreover the manifests/init.pp 
-      is parsed so that the set of 'targets' really used is computed, this is 
-      used when running 'standalones' facter (see below 'standalones' facter) to 
-      restrict computing of this facter to the sole list of standalones used in 
-      manifests/init.pp.<br> 
+      runtime: this is an help for debugguing. <br>
+      Moreover the manifests/init.pp is parsed so that: <br>
+        -- the set of 'targets' really used in manifests/init.pp is computed, 
+        this is used when running 'standalones' facter (see below 
+        'standalones' facter) to restrict computing of this facter to the 
+        sole list of standalones used in manifests/init.pp.<br> 
+        -- the set of 'vios' really used in manifests/init.pp is computed, 
+        this is used when running 'vios' facter (see below 
+        'vios' facter) to restrict computing of this facter to the 
+        sole list of vios used in manifests/init.pp.<br> 
     - servicepacks: you'll find results on this factor into 
       ./output/facter/sp_per_tl.yml file. If this file does not exist when 
       "Puppet apply" is launched, it is computed by automatically downloading 
