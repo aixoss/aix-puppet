@@ -272,8 +272,9 @@ with \"#{resource[:update_options]}\" update_options.")
             Log.log_info('No lpp_source set on this "' + vios.to_s + '" vios. No update to be done.')
             next
           elsif Vios.check_altinst_rootvg_vios(vios) == 1 # Check altinst_rootvg
-            if actions.include? 'autocommit'
-              # Commit applied lpps if asked
+
+            if actions.include? 'autocommit' and !options.include? 'preview'
+              # Commit applied lpps if asked, does not perform autocommit if preview mode
               Log.log_info('Perform autocommit before NIM updateios for "' + vios.to_s + '" vios')
               autocommit_output_file = Vios.get_updateios_output_file_name(vios, 'autocommit')
               autocommit_cmd = '/usr/sbin/nim -o updateios -a updateios_flags=-commit -a filesets=all ' +

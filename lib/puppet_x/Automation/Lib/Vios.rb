@@ -1429,8 +1429,8 @@ specific constraints before performing an altinst_rootvg."
             end
             vios_ssp_status[vios] = vios_ssp_status_vios
             nim_vios[vios]['ssp_vios_status'] = vios_ssp_status_vios
-            msg = "SSP status of \" #{vios} \" vios: ssp_vios_status= #{nim_vios[vios]['ssp_vios_status']} \"
-and cluster_ssp_vios_status= #{nim_vios[vios]['cluster_ssp_vios_status']}"
+            msg = "SSP status of \" #{vios} \" vios: ssp_vios_status=#{nim_vios[vios]['ssp_vios_status']} \"
+and cluster_ssp_vios_status=#{nim_vios[vios]['cluster_ssp_vios_status']}"
             Vios.add_vios_msg(vios, msg)
             Log.log_info(msg)
           else
@@ -1712,7 +1712,7 @@ therefore it is not possible to continue VIOS update on this pair."
 
         cmd << '> ' + updateios_output_file + ' 2>&1'
 
-        msg = "Preparing update command for \"#{vios}\" vios successful : #{cmd} "
+        msg = 'Preparing update command for ""' + vios.to_s + '" vios successful: "' + cmd.to_s + '"'
         Log.log_info(msg)
         Vios.add_vios_msg(vios, msg)
 
@@ -1744,7 +1744,7 @@ therefore it is not possible to continue VIOS update on this pair."
           ioslevel = ioslevel.strip
         end
 
-        msg = step + ' NIM updateios operation of ' + vios.to_s +
+        msg = step.to_s + ' NIM updateios operation of ' + vios.to_s +
             ' oslevel=' + oslevel.to_s +
             ' ioslevel=' + ioslevel.to_s
         Log.log_info(msg)
@@ -1813,8 +1813,10 @@ therefore it is not possible to continue VIOS update on this pair."
                   if line =~ /\s+0\s+Total to be installed/
                     ret = 0
                   end
-                  Log.log_debug("[STDOUT] #{line.chomp}")
-                  Vios.add_vios_msg(vios, line.chomp)
+                  if !line.nil? and !line.empty?
+                    Log.log_debug("[STDOUT] #{line.chomp}")
+                    Vios.add_vios_msg(vios, line.chomp)
+                  end
                 end
                 stderr2.each_line do |line|
                   Log.log_err("[STDERR] #{line.chomp}")
@@ -1828,8 +1830,10 @@ therefore it is not possible to continue VIOS update on this pair."
               Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin2, stdout2, stderr2, _wait_thr2|
                 ## Log.log_info('wait_thr2.value=' + wait_thr2.value.to_s)
                 stdout2.each_line do |line|
-                  Log.log_debug("[STDOUT] #{line.chomp}")
-                  Vios.add_vios_msg(vios, line.chomp)
+                  if !line.nil? and !line.empty?
+                    Log.log_debug("[STDOUT] #{line.chomp}")
+                    Vios.add_vios_msg(vios, line.chomp)
+                  end
                 end
                 stderr2.each_line do |line|
                   Log.log_err("[STDERR] #{line.chomp}")
