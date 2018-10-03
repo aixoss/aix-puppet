@@ -1,45 +1,45 @@
-# Puppet AixAutomation
+# Puppet AIX and VIOS Automation
 
 #### Table of Contents
 
 1. [Description](#description)
 2. [Setup - The basics of getting started with aixautomation](#setup)
-    * [What aixautomation affects](#What-AixAutomation-module-affects)
+    * [What aixautomation affects](#What-AIX-and-VIOS-Automation-module-affects)
     * [Setup requirements](#setup-requirements)
-    * [Beginning with aixautomation](#beginning-with-aixautomation)
+    * [Beginning with aixautomation](#beginning-with-AIX-automation)
 3. [Usage - Configuration options and additional functionality](#usage)
 4. [Reference - An under-the-hood peek at what the module is doing and how](#reference)
 5. [Limitations - OS compatibility, etc.](#limitations)
 6. [Development - Guide for contributing to the module](#development)
 
 ## Description
- This Puppet AixAutomation module has been developed against Puppet 5.3.3, and 
+ This 'Puppet AIX and VIOS Automation' module has been developed against Puppet 5.3.3, and 
  has been tested against Puppet 5.3.3 and Puppet 5.3.5.<br>
- This Puppet AixAutomation module runs by using the '**puppet apply**' command, 
+ This 'Puppet AIX and VIOS Automation' module runs by using the '**puppet apply**' command, 
   therefore this is not the canonical way of using Puppet: no Puppet master, 
-  no node executing Puppet agent. With Puppet AixAutomation module, 
+  no node executing Puppet agent. With 'Puppet AIX and VIOS Automation' module, 
   a unique Puppet Agent needs to run on the host where the NIM server runs.<br>    
- This Puppet AixAutomation module enables automation of software maintenance 
+ This 'Puppet AIX and VIOS Automation' module enables automation of software maintenance 
   operations (updates of AIX or VIOS levels, updates of eFix) on a list of 
   AIX LPARs and AIX VIOS, by running this module on a NIM server managing 
   these LPARs and VIOS.<br>
  Operations desired by the user are declared into a manifest file, using Puppet
   configuration language called DSL (Domain Specific Language), and using  
   ad hoc syntax explained below. This syntax uses specific custom types that 
-  have been implemented (with their related providers) for Puppet AixAutomation
-   module, to control necessary operations to automatically perform AIX updates 
-   and patch management. These new custom types enable to declare resources in 
-   manifest file. These types '**download**', '**patchmngt**', '**fix**', and 
-   '**vios**' are described hereafter in detail.<br>
- AIX updates and patch management operations performed by this AixAutomation 
-  Puppet module are shortly described now.<br><br>
+  have been implemented (with their related providers) for 'Puppet AIX and NIM 
+  Automation' module, to control necessary operations to automatically perform
+  AIX updates and patch management, and VIOS updates. These new custom types 
+  enable to declare resources in  manifest file. These types '**download**', 
+  '**patchmngt**', '**fix**', and '**vios**' are described hereafter in detail.<br>
+ AIX updates and patch management operations performed by this 'AIX and VIOS 
+ Automation Puppet module' are shortly described now.<br><br>
   **Firstly** as far as AIX LPARs are concerned:<br>          
  - Necessary AIX level updates are automatically downloaded from FixCentral 
   using '**suma**' features. Downloaded updates are locally kept and shared 
   between LPARs if possible.<br>
  - Downloaded updates can then be automatically applied on a list of LPARs, 
   through '**NIM push**' operations, therefore everything (i.e. all 
-  AixAutomation logic) runs from the NIM server, and nothing needs to be 
+  AIX Automation logic) runs from the NIM server, and nothing needs to be 
   installed on LPARs themselves.<br>
  - List of necessary eFix is computed (for each LPAR) and retrieved using 
   '**flrtvc**', downloaded, kept locally (in a local repository of the 
@@ -58,7 +58,7 @@
   **Secondly** as far as AIX VIOS are concerned:<br>
  - VIOS updates can be automatically applied on a list of VIOS, 
   by using '**NIM push**' operations. As for LPARs updates, everything (i.e. all 
-  AixAutomation logic) runs from the NIM server, and nothing needs to be 
+  AIX Automation logic) runs from the NIM server, and nothing needs to be 
   installed on VIOS themselves.<br> 
   To bring trust in VIOS update operation, a mandatory copy of rootvg is taken 
   before performing update, and AIXAutomation logic takes into account the 
@@ -67,14 +67,15 @@
    
 ## Setup
 ### Setup Requirements 
- This AixAutomation module needs to run a the NIM server which manages LPARs 
- to be updated, therefore Puppet needs to be installed and run on this NIM server. <br>
- This AixAutomation module requires download access to FixCentral, and http/https/ftp 
-  access to eFix download server.<br>  
+ This 'AIX and VIOS Automation' module needs to run a the NIM server which manages LPARs 
+ or VIOS to be updated, therefore Puppet needs to be installed and run on this NIM server. <br>
+ This 'AIX and VIOS Automation' module requires download access to FixCentral, and 
+ http/https/ftp access to eFix download server.<br>  
  
 ### Setup Puppet 
  First of all, you'll need to install Puppet on your NIM server. <p>
- To run this AixAutomation module, you only need Puppet running in a standalone way. <br>
+ To run this 'AIX and VIOS Automation' module, you only need Puppet running 
+ in a standalone way. <br>
  Download Puppet 5.3 from https://puppet.com/download-puppet-enterprise:<br> 
   **- for AIX 7.2, 7.1**: https://s3.amazonaws.com/puppet-agents/2017.3/puppet-agent/5.3.5/repos/aix/7.1/PC1/ppc/puppet-agent-5.3.5-1.aix7.1.ppc.rpm<br>
   **- for AIX 6.1**: https://s3.amazonaws.com/puppet-agents/2017.3/puppet-agent/5.3.5/repos/aix/6.1/PC1/ppc/puppet-agent-5.3.5-1.aix6.1.ppc.rpm<br>
@@ -83,9 +84,9 @@
  Please note that Puppet comes with its own ruby, you'll find it here after Puppet installation:<br> 
     "/opt/puppetlabs/puppet/bin/ruby -version" returns "ruby 2.4.2p198 (2017-09-14 revision 59899)" 
   
-### Setup AixAutomation module
+### Setup 'AIX and VIOS Automation' module
 #### Clone into AIX_AUTOMATION_DIR directory 
- AixAutomation module needs to be installed into 
+ 'AIX and VIOS Automation' module needs to be installed into 
   /etc/puppetlabs/code/environments/production/modules, which is the install 
   directory referred as <b>INST_DIR</b> below.<br>
  You can do this by performing:<br>  
@@ -95,10 +96,10 @@
   <b>AIX_AUTOMATION_DIR</b> below. <br> 
  <b>All relative paths below are related to this AIX_AUTOMATION_DIR directory.</b><br>
 #### './manifests/init.pp' file  
- All AixAutomation module setups are done through the './manifests/init.pp' file 
+ All 'AIX and VIOS Automation' module setups are done through the './manifests/init.pp' file 
  using DSL.<br>
 #### Prerequisites 
- As a prerequisites of Puppet AixAutomation module, NIM configuration between 
+ As a prerequisites of 'Puppet AIX and VIOS Automation' module, NIM configuration between 
   NIM server (on which this Puppet module runs), and the LPARs (on which 
   software maintenance operations are performed) needs to be properly set: 
   all LPARs which can either not be accessible through a simple 
@@ -110,7 +111,7 @@
   getting list of standalones. As a matter of fact, only standalones really used 
   in './manifests/init.pp' are tested (see 'Facters' section below).<br>
  
-### What AixAutomation module affects 
+### What AIX and VIOS Automation module affects 
  This module requires available disk space to store updates downloaded from 
   FixCentral, and to store downloaded eFix. By default downloads are performed 
   into '/tmp', but a more appropriate file system definitely needs to be chosen 
@@ -121,7 +122,7 @@
  This module will perform AIX software updates of your systems, and install 
  (or remove) of eFix.  
 
-### Beginning with AixAutomation
+### Beginning with AIX Automation
  Manifest './manifests/init.pp' delivered contains one suma-download  
  As far as 'update' operations are concerned:<br> 
   You can perform download operations from FixCentral (suma-downloads) and 
@@ -142,8 +143,8 @@
 
 ### Logs
  The "Puppet.debug('message')" method is used in Puppet framework and as well in 
-  AixAutomation module and debug messages can only be seen with the use of 
-  Puppet "--debug" flag on the command line.<br> 
+  'AIX and VIOS Automation' module and debug messages can only be seen with 
+  the use of Puppet "--debug" flag on the command line.<br> 
  All other levels ("info", "warning", "error") are displayed without 
   condition.<br>   
  These Puppet log messages are displayed on console output.<br> 
@@ -152,21 +153,22 @@
   "--logdest=/etc/puppetlabs/code/environments/production/modules/output/logs/logfile.txt" 
   on the command line. 
  
- AixAutomation logs (and only AixAutomation log, and not Puppet log) are 
-  generated into ./output/logs/PuppetAixAutomation.log.<br>
+ AIX Automation logs (and only AIX Automation log, and not Puppet log) are 
+  generated into ./output/logs/PuppetAIX Automation.log.<br>
   Up to 12 rotation log files of one 1 MB are kept: 
-   ./output/logs/PuppetAixAutomation.log.0 to ./output/logs/PuppetAixAutomation.log.12<br>
+   ./output/logs/PuppetAIX Automation.log.0 to 
+   ./output/logs/PuppetAIX Automation.log.12<br>
   These logs does not depend from Puppet --debug flag on the command line, and 
    you'll get them in any case.
  
 ### Installation directory 
-  As said already, AixAutomation module is installed into 
+  As said already, 'AIX and VIOS Automation' module is installed into 
    /etc/puppetlabs/code/environments/production/modules (called INST_DIR):<br> 
    /etc/puppetlabs/code/environments/production/modules/aixautomation 
    (called AIXAUTOMATION_DIR), 
    and all relative paths in this README are relative to this AIXAUTOMATION_DIR 
    directory.<br>
-  The AixAutomation module generates all outputs under this directory 
+  The 'AIX and VIOS Automation' module generates all outputs under this directory 
    (under ./output), except downloads of updates and eFixes which are performed 
    under 'root' directories mentioned into './manifests/init.pp' file, 
    (ou have one 'root' attribute for 'download' and one 'root' directory for 
@@ -195,10 +197,10 @@
             
 ## Reference
 ### Facters
- Specific AixAutomation facters collect the necessary data enabling 
-  AixAutomation module to run:<br>
-    - props: to have shared configuration attributes.<br>
-    - applied_manifest: to read, parse and display manifests/init.pp, so that 
+ Specific AIX Automation facters collect the necessary data enabling 
+  'AIX and VIOS Automation' module to run:<br>
+    - **props**: to have shared configuration attributes.<br>
+    - **applied_manifest**: to read, parse and display manifests/init.pp, so that 
       we can have into log file the exact contents of manifests/init.pp used at
       runtime: this is an help for debugguing. <br>
       Moreover the manifests/init.pp is parsed so that: <br>
@@ -210,7 +212,7 @@
         this is used when running 'vios' facter (see below 
         'vios' facter) to restrict computing of this facter to the 
         sole list of vios used in manifests/init.pp.<br> 
-    - servicepacks: you'll find results on this factor into 
+    - **servicepacks**: you'll find results on this factor into 
       ./output/facter/sp_per_tl.yml file. If this file does not exist when 
       "Puppet apply" is launched, it is computed by automatically downloading 
       Suma metadata files, all Suma metadata files are temporarily downloaded 
@@ -221,25 +223,25 @@
       the last SP do not exist. Therefore it is normal to have errors when we 
       reach non-existing SP, this is the way which is used to go until last 
       existing SP.  
-    - standalones: to gather data on all standalones managed by the NIM server. 
+    - **standalones**: to gather data on all standalones managed by the NIM server. 
       As a matter of fact list of standalones is restricted to the ones really 
       used in manifests/init.pp as explained above (refer to 'applied_manifest' 
       facter). Results can be found into ./output/facter/standalones_kept.yml 
       file, and into ./output/facter/standalones_skipped.yml file. This 
-      'standalones' facter takes some time at the beginning of AixAutomation 
+      'standalones' facter takes some time at the beginning of AIX Automation 
       module, but is necessary to know the usable standalones.<br>
-    - vios: to gather data on all VIOS managed by the NIM server. 
+    - **vios**: to gather data on all VIOS managed by the NIM server. 
       As a matter of fact list of VIOS is restricted to the ones really 
       used in manifests/init.pp as explained above (refer to 'applied_manifest' 
       facter). Results can be found into ./output/facter/vios_skipped.yml file
       and ./output/facter/vios_kept.yml file.<br> 
-    - hmc: to gather data on all HMC managed by the NIM server. 
+    - **hmc**: to gather data on all HMC managed by the NIM server. 
   
 ### Custom types and providers
- Four custom type and their providers constitute the AixAutomation module.<br>
+ Four custom type and their providers constitute the 'AIX and VIOS Automation' module.<br>
  All custom types utilizations are documented into './examples/init.pp'<br>
  These four custom types constitute the vocabulary which can be used as part of 
-  Puppet AixAutomation DSL into manifest file, to perform resources 
+  'Puppet AIX and VIOS Automation' module DSL into manifest file, to perform resources 
   declaration. <br> 
  
  #### Custom type: download (provider: suma)
@@ -248,27 +250,26 @@
  The aim of this provider is to provide download services using suma 
  functionality.<br>
  Suma requests are generated so that updates are downloaded from Fix Central.<br>
- "root" attribute is used as download directory: it should be an ad-hoc file 
- system dedicated to download updates, keep this file system separated from the 
- system to prevent saturation.<br>   
- 
+  "root" attribute is used as download directory: it should be an ad-hoc file 
+  system dedicated to download updates, keep this file system separated from the 
+  system to prevent saturation.<br>   
  As a preliminary step, suma <b>metadata</b> are downloaded if ever they are not 
- locally described into './output/facter/sp_per_tl.yml' file: if this file does 
- not exist, it is generated by parsing suma <b>metadata</b> downloaded.
+  locally described into './output/facter/sp_per_tl.yml' file: if this file does 
+  not exist, it is generated by parsing suma <b>metadata</b> downloaded.
  As a result, this file gives for each possible technical level the list of 
- available service packs.<br> 
+  available service packs.<br> 
  As a reference, the './output/facter/sp_per_tl.yml.June_2018' delivered 
- file is the file computed from Metadata in June 2018.<br>
-It is a good practice to regularly consider that the 
- './output/facter/sp_per_tl.yml' is maybe not up-to-date, and therefore let 
- 'suma' provider download metadata 'in live' and compute a more recent version 
- of './output/facter/sp_per_tl.yml'. To perform this, you can rename existing 
- './output/facter/sp_per_tl.yml' to './output/facter/sp_per_tl.yml.saved' so 
- that this './output/facter/sp_per_tl.yml' is computed again. You should 
- perform this operation once in a while (every month or so).<br>
+  file is the file computed from Metadata in June 2018.<br>
+ It is a good practice to regularly consider that the 
+  './output/facter/sp_per_tl.yml' is maybe not up-to-date, and therefore let 
+  'suma' provider download metadata 'in live' and compute a more recent version 
+  of './output/facter/sp_per_tl.yml'. To perform this, you can rename existing 
+  './output/facter/sp_per_tl.yml' to './output/facter/sp_per_tl.yml.saved' so 
+  that this './output/facter/sp_per_tl.yml' is computed again. You should 
+  perform this operation once in a while (every month or so).<br>
  
  As a normal step, various types of suma-downloads can be performed: 
- either "SP", or "TL", or "Latest":<br>
+  either "SP", or "TL", or "Latest":<br>
   - "SP" contains everything to update a system to a new Service Pack in a given
    Technical Level.<br>
   - "TL" contains everything to update a system from a Technical Level to another 
@@ -365,7 +366,7 @@ It is a good practice to regularly consider that the
  ##### Explanations
   The aim of this provider is to provide software maintenance operations on a 
   list of LPARs using NIM push mode. Everything is performed from the NIM server 
-  on which this Puppet AixAutomation module runs.<br>   
+  on which this 'Puppet AIX and VIOS Automation' module runs.<br>   
   This NIM push mode can use suma-downloads performed by suma provider, as 
   preliminary step, by using into 'lpp_source' attribute the lpp_source which 
   was created by 'suma' provider.<br>
@@ -504,22 +505,22 @@ It is a good practice to regularly consider that the
  ##### Explanations
   The aim of this provider is to provide software maintenance operations on a 
   list of VIOS using '**NIM push**' operations, and using '**c_rsh**' operations. 
-  Everything is performed from the NIM server on which this Puppet AixAutomation
+  Everything is performed from the NIM server on which this Puppet AIX Automation
    module runs.<br> 
   To be able to perform VIOS updates, this NIM push mode need NIM lppsource 
-  resources to exist prior from using AixAutomation. These NIM lppsource resources
+  resources to exist prior from using AIX Automation. These NIM lppsource resources
   have to be manually built before using AIXAutomation Puppet module 
   (if we compare with LPAR updates, in which building NIM lppsource resources is 
   one Puppet AixAUtomation step, and can be automatically done).<br>  
   Software maintenance operations means in this case: VIOS updates.<br>
-  You'll find samples of manifest declarations in Puppet AixAutomation DSL language 
+  You'll find samples of manifest declarations in Puppet AIX Automation DSL language 
   for VIOS updates into './examples/init.pp'.<br>
   The VIOS update operation can be performed in 'preview' mode only depending on 
   'options' attribute.<br> 
   Several modes of updates may exist in the future, but so far only one 
   is coded: "commit", using the 'update_options' attribute. See documented example 
   in './examples/init.pp'.<br>
-  Puppet AixAutomation brings a complete logic to verify VIOS update will be safely 
+  Puppet AIX Automation brings a complete logic to verify VIOS update will be safely 
   performed. Rollback operation (i.e. coming back on previous VIOS version) will be 
   always possible in case of any issue during update, as rootvg is copied before 
   performing VIOS operation.<br> 
@@ -530,7 +531,7 @@ It is a good practice to regularly consider that the
    unsuccessful result, VIOS update cannot be done on any VIOS of the pair. 
    The health check is not mandatory, and could be skipped, by omitting the
     '**health**' key-word from the 'actions' attribute.   
-  - Before performing a VIOS update, Puppet AixAutomation insures a copy of rootvg 
+  - Before performing a VIOS update, Puppet AIX Automation insures a copy of rootvg 
    exists or is taken, to always offer possibility to come back on previous VIOS 
    version if anything proves to be wrong during or before the end of VIOS update. 
    The copy of rootvg is taken using 'alt_disk_copy' command: the use of this 
@@ -593,7 +594,7 @@ It is a good practice to regularly consider that the
    No 'un-mirror' and 'mirror' operations will be done  
    without this explicit key-word into 'actions' attribute.<br> 
    <b>update</b> action to perform VIOS update operation itself. If ever this action 
-   is not set, Puppet AixAutomation performs only all other preparation steps which
+   is not set, Puppet AIX Automation performs only all other preparation steps which
    are listed into 'actions' attribute.  
   - <b>vios_pairs</b>: pairs of VIOS on which to perform action.
   - <b>update_options</b>: only possible value is <b>commit</b>. Potential future 
@@ -653,7 +654,7 @@ It is a good practice to regularly consider that the
 
  #### Notes on log outputs
  Error log outputs are displayed in red. Some of these red output cause no incidence, and
- Puppet AixAutomation module can live with without problem. Some of them are listed below. 
+ 'Puppet AIX and VIOS Automation' module*__* can live with without problem. Some of them are listed below. 
   
  ##### Output of /usr/sbin/emgr -dXv3
  The following output is frequently displayed when "/usr/sbin/emgr -dXv3 -e ABCD.epkg.Z"  

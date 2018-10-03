@@ -212,17 +212,21 @@ have been tested ok, and therefore this vios_pair is kept."
         if File.exist?(vios_kept_and_init_file)
           nim_vios_init = YAML.load_file(vios_kept_and_init_file)
           nim_vios.keys.each do |vios_key|
-            if !nim_vios_init[vios_key]['vios_uuid'].nil? &&
-                !nim_vios_init[vios_key]['vios_uuid'].empty? &&
-                !nim_vios_init[vios_key]['cec_uuid'].nil? &&
-                !nim_vios_init[vios_key]['cec_uuid'].empty?
-              Log.log_info("vios_health_init: nim_vios_init[vios_key]['vios_uuid']=#{nim_vios_init[vios_key]['vios_uuid']} \
+            if !nim_vios_init[vios_key].nil? && !nim_vios_init[vios_key].empty?
+              if !nim_vios_init[vios_key]['vios_uuid'].nil? &&
+                  !nim_vios_init[vios_key]['vios_uuid'].empty? &&
+                  !nim_vios_init[vios_key]['cec_uuid'].nil? &&
+                  !nim_vios_init[vios_key]['cec_uuid'].empty?
+                Log.log_info("vios_health_init: nim_vios_init[vios_key]['vios_uuid']=#{nim_vios_init[vios_key]['vios_uuid']} \
 nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
-              nim_vios[vios_key]['vios_uuid'] = nim_vios_init[vios_key]['vios_uuid']
-              nim_vios[vios_key]['cec_uuid'] = nim_vios_init[vios_key]['cec_uuid']
+                nim_vios[vios_key]['vios_uuid'] = nim_vios_init[vios_key]['vios_uuid']
+                nim_vios[vios_key]['cec_uuid'] = nim_vios_init[vios_key]['cec_uuid']
+              else
+                b_missing_uuid = true
+                break
+              end
             else
               b_missing_uuid = true
-              break
             end
           end
         else
@@ -1712,7 +1716,7 @@ therefore it is not possible to continue VIOS update on this pair."
 
         cmd << '> ' + updateios_output_file + ' 2>&1'
 
-        msg = 'Preparing update command for ""' + vios.to_s + '" vios successful: "' + cmd.to_s + '"'
+        msg = 'Preparing update command for "' + vios.to_s + '" vios successful: "' + cmd.to_s + '"'
         Log.log_info(msg)
         Vios.add_vios_msg(vios, msg)
 
