@@ -344,10 +344,30 @@ class aixautomation {
    Using 'vios' custom type.
   */
 /*
- II.1 VIOS update samples
+ II.1 To perform health check (and only health check) on a single VIOS
   */
 /*
-  vios { 'vios update':
+class aixautomation {
+   vios { 'vios_health_check_only_1':
+    actions    => 'health',
+    vios_pairs => '(p7jufv1)',
+  }
+}
+*/
+/*
+ II.2 To perform health check (and only health check) on a VIOS pair
+  */
+/*
+class aixautomation {
+   vios { 'vios_health_check_only_2':
+    actions    => 'health',
+    vios_pairs => '(p7jufv1,p7jufv2)',
+  }
+}
+*/
+
+/*
+vios { 'vios update':
     # Test case where vios pair is constituted with only one vios
     ensure               => present,
     name                 => 'vios12',

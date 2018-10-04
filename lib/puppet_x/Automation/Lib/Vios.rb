@@ -211,7 +211,11 @@ have been tested ok, and therefore this vios_pair is kept."
         #
         if File.exist?(vios_kept_and_init_file)
           nim_vios_init = YAML.load_file(vios_kept_and_init_file)
+          # Log.log_debug('vios_health_init: '+nim_vios.to_s)
+          # Log.log_debug('vios_health_init: '+nim_vios.keys.to_s)
           nim_vios.keys.each do |vios_key|
+            # Log.log_debug('vios_health_init: '+vios_key.to_s)
+            # Log.log_debug('vios_health_init: '+nim_vios_init[vios_key].to_s)
             if !nim_vios_init[vios_key].nil? && !nim_vios_init[vios_key].empty?
               if !nim_vios_init[vios_key]['vios_uuid'].nil? &&
                   !nim_vios_init[vios_key]['vios_uuid'].empty? &&

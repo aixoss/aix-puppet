@@ -89,7 +89,7 @@ with \"#{resource[:update_options]}\" update_options.")
             break
           end
           #
-          if vios_pair.size == 2
+          if vios_pair.size == 2 or vios_pair.size == 1
             Log.log_info('nim_vios 1 =' + nim_vios.to_s + ' hmc_id=' + hmc_id + ' hmc_ip=' + hmc_ip)
             ret = Vios.vios_health_init(nim_vios,
                                         hmc_id,
@@ -110,7 +110,7 @@ with \"#{resource[:update_options]}\" update_options.")
               next
             end
           else
-            Log.log_warning('Not possible to check health of vios_pair : ' + vios_pair.to_s + ' as only one member into pair.')
+            Log.log_warning('Not possible to check health of vios_pair : ' + vios_pair.to_s + ' as neither one nor two members into pair.')
             # This does not prevent from continuing on another pair
             next
           end
