@@ -25,6 +25,7 @@ Facter.add('applied_manifest') do
         next unless !line.nil? && !line.strip.empty?
         next if line.to_s =~ /^\s*#.*/
         contents += line
+        #
         line.to_s =~ /\s*targets\s*=>\s*"(.+?)",/
         targets_caught = Regexp.last_match(1)
         unless targets_caught.nil?
@@ -54,6 +55,24 @@ Facter.add('applied_manifest') do
               end
             end
           end
+        end
+        # To know if 'download' custom type is used in manifests/init.pp
+        line.to_s =~ /\s+(download)\s+{\s*/
+        download = Regexp.last_match(1)
+        if !download.nil? and !download.empty?
+          applied_manifest['download'] = true
+        end
+        # To know if 'patchmngt' custom type is used in manifests/init.pp
+        line.to_s =~ /\s+(patchmngt)\s+{\s*/
+        patchmngt = Regexp.last_match(1)
+        if !patchmngt.nil? and !patchmngt.empty?
+          applied_manifest['patchmngt'] = true
+        end
+        # To know if 'fix' custom type is used in manifests/init.pp
+        line.to_s =~ /\s+(fix)\s+{\s*/
+        fix = Regexp.last_match(1)
+        if !fix.nil? and !fix.empty?
+          applied_manifest['fix'] = true
         end
       end
       applied_manifest['manifest'] = contents

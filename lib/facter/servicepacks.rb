@@ -13,6 +13,13 @@ include Automation::Lib
 Facter.add('servicepacks') do
   setcode do
     Log.log_info('Computing "servicepacks" facter')
-    Suma.sp_per_tl
+    # Retrieves from :applied_manifest facter if download declaration is used
+    applied_manifest = Facter.value(:applied_manifest)
+    download = applied_manifest['download']
+    if !download.nil? and !download.empty? and download == true
+      Suma.sp_per_tl
+    else
+      Log.log_info('Not necessary to compute "servicepacks" facter')
+    end
   end
 end
