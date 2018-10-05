@@ -11,26 +11,27 @@ module Automation
     class Vios
 
       # ########################################################################
-      # name : get_vios_file_name
+      # name : get_journal_vios_file_name
       # param : input:vios:string vios name
-      # param : input:clean:boolean to indicate to reset file contents
+      # param : input:clean:boolean to indicate to reset file contents.
       # return : file name
-      # description : common function to build full path name of vios file
-      #  according to vios name
-      # One file per vios stores all information related to this vios during the
-      #  vios_update process to help support and debug.
+      # description : common function to build full path name of journal
+      #  VIOS file according to VIOS name
+      # One file per VIOS stores all journal information related to this VIOS
+      #  during the vios_update process to help support and debug.
       # ########################################################################
-      def self.get_vios_file_name(vios, clean = false)
-        # Log.log_debug('get_vios_file_name vios=' + vios.to_s)
-        vios_file_dir = ::File.join(Constants.output_dir, 'vios')
-        Utils.check_directory(vios_file_dir)
-        vios_file_name = ::File.join(vios_file_dir, "#{vios}.yml")
+      def self.get_journal_vios_file_name(vios, clean = false)
+        # Log.log_debug('get_journal_vios_file_name vios=' + vios.to_s)
+        journal_vios_file_dir = ::File.join(Constants.output_dir, 'vios')
+        Utils.check_directory(journal_vios_file_dir)
+        journal_vios_file_name = ::File.join(journal_vios_file_dir, "journal_#{vios}.log")
         if clean
-          info = []
-          File.write(vios_file_name, info.to_yaml)
-          Log.log_info('Refer to "' + vios_file_name + '" to have complete status of "' + vios + '" vios.')
+          journal_info = []
+          File.write(journal_vios_file_name, journal_info.to_yaml)
+          Log.log_info('Refer to "' + journal_vios_file_name +
+                           '" to have a journalized view of what was done on "' + vios + '" vios.')
         end
-        vios_file_name
+        journal_vios_file_name
       end
 
       # ########################################################################
@@ -38,37 +39,37 @@ module Automation
       # param : input:vios:string vios name
       # param : input:step:string either autocommit or update
       # return : file name
-      # One file per vios stores NIM updateios output (one per autocommit, and
-      #   one for update)
+      # One file per VIOS stores NIM updateios output (one per autocommit, and
       #   one for update)
       # ########################################################################
       def self.get_updateios_output_file_name(vios,
           step = 'update')
         updateios_output_dir = ::File.join(Constants.output_dir, 'vios')
         Utils.check_directory(updateios_output_dir)
-        updateios_output_file = ::File.join(updateios_output_dir, 'updateios_output_' + step + '_' + vios + '.log ')
+        updateios_output_file = ::File.join(updateios_output_dir,
+                                            'NIM_UPDATEIOS_output_' + step + '_' + vios + '.log ')
         updateios_output_file
       end
 
       # ########################################################################
-      # name : add_vios_msg
-      # param : input:vios:string vios name
-      # param : input:msg:string message containing vios status
+      # name : add_vios_journal_msg
+      # param : input:vios:string VIOS name
+      # param : input:msg:string message containing VIOS status
       # param : input:clean:string boolean to indicate to reset file
       # return : nothing
-      # description : common function to add information related to one vios
-      #  into its file
-      # One file per vios stores all information related to this vios during the
-      #  vios_update process to help support and debug.
+      # description : common function to add information related to one VIOS
+      #  into its journal file.
+      # One journal file per VIOS stores all information related to
+      #  this VIOS during the vios_update process to help support and debug.
       # ########################################################################
-      def self.add_vios_msg(vios, msg, clean = false)
-        vios_file_name = Vios.get_vios_file_name(vios, clean)
-        vios_yml_info = []
-        if File.exist?(vios_file_name) and !clean
-          vios_yml_info = YAML.load_file(vios_file_name)
+      def self.add_vios_journal_msg(vios, msg, clean = false)
+        journal_vios_file_name = Vios.get_journal_vios_file_name(vios, clean)
+        journal_vios_info = []
+        if File.exist?(journal_vios_file_name) and !clean
+          journal_vios_info = YAML.load_file(journal_vios_file_name)
         end
-        vios_yml_info.push(msg)
-        File.write(vios_file_name, vios_yml_info.to_yaml)
+        journal_vios_info.push(msg)
+        File.write(journal_vios_file_name, journal_vios_info.to_yaml)
       end
 
       # ########################################################################
@@ -116,7 +117,7 @@ module Automation
           # Log.log_info('valid_vios_keys=' + valid_vios_keys.to_s +
           #  ' vios=' + vios + ' include=' + (valid_vios_keys.include?(vios)).to_s)
           msg = 'Launch of VIOS udate on "' + vios.to_s + '" vios.'
-          Vios.add_vios_msg(vios, msg, true)
+          Vios.add_vios_journal_msg(vios, msg, true)
           # Each vios is checked against the list of valid vios checked by vios facter
           validity_vios[vios] = Vios.check_vios(vios)
           unless validity_vios[vios]
@@ -132,24 +133,24 @@ module Automation
 is part of 'vios' facter, but the other vios of the pair is not, \
 and therefore this \"#{vios_pair}\" vios_pair cannot be kept."
               Log.log_warning(msg)
-              Vios.add_vios_msg(vios, msg)
+              Vios.add_vios_journal_msg(vios, msg)
             else
               msg = "The \"#{vios}\" vios of the \"#{vios_pair}\" pair \
 is not part of 'vios' facter, and therefore this \"#{vios_pair}\" vios_pair cannot be kept."
               Log.log_warning(msg)
-              Vios.add_vios_msg(vios, msg)
+              Vios.add_vios_journal_msg(vios, msg)
             end
           end
         end
 
         #
         unless b_suppressed
-          msg = "Both vios of #{vios_pair}\" pair \
+          msg = "VIOS of #{vios_pair}\" pair \
 have been tested ok, and therefore this vios_pair is kept."
           Log.log_info(msg)
           kept.push(vios_pair)
           vios_pair.each do |vios|
-            Vios.add_vios_msg(vios, msg)
+            Vios.add_vios_journal_msg(vios, msg)
           end
         end
         kept.uniq!
@@ -250,7 +251,7 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
               Log.log_err("[STDERR] #{line.chomp}")
             end
             unless wait_thr.value.success?
-              stdout.each_line {|line| Log.log_info("[STDOUT] #{line.chomp}")}
+              stdout.each_line {|line| Log.log_info(" #{line.chomp}")}
               Log.log_err("vios_health_init: calling command '#{cmd_s}' to retrieve vios_uuid and cec_uuid")
               return 1
             end
@@ -264,7 +265,7 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
             stdout.each_line do |line|
               # remove any space before and after
               line.strip!
-              Log.log_debug("[STDOUT] #{line.chomp}")
+              Log.log_debug(" #{line.chomp}")
               if line.include?("ERROR") || line.include?("WARN")
                 # Needed this because vioshc.py script does not prints error to stderr
                 Log.log_warning("[WARNING] vios_health_init: (vioshc.py) script: '#{line.strip}'")
@@ -316,7 +317,7 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
                           nim_vios[vios_key]['cec_uuid'] = cec_uuid
                           msg = "To perform vioshc on \"#{vios_key}\" vios, we successfully retrieved vios_part_id='#{vios_part_id}' and vios_uuid='#{vios_uuid}'"
                           Log.log_info(msg)
-                          Vios.add_vios_msg(vios_key, msg)
+                          Vios.add_vios_journal_msg(vios_key, msg)
                           break
                         end
                       end
@@ -377,7 +378,7 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
 
           # Parse the output to get the "Pass rate"
           stdout.each_line do |line|
-            Log.log_info("[STDOUT] #{line.chomp}")
+            Log.log_info(" #{line.chomp}")
 
             if line.include?("ERROR") || line.include?("WARN")
               # Need because vioshc.py script does not prints error to stderr
@@ -391,13 +392,13 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
               msg = "Vios pair \"#{vios_list.join('-')}\" has been successfully checked with vioshc, and can be updated"
               Log.log_info(msg)
               vios_list.each do |vios_item|
-                Vios.add_vios_msg(vios_item, msg)
+                Vios.add_vios_journal_msg(vios_item, msg)
               end
             else
               msg = "Vios pair \"#{vios_list.join('-')}\" can NOT be updated: only #{rate}% of checks pass"
               Log.log_warning(msg)
               vios_list.each do |vios_item|
-                Vios.add_vios_msg(vios_item, msg)
+                Vios.add_vios_journal_msg(vios_item, msg)
               end
               ret = 1
             end
@@ -452,7 +453,7 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
           #  disk to do it
           msg = 'We reuse existing altinst_rootvg on ' + vios.to_s
           Log.log_info(msg)
-          Vios.add_vios_msg(vios, msg)
+          Vios.add_vios_journal_msg(vios, msg)
           vios_returned.push(vios)
         else
           # This 'else' covers the following cases :
@@ -535,7 +536,7 @@ size_candidate_disk=#{size_candidate_disk}")
                   end
                   msg = "Best disk to perform alt_disk_install operation on #{vios} is #{name_candidate_disk}"
                   Log.log_info(msg)
-                  Vios.add_vios_msg(vios, msg)
+                  Vios.add_vios_journal_msg(vios, msg)
                   vios_returned.push(vios)
                   vios_returned.push(name_candidate_disk)
                 end
@@ -584,7 +585,7 @@ size_candidate_disk=#{size_candidate_disk}")
           # MAX LVs:       256         FREE PPs:  495 (253440 megabytes)
           # LVs:           14          USED PPs:   63 (32256 megabytes)
           remote_output1[0].each_line do |line|
-            Log.log_debug("[STDOUT] #{line.chomp}")
+            Log.log_debug(" #{line.chomp}")
             line.chomp!
             if line =~ /.*TOTAL PPs:\s+\d+\s+\((\d+)\s+megabytes\).*/
               vg_size = Regexp.last_match(1).to_i
@@ -627,7 +628,7 @@ size_candidate_disk=#{size_candidate_disk}")
 -a set_bootlist=#{set_bootlist} -a boot_client=#{boot_client} #{vios}"
         Log.log_debug("perform_alt_disk_install: '#{cmd}'")
         Open3.popen3({'LANG' => 'C'}, cmd) do |_stdin, stdout, stderr, wait_thr|
-          stdout.each_line {|line| Log.log_debug("[STDOUT] #{line.chomp}")}
+          stdout.each_line {|line| Log.log_debug(" #{line.chomp}")}
           stderr.each_line do |line|
             Log.log_err("[STDERR] #{line.chomp}")
             ret = 1
@@ -679,14 +680,14 @@ size_candidate_disk=#{size_candidate_disk}")
               Log.log_err("[STDERR] #{line.chomp}")
             end
             unless wait_thr.value.success?
-              stdout.each_line {|line| Log.log_info("[STDOUT] #{line.chomp}")}
+              stdout.each_line {|line| Log.log_info(" #{line.chomp}")}
               Log.log_err('Failed to get the NIM state for vios ' + vios.to_s + ', see above error!')
               ret = 1
             end
 
             if ret == 0
               stdout.each_line do |line|
-                Log.log_debug("[STDOUT] #{line.chomp}")
+                Log.log_debug(" #{line.chomp}")
                 # info attribute (that appears in 3rd position) can be empty. So stdout looks like:
                 # #name:Cstate:info:Cstate_result:
                 # <viosName>:ready for a NIM operation:success:  -> len=3
@@ -714,13 +715,13 @@ size_candidate_disk=#{size_candidate_disk}")
                   unless nim_result == 'success'
                     msg = "Failed to perform NIM alt_disk_install operation on \"#{vios}\" vios: #{nim_info}"
                     Log.log_err(msg)
-                    Vios.add_vios_msg(vios, msg)
+                    Vios.add_vios_journal_msg(vios, msg)
                     return 1
                   end
                   Log.log_info("\033[2K\r")
                   msg = "NIM alt_disk_install operation on \"#{vios}\" vios succeeded"
                   Log.log_info(msg)
-                  Vios.add_vios_msg(vios, msg)
+                  Vios.add_vios_journal_msg(vios, msg)
                   return 0 # here the operation succeeded
                 else
                   if nim_info_prev == nim_info
@@ -742,7 +743,7 @@ size_candidate_disk=#{size_candidate_disk}")
         # Timed out before the end of alt_disk_install
         msg = "NIM alt_disk_install operation for #{vios} shows no progress in #{count * sleep_time / 60} minute(s): #{nim_info}"
         Log.log_err(msg)
-        Vios.add_vios_msg(vios, msg)
+        Vios.add_vios_journal_msg(vios, msg)
         return -1
       end
 
@@ -1133,7 +1134,7 @@ size_candidate_disk=#{size_candidate_disk}")
               if remote_output1_line.include? 'stale'
                 msg = "The \"#{vios}\" rootvg contains stale partitions."
                 Log.log_warning(msg)
-                Vios.add_vios_msg(vios, msg)
+                Vios.add_vios_journal_msg(vios, msg)
                 ret = -1
                 break
               elsif remote_output1_line.strip =~ /^(\S+):\d+\s+\S+:\d+:(\d+)$/
@@ -1161,7 +1162,7 @@ size_candidate_disk=#{size_candidate_disk}")
                   msg = "The \"#{vios}\" rootvg data structure is not compatible with an \
 alt_disk_copy operation (2 copies on the same disk)."
                   Log.log_warning(msg)
-                  Vios.add_vios_msg(vios, msg)
+                  Vios.add_vios_journal_msg(vios, msg)
                   ret = -1
                 end
               else
@@ -1174,7 +1175,7 @@ alt_disk_copy operation (2 copies on the same disk)."
                     msg = "The \"#{vios}\" rootvg data structure is not compatible with an \
 alt_disk_copy operation (one copy spreads on more than one disk)."
                     Log.log_warning(msg)
-                    Vios.add_vios_msg(vios, msg)
+                    Vios.add_vios_journal_msg(vios, msg)
                     ret = -1
                   else
                     copy_hdisk[copy] = hdisk
@@ -1200,7 +1201,7 @@ alt_disk_copy operation (one copy spreads on more than one disk)."
 LP copies are spread on several disks. This prevents the \
 system from building an altinst_rootvg."
             Log.log_warning(msg)
-            Vios.add_vios_msg(vios, msg)
+            Vios.add_vios_journal_msg(vios, msg)
             ret = -1
           else
             if copy != 0
@@ -1208,7 +1209,7 @@ system from building an altinst_rootvg."
 and its mirroring is compatible with performing an altinst_rootvg.\
 Un-mirroring with be done before and mirroring will be redone after."
               Log.log_info(msg)
-              Vios.add_vios_msg(vios, msg)
+              Vios.add_vios_journal_msg(vios, msg)
               copies[0] = copy_hdisk
               nb_of_pp[0] = number_of_pp_1
               ret = 1
@@ -1216,7 +1217,7 @@ Un-mirroring with be done before and mirroring will be redone after."
               msg = "The \"#{vios}\" rootvg is not mirrored, then there is no \
 specific constraints before performing an altinst_rootvg."
               Log.log_info(msg)
-              Vios.add_vios_msg(vios, msg)
+              Vios.add_vios_journal_msg(vios, msg)
               copies[0] = copy_hdisk
               nb_of_pp[0] = number_of_pp
             end
@@ -1260,7 +1261,7 @@ specific constraints before performing an altinst_rootvg."
             Log.log_debug('remote_output1[0] ' + remote_output1[0])
             remote_output1[0].each_line do |remote_output1_line|
               remote_output1_line.chomp!
-              Log.log_debug("[STDOUT] #{remote_output1_line}")
+              Log.log_debug(" #{remote_output1_line}")
               ret = 1 if remote_output1_line.include? 'Failed to mirror the volume group'
             end
           else
@@ -1268,13 +1269,13 @@ specific constraints before performing an altinst_rootvg."
             Log.log_err("[STDERR] #{remote_output1[0]}")
             msg = "Failed to mirror '#{vg_name}' on #{vios}, command \"#{remote_cmd1}\" returns error, (see logs)!"
             Log.log_err(msg)
-            Vios.add_vios_msg(vios, msg)
+            Vios.add_vios_journal_msg(vios, msg)
           end
           #
           if ret == 0
             msg = "Mirroring of '#{vg_name}' on '#{vios}' successful."
             Log.log_info(msg)
-            Vios.add_vios_msg(vios, msg)
+            Vios.add_vios_journal_msg(vios, msg)
           end
         end
         ret
@@ -1302,7 +1303,7 @@ specific constraints before performing an altinst_rootvg."
           Log.log_debug('remote_output1[0] ' + remote_output1[0].to_s)
           remote_output1[0].each_line do |remote_output1_line|
             remote_output1_line.chomp!
-            Log.log_debug("[STDOUT] #{remote_output1_line}")
+            Log.log_debug(" #{remote_output1_line}")
             ret = 0 if remote_output1_line.include? 'successfully un-mirrored'
           end
         else
@@ -1310,14 +1311,14 @@ specific constraints before performing an altinst_rootvg."
           Log.log_err("[STDERR] #{remote_output1[0]}")
           msg = "Failed to un-mirror '#{vg_name}' on #{vios}, command \"#{remote_cmd1}\" returns error, (see logs)!"
           Log.log_err(msg)
-          Vios.add_vios_msg(vios, msg)
+          Vios.add_vios_journal_msg(vios, msg)
         end
 
         #
         if ret == 0
           msg = "Unmirroring of '#{vg_name}' on '#{vios}' successful."
           Log.log_info(msg)
-          Vios.add_vios_msg(vios, msg)
+          Vios.add_vios_journal_msg(vios, msg)
         end
         ret
       end
@@ -1335,27 +1336,35 @@ specific constraints before performing an altinst_rootvg."
           nim_vios)
         Log.log_debug('Checking SSP cluster on ' + vios_pair.to_s + ' vios pair with nim_vios' + nim_vios.to_s)
         cluster_name = ''
+        cluster_name_1 = ''
+        cluster_name_2 = ''
         # Get the SSP status on both vios of the pair
         vios_pair.each do |vios|
-          if cluster_name == ''
-            cluster_name = nim_vios[vios]['SSP_CLUSTER_NAME']
-            msg = "There is one SSP cluster on the \"#{vios}\" vios and its name is \"#{cluster_name}\""
+          cluster_name = nim_vios[vios]['SSP_CLUSTER_NAME']
+          if cluster_name.nil? or cluster_name.empty?
+            msg = "There is no SSP cluster on the \"#{vios}\" vios"
             Log.log_debug(msg)
-            Vios.add_vios_msg(vios, msg)
-          elsif cluster_name != nim_vios[vios]['SSP_CLUSTER_NAME']
-            msg = 'SSP cluster name is not the same of both vios of the pair'
-            Log.log_err(msg)
-            Vios.add_vios_msg(vios, msg)
-            cluster_name = ''
+            Vios.add_vios_journal_msg(vios, msg)
           else
+            if cluster_name_1 == ''
+              cluster_name_1 = cluster_name
+            else
+              cluster_name_2 = cluster_name
+            end
             msg = "There is one SSP cluster on the \"#{vios}\" vios and its name is \"#{cluster_name}\""
             Log.log_debug(msg)
-            Vios.add_vios_msg(vios, msg)
+            Vios.add_vios_journal_msg(vios, msg)
           end
+        end
+        #
+        if cluster_name_1 != cluster_name_2 and cluster_name != ''
+          msg = 'SSP cluster name is not the same of both vios of the pair'
+          Log.log_err(msg)
+          Vios.add_vios_journal_msg(vios, msg)
+          cluster_name = ''
         end
         cluster_name
       end
-
 
       # ##################################################################
       # name : get_vios_ssp_status
@@ -1416,7 +1425,7 @@ specific constraints before performing an altinst_rootvg."
                 nim_vios[vios]['cluster_ssp_vios_status'] = "DOWN"
                 msg = "SSP cluster on the \"#{vios}\" vios is DOWN"
                 Log.log_debug(msg)
-                Vios.add_vios_msg(vios, msg)
+                Vios.add_vios_journal_msg(vios, msg)
               else
                 nim_vios[vios]['cluster_ssp_vios_status'] = "UP"
                 if remote_output1_line =~ /^(\S+):(\S+):(\S+):\S+:\S+:(\S+):.*/
@@ -1439,13 +1448,13 @@ specific constraints before performing an altinst_rootvg."
             nim_vios[vios]['ssp_vios_status'] = vios_ssp_status_vios
             msg = "SSP status of \" #{vios} \" vios: ssp_vios_status=#{nim_vios[vios]['ssp_vios_status']} \"
 and cluster_ssp_vios_status=#{nim_vios[vios]['cluster_ssp_vios_status']}"
-            Vios.add_vios_msg(vios, msg)
+            Vios.add_vios_journal_msg(vios, msg)
             Log.log_info(msg)
           else
             msg = "Failed to get SSP status of #{vios}"
             Log.log_err(msg)
             Log.log_err(remote_output1[0])
-            Vios.add_vios_msg(vios, msg)
+            Vios.add_vios_journal_msg(vios, msg)
             returned = 1
           end
         end
@@ -1536,8 +1545,8 @@ and cluster_ssp_vios_status=#{nim_vios[vios]['cluster_ssp_vios_status']}"
         unless ssp_cluster_check
           msg = "Checking SSP status on #{vios_pair} vios pair returning #{ssp_cluster_check}: \
 therefore it is not possible to continue VIOS update on this pair."
-          Vios.add_vios_msg(vios1, msg)
-          Vios.add_vios_msg(vios2, msg)
+          Vios.add_vios_journal_msg(vios1, msg)
+          Vios.add_vios_journal_msg(vios2, msg)
           Log.log_debug(msg)
         end
 
@@ -1626,7 +1635,7 @@ therefore it is not possible to continue VIOS update on this pair."
                                                                     end
               msg = "Cluster #{nim_vios[vios_to_action]['SSP_CLUSTER_NAME']} #{action} on '#{vios_to_action}' vios succeeded."
               Log.log_info(msg)
-              Vios.add_vios_msg(vios_to_action, msg)
+              Vios.add_vios_journal_msg(vios_to_action, msg)
               returned = true
             else
               if action == 'stop'
@@ -1636,7 +1645,7 @@ therefore it is not possible to continue VIOS update on this pair."
               end
               msg = "Cluster #{nim_vios[vios_to_action]['SSP_CLUSTER_NAME']} #{action} on '#{vios_to_action}' vios succeeded."
               Log.log_info(msg)
-              Vios.add_vios_msg(vios_to_action, msg)
+              Vios.add_vios_journal_msg(vios_to_action, msg)
               returned = true
             end
           else
@@ -1650,13 +1659,13 @@ therefore it is not possible to continue VIOS update on this pair."
             end
             msg = "Failed to #{action} '#{nim_vios[vios_to_action]['SSP_CLUSTER_NAME']}' cluster on '#{vios_to_action}' vios"
             Log.log_err(msg)
-            Vios.add_vios_msg(vios_to_action, msg)
+            Vios.add_vios_journal_msg(vios_to_action, msg)
             returned = false
           end
         else
           msg = "Nothing to be done, as far as SSP is concerned, on '#{vios_to_action}' vios."
           Log.log_debug(msg)
-          Vios.add_vios_msg(vios_to_action, msg)
+          Vios.add_vios_journal_msg(vios_to_action, msg)
           returned = true
         end
         returned
@@ -1722,7 +1731,7 @@ therefore it is not possible to continue VIOS update on this pair."
 
         msg = 'Preparing update command for "' + vios.to_s + '" vios successful: "' + cmd.to_s + '"'
         Log.log_info(msg)
-        Vios.add_vios_msg(vios, msg)
+        Vios.add_vios_journal_msg(vios, msg)
 
         cmd
       end
@@ -1756,7 +1765,7 @@ therefore it is not possible to continue VIOS update on this pair."
             ' oslevel=' + oslevel.to_s +
             ' ioslevel=' + ioslevel.to_s
         Log.log_info(msg)
-        Vios.add_vios_msg(vios, msg)
+        Vios.add_vios_journal_msg(vios, msg)
       end
 
       # ##################################################################
@@ -1794,7 +1803,7 @@ therefore it is not possible to continue VIOS update on this pair."
               msg = 'NIM updateios operation of ' + vios.to_s + ' successful, and update is committed.'
             end
             Log.log_info(msg)
-            Vios.add_vios_msg(vios, msg)
+            Vios.add_vios_journal_msg(vios, msg)
           else
             if cmd.include? 'preview=yes'
               Log.log_info('Preview always returns error (by nature), this error code can be considered as normal')
@@ -1822,8 +1831,8 @@ therefore it is not possible to continue VIOS update on this pair."
                     ret = 0
                   end
                   if !line.nil? and !line.empty?
-                    Log.log_debug("[STDOUT] #{line.chomp}")
-                    Vios.add_vios_msg(vios, line.chomp)
+                    Log.log_debug(" #{line.chomp}")
+                    Vios.add_vios_journal_msg(vios, line.chomp)
                   end
                 end
                 stderr2.each_line do |line|
@@ -1839,8 +1848,8 @@ therefore it is not possible to continue VIOS update on this pair."
                 ## Log.log_info('wait_thr2.value=' + wait_thr2.value.to_s)
                 stdout2.each_line do |line|
                   if !line.nil? and !line.empty?
-                    Log.log_debug("[STDOUT] #{line.chomp}")
-                    Vios.add_vios_msg(vios, line.chomp)
+                    Log.log_debug(" #{line.chomp}")
+                    Vios.add_vios_journal_msg(vios, line.chomp)
                   end
                 end
                 stderr2.each_line do |line|
@@ -1854,11 +1863,11 @@ therefore it is not possible to continue VIOS update on this pair."
             if ret == 1
               msg = 'Bad return code from NIM updateios ' + step + ' operation on ' + vios.to_s + '" vios, but maybe successfull update anyway, refer to log file and advise.'
               Log.log_err(msg)
-              Vios.add_vios_msg(vios, msg)
+              Vios.add_vios_journal_msg(vios, msg)
             else
               msg = 'NIM updateios ' + step + ' operation on "' + vios.to_s + '" vios succeeded, verify in log file.'
               Log.log_info(msg)
-              Vios.add_vios_msg(vios, msg)
+              Vios.add_vios_journal_msg(vios, msg)
             end
           end
         end

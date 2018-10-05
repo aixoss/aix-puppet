@@ -23,13 +23,13 @@ Puppet::Type.type(:vios).provide(:viosmngt) do
   #      false       absent    do nothing               n/a
   # ###########################################################################
   def exists?
-    Log.log_info("Provider viosmngt 'exists?' method : we want to realize: \
+    Log.log_info("Provider viosmngt 'exists?' method : we want to realize \
                  \"#{resource[:ensure]}\" for \"#{resource[:actions]}\" actions \
-on \"#{resource[:vios_pairs]}\" targets \
+on \"#{resource[:vios_pairs]}\" VIOS (\
 with \"#{resource[:vios_altinst_rootvg]}\" for vios_altinst_rootvg and \
 with \"#{resource[:altinst_rootvg_force]}\" for altinst_rootvg_force and \
 with \"#{resource[:vios_lpp_sources]}\" lpp_sources and
-with \"#{resource[:update_options]}\" update_options.")
+with \"#{resource[:update_options]}\" update_options).")
     #
     # default value for returned, depends on 'ensure'
     returned = true
@@ -72,7 +72,7 @@ with \"#{resource[:update_options]}\" update_options.")
     # We loop against vios_pairs
     Log.log_info('We loop against vios_pairs=' + vios_pairs.to_s)
     vios_pairs.each do |vios_pair|
-      Log.log_info('vios_pair=' + vios_pair.to_s)
+      Log.log_info('Loop against this vios_pair=' + vios_pair.to_s)
       #
       if actions.include? 'check' or actions.include? 'health'
         #
@@ -81,8 +81,9 @@ with \"#{resource[:update_options]}\" update_options.")
         hmc_ip = ''
         #
         if actions.include? 'health'
+          Log.log_info('Starting action "health" on ' + vios_pair.to_s)
           vios_pair.each do |vios|
-            Log.log_info('vios=' + vios)
+            Log.log_debug('vios=' + vios)
             hmc_id = nim_vios[vios]['mgmt_hmc_id']
             hmc_ip = facter_hmc[hmc_id]['ip']
             # Do it only once per pair
@@ -95,7 +96,7 @@ with \"#{resource[:update_options]}\" update_options.")
                                         hmc_id,
                                         hmc_ip)
             if ret == 0
-              Log.log_info('nim_vios 2 =' + nim_vios.to_s)
+              Log.log_debug('nim_vios 2 =' + nim_vios.to_s)
               ret = Vios.vios_health_check(nim_vios,
                                            hmc_ip,
                                            vios_pair)
@@ -105,70 +106,67 @@ with \"#{resource[:update_options]}\" update_options.")
                 next
               end
             else
-              Log.log_warning('Not possible to check health of vios_pair : ' + vios_pair.to_s + ' as init step failed.')
+              Log.log_warning('Not possible to check health of vios_pair : ' +
+                                  vios_pair.to_s + ' as init step failed.')
               # This does not prevent from continuing on another pair
               next
             end
           else
-            Log.log_warning('Not possible to check health of vios_pair : ' + vios_pair.to_s + ' as neither one nor two members into pair.')
+            Log.log_warning('Not possible to check health of vios_pair : ' +
+                                vios_pair.to_s + ' as neither one nor two members into pair.')
             # This does not prevent from continuing on another pair
             next
           end
+          Log.log_info('Finishing action "health" on ' + vios_pair.to_s)
         end
 
-        #
-        Log.log_debug('Checking SSP cluster on : ' + vios_pair.to_s + ' vios pair')
-        cluster_name = Vios.check_ssp_cluster(vios_pair,
-                                              nim_vios)
-        #
-        if !cluster_name.empty?
+        if actions.include? 'check'
+          Log.log_info('Starting action "check" on ' + vios_pair.to_s)
           #
           Log.log_debug('Checking SSP cluster on : ' + vios_pair.to_s + ' vios pair')
-          returned = Vios.get_vios_ssp_status(vios_pair,
-                                              nim_vios)
-          # Log.log_debug('After getting SSP status : ' + nim_vios.to_s + ' returned=' + returned.to_s)
-          ssp_check = false
-          if returned == 0
-            ssp_check = Vios.check_vios_ssp_status(vios_pair,
-                                                   nim_vios)
-            Log.log_debug('After checking SSP status : ssp_check=' + ssp_check.to_s)
-          end
-          Log.log_warning('SSP status KO on : ' + vios_pair.to_s + ' vios pair') unless ssp_check
-          unless ssp_check
-            # This does not prevent from continuing on another pair
-            next
-          end
-
-          # Only for quick testing
-          # vios_pair.each do |vios|
-          #   Log.log_info('vios=' + vios.to_s)
-          #   ssp_check = Vios.ssp_stop_start('stop',
-          #                                   vios,
-          #                                   vios_pair,
-          #                                   nim_vios)
-          #   Log.log_info('ssp_stop_start stop returning ' + ssp_check.to_s)
+          cluster_name = Vios.check_ssp_cluster(vios_pair,
+                                                nim_vios)
           #
-          #   ssp_check = Vios.ssp_stop_start('start',
-          #                                   vios,
-          #                                   vios_pair,
-          #                                   nim_vios)
-          #   Log.log_info('ssp_stop_start stop returning ' + ssp_check.to_s)
-          # end
+          if !cluster_name.empty?
+            #
+            Log.log_debug('Checking SSP cluster on : ' + vios_pair.to_s + ' vios pair')
+            returned = Vios.get_vios_ssp_status(vios_pair,
+                                                nim_vios)
+            # Log.log_debug('After getting SSP status : ' + nim_vios.to_s + ' returned=' + returned.to_s)
+            ssp_check = false
+            if returned == 0
+              ssp_check = Vios.check_vios_ssp_status(vios_pair,
+                                                     nim_vios)
+              Log.log_debug('After checking SSP status : ssp_check=' + ssp_check.to_s)
+            end
+            Log.log_warning('SSP status KO on : ' + vios_pair.to_s + ' vios pair') unless ssp_check
+            unless ssp_check
+              # This does not prevent from continuing on another pair
+              next
+            end
 
-
-        else
-          Log.log_debug('No need to check SSP cluster on : ' + vios_pair.to_s + ' vios pair')
+          else
+            Log.log_debug('No need to check SSP cluster on : ' + vios_pair.to_s + ' vios pair')
+          end
+          Log.log_info('Finishing action "check" on ' + vios_pair.to_s)
         end
       end
 
       #
       if actions.include? 'save'
+        Log.log_info('Starting action "save" on ' + vios_pair.to_s)
+        if !actions.include? 'check'
+          Log.log_err('Actions "save" cannot be done if "check" action is not done first')
+          # this will skip all other actions on this VIOS pair
+          next
+        end
         #
         vios_mirrors = {}
         hvios = Vios.check_altinst_rootvg_pair(vios_pair)
         if force == 'no'
           unless hvios["1"].empty?
-            Log.log_warning('Because these "' + hvios["1"].to_s + '" vios already have an "altinst_rootvg", you should use "vios_force=yes" or "vios_force=reuse"')
+            Log.log_warning('Because these "' + hvios["1"].to_s +
+                                '" vios already have an "altinst_rootvg", you should use "vios_force=yes" or "vios_force=reuse"')
             # This does not prevent from continuing on another pair
             next
           end
@@ -178,24 +176,27 @@ with \"#{resource[:update_options]}\" update_options.")
         #  It won't be kept, if ever the check_rootvg_mirror test fails.
         b_vios_pair_kept = 1
         vios_pair.each do |vios|
-          Log.log_info('vios=' + vios.to_s)
+          Log.log_debug('vios=' + vios.to_s)
+          # This can be kept if ever we consider that save is necessary only in case of an update
+          #  needs to be done
           #
-          if !vios_lppsources.nil?
-            value_lpp_source = vios_lppsources[vios]
-            if value_lpp_source.nil? or value_lpp_source.empty?
-              msg = 'No vios_lpp_sources set on this "' + vios.to_s + '" vios. No update to be done. Therefore no need to perform "save"'
-              Vios.add_vios_msg(vios, msg)
-              Log.log_info(msg)
-              # This does not prevent us from continuing on next vios
-              next
-            end
-          else
-            msg = 'No vios_lpp_sources set. No update to be done. Therefore no need to perform "save"'
-            Vios.add_vios_msg(vios, msg)
-            Log.log_info(msg)
-            # This does not prevent us from continuing on next vios
-            next
-          end
+          # if !vios_lppsources.nil?
+          #   value_lpp_source = vios_lppsources[vios]
+          #   if value_lpp_source.nil? or value_lpp_source.empty?
+          #     msg = 'No vios_lpp_sources set on this "' + vios.to_s +
+          #  '" vios. No update to be done. Therefore no need to perform "save"'
+          #     Vios.add_vios_journal_msg(vios, msg)
+          #     Log.log_info(msg)
+          #     # This does not prevent us from continuing on next vios
+          #     next
+          #   end
+          # else
+          #   msg = 'No vios_lpp_sources set. No update to be done. Therefore no need to perform "save"'
+          #   Vios.add_vios_journal_msg(vios, msg)
+          #   Log.log_info(msg)
+          #   # This does not prevent us from continuing on next vios
+          #   next
+          # end
 
 
           # If vios already has an altinst_rootvg and we have force="reuse"
@@ -206,7 +207,7 @@ with \"#{resource[:update_options]}\" update_options.")
           skip_unmirror_find_mirror = false
           if force == 'reuse' and hvios["1"].include? vios
             msg = 'No need to check mirroring on "' + vios.to_s + '" vios, as we reuse altinst_rootvg'
-            Vios.add_vios_msg(vios, msg)
+            Vios.add_vios_journal_msg(vios, msg)
             Log.log_info(msg)
             skip_unmirror_find_mirror = true
           end
@@ -254,16 +255,19 @@ with \"#{resource[:update_options]}\" update_options.")
             ret = Vios.unmirror_altcopy_mirror_vios(vios_best_disk,
                                                     vios_mirrors)
             if ret != 0
-              Log.log_warning('Because vios unmirror_altcopy_mirror returns ' + ret.to_s + ' on "' + vios_best_disk.to_s + '", update cannot be run.')
+              Log.log_warning('Because vios unmirror_altcopy_mirror returns ' + ret.to_s +
+                                  ' on "' + vios_best_disk.to_s + '", update cannot be run.')
               # This does not prevent us from continuing on next pair
               next
             end
           end
         end
+        Log.log_info('Finishing action "save" on ' + vios_pair.to_s)
       end
 
       #
       if actions.include? 'update'
+        Log.log_info('Starting action "update" on ' + vios_pair.to_s)
         # VIOS update: at least!
         vios_pair.each do |vios|
           #
@@ -274,6 +278,7 @@ with \"#{resource[:update_options]}\" update_options.")
           elsif Vios.check_altinst_rootvg_vios(vios) == 1 # Check altinst_rootvg
 
             if actions.include? 'autocommit' and !options.include? 'preview'
+              Log.log_info('Starting action "autocommit" on ' + vios.to_s + ' of ' + vios_pair.to_s)
               # Commit applied lpps if asked, does not perform autocommit if preview mode
               Log.log_info('Perform autocommit before NIM updateios for "' + vios.to_s + '" vios')
               autocommit_output_file = Vios.get_updateios_output_file_name(vios, 'autocommit')
@@ -287,6 +292,7 @@ with \"#{resource[:update_options]}\" update_options.")
               else
                 Log.log_err('vios autocommit of "' + vios.to_s + '" vios returns ' + autocommit_ret.to_s)
               end
+              Log.log_info('Finishing action "autocommit" on ' + vios.to_s + ' of ' + vios_pair.to_s)
             end
 
             #
@@ -301,7 +307,8 @@ with \"#{resource[:update_options]}\" update_options.")
             end
 
             # Prepare update command
-            Log.log_info('Launching update of "' + vios.to_s + '" vios with "' + value_lpp_source.to_s + '" lpp_source.')
+            Log.log_info('Launching update of "' + vios.to_s + '" vios with "' +
+                             value_lpp_source.to_s + '" lpp_source.')
             update_cmd = Vios.prepare_updateios_command(vios,
                                                         value_lpp_source,
                                                         options,
@@ -329,6 +336,7 @@ with \"#{resource[:update_options]}\" update_options.")
             Log.log_warning('Because there is no altinst_rootvg on "' + vios.to_s + '" vios, update cannot be run.')
           end
         end
+        Log.log_info('Finishing action "update" on ' + vios_pair.to_s)
       end
     end
 
@@ -343,7 +351,7 @@ with \"#{resource[:update_options]}\" update_options.")
   # ###########################################################################
   def create
     Log.log_info("Provider viosmngt 'create' method : doing : \"#{resource[:ensure]}\" for \"#{resource[:actions]}\" \
-action on \"#{resource[:vios_pairs]}\" targets with \"#{resource[:vios_lpp_sources]}\" lpp_source.")
+action on \"#{resource[:vios_pairs]}\" VIOS with \"#{resource[:vios_lpp_sources]}\" lpp_source.")
     #
     Log.log_debug('End of viosmngt.create')
   end
@@ -355,7 +363,7 @@ action on \"#{resource[:vios_pairs]}\" targets with \"#{resource[:vios_lpp_sourc
   def destroy
     Log.log_info("Provider viosmngt 'destroy' method : doing : \"#{resource[:ensure]}\" \
 for \"#{resource[:actions]}\" action on \"#{resource[:vios_pairs]}\" \
-targets with \"#{resource[:vios_lpp_sources]}\" lpp_source.")
+VIOS with \"#{resource[:vios_lpp_sources]}\" lpp_source.")
     #
     Log.log_debug('End of viosmngt.destroy')
   end

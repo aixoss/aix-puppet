@@ -36,21 +36,18 @@ Facter.add('applied_manifest') do
         line.to_s =~ /\s*(vios_pairs\s*=>\s*')(.+)'\s*/
         vios_pairs_caught = Regexp.last_match(2)
         if !vios_pairs_caught.nil? and !vios_pairs_caught.empty?
-          Log.log_info('vios_pairs_caught=' + vios_pairs_caught.class.to_s + ' ' + vios_pairs_caught.to_s)
           vios_pairs_caught2 = vios_pairs_caught.scan(/\([\w\-]+,*[\w\-]*\)/)
           if !vios_pairs_caught2.nil? and !vios_pairs_caught2.empty?
-            Log.log_info('vios_pairs_caught2=' + vios_pairs_caught2.class.to_s + ' ' + vios_pairs_caught2.to_s)
             vios_pairs_caught2.each do |vios_pair_caught2|
-              Log.log_info('vios_pair_caught2=' + vios_pair_caught2.class.to_s + ' ' + vios_pair_caught2.to_s)
               vios_pair_caught2 =~ /\(([\w\-]+),*([\w\-]*)\)/
               if !vios_pair_caught2.nil? and !vios_pair_caught2.empty?
                 vios1 = Regexp.last_match(1)
                 allvios.push(vios1)
-                Log.log_info('vios1=' + vios1.to_s)
+                # Log.log_debug('vios1=' + vios1.to_s)
                 vios2 = Regexp.last_match(2)
                 if !vios2.nil? and !vios2.empty?
                   allvios.push(vios2)
-                  Log.log_info('vios2=' + vios2.to_s)
+                  # Log.log_debug('vios2=' + vios2.to_s)
                 end
               end
             end

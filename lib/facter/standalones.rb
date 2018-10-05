@@ -30,6 +30,7 @@ Facter.add('standalones') do
 
     if alltargets.nil? or alltargets.empty?
       Log.log_info('Not necessary to compute "standalones" facter')
+      standalones_skipped['all_standalones_skipped'] = {}
     else
       standalones_str = Facter::Core::Execution.execute("/usr/sbin/lsnim -t standalone | \
 /bin/awk 'NR==FNR{print $1;next}{print $1}' | \

@@ -367,6 +367,20 @@ class aixautomation {
 */
 
 /*
+ II.3 To perform check and save on a VIOS pair
+  */
+/*
+class aixautomation {
+    vios { 'vios_check_save_3':
+      ensure     => present,
+      actions    => 'check, save',
+      vios_pairs => '(p7jufv1,p7jufv2)',
+      altinst_rootvg_force => 'yes',
+    }
+}
+*/
+
+/*
 vios { 'vios update':
     # Test case where vios pair is constituted with only one vios
     ensure               => present,
