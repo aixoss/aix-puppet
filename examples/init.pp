@@ -379,6 +379,24 @@ class aixautomation {
     }
 }
 */
+/*
+ II.4 To perform check and save on a VIOS pair
+ */
+/*
+ II.5 To perform check and save on a VIOS pair
+  */
+/*
+class aixautomation {
+vios { 'vios_check_save_update_5':
+  actions              => 'check, save, unmirror, autocommit, update',
+  vios_pairs           => '(p7jufv1,p7jufv2)',
+  options              => 'accept_licenses, preview',
+  update_options       => 'commit',
+  altinst_rootvg_force => 'yes',
+  vios_lpp_sources     => 'p7jufv1=vios_update_iso_31,p7jufv2=vios_update_iso_31',
+}
+}
+*/
 
 /*
 vios { 'vios update':

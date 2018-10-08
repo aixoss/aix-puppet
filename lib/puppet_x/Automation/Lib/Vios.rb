@@ -1861,7 +1861,7 @@ therefore it is not possible to continue VIOS update on this pair."
 
             end
             if ret == 1
-              msg = 'Bad return code from NIM updateios ' + step + ' operation on ' + vios.to_s + '" vios, but maybe successfull update anyway, refer to log file and advise.'
+              msg = 'Bad return code from NIM updateios ' + step + ' operation on ' + vios.to_s + '" vios, refer to log file and advise (in some cases, it could be successfull anyway).'
               Log.log_err(msg)
               Vios.add_vios_journal_msg(vios, msg)
             else
