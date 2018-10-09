@@ -1784,14 +1784,16 @@ therefore it is not possible to continue VIOS update on this pair."
         Log.log_debug('nim_updateios cmd="' + cmd +
                           '" vios="' + vios + '"')
         msg_step = 'vios ' + step
-        Log.log_info(msg_step + ' of "' + vios.to_s + '" vios with "' + cmd.to_s + '" command.')
+        msg = msg_step + ' of "' + vios.to_s + '" vios with NIM updateios command: "' + cmd.to_s + '"'
+        Log.log_info(msg)
+        Vios.add_vios_journal_msg(vios, msg.to_s)
 
         ret = 0
         Vios.vios_levels('Before ' + msg_step, vios)
 
         # stdout and stderr are redirected to updateios_output_file
         Open3.popen3({'LANG' => 'C'}, cmd) do |_stdin, _stdout, _stderr, wait_thr|
-
+          #
           updateios_output_file = Vios.get_updateios_output_file_name(vios, step)
           Log.log_info('Refer to ' + updateios_output_file.to_s + ' to see output of ' + cmd.to_s)
 
@@ -1814,18 +1816,18 @@ therefore it is not possible to continue VIOS update on this pair."
             Log.log_info('step=' + step.to_s)
             if step == 'autocommit'
               cmd2 = '/bin/grep "There are no uncommitted updates" ' + updateios_output_file
-              Log.log_info('cmd2=' + cmd2.to_s)
+              Log.log_debug('cmd2=' + cmd2.to_s)
               Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin2, _stdout2, _stderr2, wait_thr2|
-                Log.log_info('wait_thr2.value=' + wait_thr2.value.to_s)
+                Log.log_debug('wait_thr2.value=' + wait_thr2.value.to_s)
                 if wait_thr2.value.success?
                   ret = 0
                 end
               end
             elsif step == 'update'
               cmd2 = '/bin/grep -p STATISTICS ' + updateios_output_file
-              Log.log_info('cmd2=' + cmd2.to_s)
+              Log.log_debug('cmd2=' + cmd2.to_s)
               Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin2, stdout2, stderr2, wait_thr2|
-                Log.log_info('wait_thr2.value=' + wait_thr2.value.to_s)
+                Log.log_debug('wait_thr2.value=' + wait_thr2.value.to_s)
                 stdout2.each_line do |line|
                   if line =~ /\s+0\s+Total to be installed/
                     ret = 0
@@ -1842,30 +1844,29 @@ therefore it is not possible to continue VIOS update on this pair."
                 # Process::Status object returned.
               end
               #
-              cmd2 = '/bin/grep -p "Installation Summary" ' + updateios_output_file
-              Log.log_info('cmd2=' + cmd2.to_s)
-              Open3.popen3({'LANG' => 'C'}, cmd2) do |_stdin2, stdout2, stderr2, _wait_thr2|
-                ## Log.log_info('wait_thr2.value=' + wait_thr2.value.to_s)
-                stdout2.each_line do |line|
+              cmd3 = '/bin/grep -p "Installation Summary" ' + updateios_output_file
+              Log.log_debug('cmd3=' + cmd3.to_s)
+              Open3.popen3({'LANG' => 'C'}, cmd3) do |_stdin3, stdout3, stderr3, wait_thr3|
+                ## Log.log_info('wait_thr3.value=' + wait_thr3.value.to_s)
+                stdout3.each_line do |line|
                   if !line.nil? and !line.empty?
                     Log.log_debug(" #{line.chomp}")
                     Vios.add_vios_journal_msg(vios, line.chomp)
                   end
                 end
-                stderr2.each_line do |line|
+                stderr3.each_line do |line|
                   Log.log_err("[STDERR] #{line.chomp}")
                 end
-                Log.log_debug('cmd2 ' + cmd2.to_s + ' returns ' + ret.to_s)
                 # Process::Status object returned.
               end
 
             end
             if ret == 1
-              msg = 'Bad return code from NIM updateios ' + step + ' operation on ' + vios.to_s + '" vios, refer to log file and advise (in some cases, it could be successfull anyway).'
+              msg = 'Bad return code from NIM updateios ' + step + ' operation on ' + vios.to_s + '" vios, refer to "' + updateios_output_file + '" log file and advise (in some cases, it could be successfull anyway).'
               Log.log_err(msg)
               Vios.add_vios_journal_msg(vios, msg)
             else
-              msg = 'NIM updateios ' + step + ' operation on "' + vios.to_s + '" vios succeeded, verify in log file.'
+              msg = 'NIM updateios ' + step + ' operation on "' + vios.to_s + '" vios succeeded, verify in "' + updateios_output_file + '" log file.'
               Log.log_info(msg)
               Vios.add_vios_journal_msg(vios, msg)
             end
