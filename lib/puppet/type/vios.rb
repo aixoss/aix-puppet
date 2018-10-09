@@ -198,8 +198,8 @@ associated to vios_pairs, used to perform update or install'
   # :update_options attribute to set options to be passed at update
   #  Possible update options are :
   # https://www.ibm.com/support/knowledgecenter/en/ssw_aix_72/com.ibm.aix.install/nim_op_updateios.htm
-  #   install
   #   commit
+  #   install
   #   remove
   #   reject
   #   cleanup
@@ -207,7 +207,9 @@ associated to vios_pairs, used to perform update or install'
   # ############################################################################
   newparam(:update_options) do
     desc '"update_options" attribute: options to be passed to update. \
- Possible update_options are : "install", "commit", "remove", "reject", "cleanup"'
+ Possible update_options is : "commit" \
+ More values to be supported in future : "install", "commit", "remove", "reject", "cleanup"'
+    defaultto :commit
     param_update_options = []
     # To parse input
     validate do |values|
@@ -217,11 +219,12 @@ associated to vios_pairs, used to perform update or install'
       invalid_update_options = ''
       param_update_options.each do |update_option|
         Log.log_debug('update_option=' + update_option.to_s)
-        if update_option.to_s != 'install' &&
-            update_option.to_s != 'commit' &&
-            update_option.to_s != 'remove' &&
-            update_option.to_s != 'reject' &&
-            update_option.to_s != 'cleanup'
+        if update_option.to_s != 'commit'
+          # more values to be supported in future ?
+          #          && update_option.to_s != 'install'
+          #          && update_option.to_s != 'remove'
+          #          && update_option.to_s != 'reject'
+          #          && update_option.to_s != 'cleanup'
           Log.log_debug('invalid update_options=' + update_option.to_s)
           invalid_update_options += ' ' + update_option
         end

@@ -155,7 +155,7 @@ with \"#{resource[:update_options]}\" update_options).")
       #
       if actions.include? 'save'
         Log.log_info('Starting action "save" on ' + vios_pair.to_s)
-        if !actions.include? 'check'
+        unless actions.include? 'check'
           Log.log_err('Actions "save" cannot be done if "check" action is not done first')
           # this will skip all other actions on this VIOS pair
           next
@@ -198,7 +198,6 @@ with \"#{resource[:update_options]}\" update_options).")
           #   next
           # end
 
-
           # If vios already has an altinst_rootvg and we have force="reuse"
           #  then there is no need:
           #   - to check for mirror
@@ -216,7 +215,9 @@ with \"#{resource[:update_options]}\" update_options).")
           unless skip_unmirror_find_mirror
             copies = []
             nb_of_physical_partitions = []
-            ret = Vios.check_rootvg_mirror(vios, copies, nb_of_physical_partitions)
+            ret = Vios.check_rootvg_mirror(vios,
+                                           copies,
+                                           nb_of_physical_partitions)
             Log.log_info('check_rootvg_mirror=' + vios.to_s +
                              ' ret=' + ret.to_s +
                              ' copies=' + copies.to_s +
@@ -242,7 +243,6 @@ with \"#{resource[:update_options]}\" update_options).")
               # disk may have been chosen by user
               chosen_disk = vios_disks[vios]
             end
-
             #
             vios_best_disk = Vios.find_best_alt_disk_vios(vios,
                                                           hvios,
@@ -280,7 +280,7 @@ with \"#{resource[:update_options]}\" update_options).")
             if actions.include? 'autocommit' and !options.include? 'preview'
               Log.log_info('Starting action "autocommit" on ' + vios.to_s + ' of ' + vios_pair.to_s)
               # Commit applied lpps if asked, does not perform autocommit if preview mode
-              Log.log_info('Perform autocommit before NIM updateios for "' + vios.to_s + '" vios')
+              Log.log_debug('Perform autocommit before NIM updateios for "' + vios.to_s + '" vios')
               autocommit_output_file = Vios.get_updateios_output_file_name(vios, 'autocommit')
               autocommit_cmd = '/usr/sbin/nim -o updateios -a updateios_flags=-commit -a filesets=all ' +
                   vios.to_s + ' >' + autocommit_output_file + ' 2>&1'
@@ -295,7 +295,7 @@ with \"#{resource[:update_options]}\" update_options).")
               Log.log_info('Finishing action "autocommit" on ' + vios.to_s + ' of ' + vios_pair.to_s)
             end
 
-            #
+            # Stop SSP node if necessary
             ssp_start_stop_ret = Vios.ssp_stop_start('stop',
                                                      vios,
                                                      vios_pair,
@@ -306,9 +306,11 @@ with \"#{resource[:update_options]}\" update_options).")
               Log.log_err('SSP cluster stop returns ' + ssp_start_stop_ret.to_s)
             end
 
-            # Prepare update command
-            Log.log_info('Launching update of "' + vios.to_s + '" vios with "' +
+            #
+            Log.log_info('Starting action "update" on ' + vios.to_s + ' of ' +
+                             vios_pair.to_s + '" vios with "' +
                              value_lpp_source.to_s + '" lpp_source.')
+            # Prepare update command
             update_cmd = Vios.prepare_updateios_command(vios,
                                                         value_lpp_source,
                                                         options,
@@ -322,7 +324,7 @@ with \"#{resource[:update_options]}\" update_options).")
               Log.log_err('vios update of "' + vios.to_s + '" vios returns ' + update_ret.to_s)
             end
 
-            #
+            # Restart SSP node if necessary
             ssp_start_stop_ret = Vios.ssp_stop_start('start',
                                                      vios,
                                                      vios_pair,

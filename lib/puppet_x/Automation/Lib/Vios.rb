@@ -476,7 +476,6 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
                            ' partition size:' + size_pp.to_s)
           computed_size_rootvg = size_pp * nb_of_pp
           Log.log_info('computed_size_rootvg: ' + computed_size_rootvg.to_s)
-
           #
           if size_used_rootvg.to_i != 0
             remote_cmd1 = "/usr/ios/cli/ioscli lspv -free | /bin/grep -v NAME"
@@ -954,11 +953,11 @@ size_candidate_disk=#{size_candidate_disk}")
 
           Log.log_info('Attempting now an alt_disk_copy on ' + vios_best_disk.to_s)
           ret = Vios.perform_alt_disk_install(vios_best_disk[0], vios_best_disk[1])
-          Log.log_info('Perform alt_disk_copy returns returns ' + ret.to_s)
+          Log.log_info('Perform alt_disk_copy returns ' + ret.to_s)
           if ret == 0
             Log.log_info('Waiting for alt_disk_copy to be done')
             ret = Vios.wait_alt_disk_install(vios_best_disk[0])
-            Log.log_info('Perform wait_alt_disk_copy returns returns ' + ret.to_s)
+            Log.log_info('Perform wait_alt_disk_copy returns ' + ret.to_s)
             if ret == -1
               msg = "Manual intervention is required to verify the NIM alt_disk_install operation for #{vios_best_disk} being done!"
               Log.log_err(msg)
@@ -1093,10 +1092,12 @@ size_candidate_disk=#{size_candidate_disk}")
         number_of_pp = 0
         # if mirrored
         number_of_pp_1 = 0
-        # copy indicates the number of copies
-        #  copy=1 meaning only one copy (therefore no mirror)
-        #  copy=2 (or above?) meaning more than one copies (therefore mirror)
-        copy = 0
+        # maxcopy indicates the number of copies
+        #  maxcopy=1 meaning only one copy (therefore no mirror)
+        #  maxcopy=2 (or above?) meaning more than one copies (therefore mirror)
+        maxcopy = 0
+        # maxcopy stores the number of copies, if rootvg is not mirrored maxcopy = 1
+        #  else maxcopy=2 or maxcopy=3
 
         # ########################################################################
         # The lsvg -M command lists the physical disks that contain the
@@ -1128,6 +1129,10 @@ size_candidate_disk=#{size_candidate_disk}")
             remote_output1_lines = remote_output1[0].split("\n")
             #Log.log_debug('remote_output1_lines=' + remote_output1_lines.to_s)
             remote_output1_lines.each do |remote_output1_line|
+              #
+              # copy stores the copy on which the pp is located
+              #  either 1 if not mirror, or 2 or 3 if mirrored.
+              #
               copy = 0
               remote_output1_line.chomp!
               # Log.log_debug('remote_output_lines=' + remote_output1_line.to_s)
@@ -1141,15 +1146,25 @@ size_candidate_disk=#{size_candidate_disk}")
                 #  case: hdisk8:257 hd10opt:1:1 or hdisk8:257 hd10opt:1:2 or hdisk8:257 hd10opt:1:3
                 hdisk = Regexp.last_match(1)
                 copy = Regexp.last_match(2).to_i
+                if maxcopy < copy
+                  maxcopy = copy
+                end
                 if remote_output1_line.strip =~ /^\S+:\d+\s+\S+:\d+:1$/
                   #  only case: hdisk8:257 hd10opt:1:1
                   number_of_pp_1 += 1
+                  copy = 1
+                  if maxcopy < copy
+                    maxcopy = copy
+                  end
                 end
               elsif remote_output1_line.strip =~ /^(\S+):\d+\s+\S+:\d+$/
                 # case: hdisk8:258 hd10opt:2
                 hdisk = Regexp.last_match(1)
                 number_of_pp += 1
                 copy = 1
+                if maxcopy < copy
+                  maxcopy = copy
+                end
               else
                 next
               end
@@ -1204,7 +1219,7 @@ system from building an altinst_rootvg."
             Vios.add_vios_journal_msg(vios, msg)
             ret = -1
           else
-            if copy != 0
+            if maxcopy > 1
               msg = "The \"#{vios}\" rootvg is partially or completely mirrored \
 and its mirroring is compatible with performing an altinst_rootvg.\
 Un-mirroring with be done before and mirroring will be redone after."
@@ -1574,7 +1589,7 @@ therefore it is not possible to continue VIOS update on this pair."
           vios_to_action,
           vios_pair,
           nim_vios)
-        Log.log_debug('Performing "' + action.to_s + '" SSP action on "' + vios_to_action.to_s + '" vios')
+        Log.log_info('Performing "' + action.to_s + '" SSP action on "' + vios_to_action.to_s + '" vios')
         #
         returned = false
         perform_action = false
@@ -1846,7 +1861,7 @@ therefore it is not possible to continue VIOS update on this pair."
               #
               cmd3 = '/bin/grep -p "Installation Summary" ' + updateios_output_file
               Log.log_debug('cmd3=' + cmd3.to_s)
-              Open3.popen3({'LANG' => 'C'}, cmd3) do |_stdin3, stdout3, stderr3, wait_thr3|
+              Open3.popen3({'LANG' => 'C'}, cmd3) do |_stdin3, stdout3, stderr3, _wait_thr3|
                 ## Log.log_info('wait_thr3.value=' + wait_thr3.value.to_s)
                 stdout3.each_line do |line|
                   if !line.nil? and !line.empty?
