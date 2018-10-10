@@ -1142,14 +1142,14 @@ size_candidate_disk=#{size_candidate_disk}")
                 Vios.add_vios_journal_msg(vios, msg)
                 ret = -1
                 break
-              elsif remote_output1_line.strip =~ /^(\S+):\d+\s+\S+:\d+:(\d+)$/
+              elsif remote_output1_line.strip =~ /^(\S+):\d+\s+\S+:\d+:(\d+)\s*$/
                 #  case: hdisk8:257 hd10opt:1:1 or hdisk8:257 hd10opt:1:2 or hdisk8:257 hd10opt:1:3
                 hdisk = Regexp.last_match(1)
                 copy = Regexp.last_match(2).to_i
                 if maxcopy < copy
                   maxcopy = copy
                 end
-                if remote_output1_line.strip =~ /^\S+:\d+\s+\S+:\d+:1$/
+                if remote_output1_line.strip =~ /^\S+:\d+\s+\S+:\d+:1\s*$/
                   #  only case: hdisk8:257 hd10opt:1:1
                   number_of_pp_1 += 1
                   copy = 1
@@ -1157,10 +1157,11 @@ size_candidate_disk=#{size_candidate_disk}")
                     maxcopy = copy
                   end
                 end
-              elsif remote_output1_line.strip =~ /^(\S+):\d+\s+\S+:\d+$/
+              elsif remote_output1_line.strip =~ /^(\S+):\d+\s+\S+:\d+\s*$/
                 # case: hdisk8:258 hd10opt:2
                 hdisk = Regexp.last_match(1)
                 number_of_pp += 1
+                number_of_pp_1 += 1
                 copy = 1
                 if maxcopy < copy
                   maxcopy = copy
@@ -1373,9 +1374,11 @@ specific constraints before performing an altinst_rootvg."
         end
         #
         if cluster_name_1 != cluster_name_2 and cluster_name != ''
-          msg = 'SSP cluster name is not the same of both vios of the pair'
-          Log.log_err(msg)
-          Vios.add_vios_journal_msg(vios, msg)
+          vios_pair.each do |vios|
+            msg = 'SSP cluster name is not the same of both vios of the pair'
+            Log.log_err(msg)
+            Vios.add_vios_journal_msg(vios, msg)
+          end
           cluster_name = ''
         end
         cluster_name

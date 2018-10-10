@@ -84,42 +84,50 @@ class aixautomation {
   #   # vios_altinst_rootvg  => 'p7juav1=hdisk0',
   #   # vios_lpp_sources     => 'p7juav1=vios_update_22623,p7juav2=vios_update_22623',
   # }
-  vios { 'vios12':
-    # Test case where vios pair is constituted with only one vios
-    ensure               => present,
-    name                 => 'vios12',
-    # actions => 'health,check,save,update',
-    #actions              => 'health,check,save,unmirror,autocommit,update',
-    #actions              => 'check,save,unmirror,autocommit,update',
-    actions              => 'check',
-    #actions              => 'health,check',
-    #vios_pairs           => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
-    vios_pairs           => '(p7juav1,p7juav2)',
-    options              => 'accept_licenses',
-    # update_options       => 'install, commit, reject, cleanup, remove',
-    update_options       => 'commit',
-    vios_altinst_rootvg  => 'p7juav2=hdisk2,p7juav1=hdisk0',
-    altinst_rootvg_force => 'yes',
-    # vios_altinst_rootvg  => 'p7juav1=hdisk0',
-    vios_lpp_sources     => 'p7juav1=vios_update_22623,p7juav2=vios_update_22623',
-  }
+  # vios { 'vios12':
+  #   # Test case where vios pair is constituted with only one vios
+  #   ensure             => present,
+  #   name                 => 'vios12',
+  #   # actions => 'health,check,save,update',
+  #   #actions              => 'health,check,save,unmirror,autocommit,update',
+  #   #actions              => 'check,save,unmirror,autocommit,update',
+  #   actions              => 'check',
+  #   #actions              => 'health,check',
+  #   # vios_pairs       => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
+  #   vios_pairs           => '(p7juav1,p7juav2)',
+  #   options            => 'accept_licenses',
+  #   # update_options       => 'install, commit, reject, cleanup, remove',
+  #   update_options     => 'commit',
+  #   vios_altinst_rootvg  => 'p7juav2=hdisk2,p7juav1=hdisk0',
+  #   altinst_rootvg_force => 'yes',
+  #   # vios_altinst_rootvg  => 'p7juav1=hdisk0',
+  #   vios_lpp_sources     => 'p7juav1=vios_update_22623,p7juav2=vios_update_22623',
+  # }
   # vios { 'vios13':
   #   # Test case where vios pair is constituted with only one vios
   #   ensure             => present,
   #   name               => 'vios13',
-  #   # actions => 'health,check,save,update',
-  #   actions            => 'check, save, autocommit, update',
-  #   # actions          => 'check',
-  #   # vios_pairs       => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
-  #   vios_pairs         => '(castor_gdr_vios1,castor_gdr_vios2), (castor_gdr_vios2,castor_gdr_vios3)',
-  #   # vios_pairs       => '(castor_gdr_vios2,castor_gdr_vios3)',
+  #   actions            => 'check, save, unmirror, autocommit, update',
+  #   vios_pairs         => '(castor_gdr_vios2,castor_gdr_vios3)',
   #   options            => 'accept_licenses',
   #   update_options     => 'commit',
-  #   # vios_altinst_rootvg  => 'p7juav2=hdisk2,p7juav1=hdisk0',
-  #   altinst_rootvg_force => 'no',
-  #   # vios_altinst_rootvg  => 'p7juav1=hdisk0',
-  #   vios_lpp_sources     => 'castor_gdr_vios2=vios_update_iso,castor_gdr_vios3=vios_update_iso',
+  #   altinst_rootvg_force => 'yes',
+  #   vios_lpp_sources     => 'castor_gdr_vios2=vios_update_iso_31,castor_gdr_vios3=vios_update_iso_31',
   # }
+  # vios { 'vios_check_save_3':
+  #   ensure     => present,
+  #   actions    => 'check,save',
+  #   vios_pairs => '(p7jufv1,p7jufv2)',
+  #   altinst_rootvg_force => 'yes',
+  # }
+  vios { 'vios_check_save_update_4':
+    actions              => 'check, save, unmirror, autocommit, update',
+    vios_pairs           => '(p7juav1,p7juav2)',
+    options              => 'accept_licenses',
+    update_options       => 'commit',
+    altinst_rootvg_force => 'reuse',
+    vios_lpp_sources     => 'p7juav1=vios_update_22621_22631',
+  }
   # vios { 'vios12':
   #   ensure               => present,
   #   name                 => 'vios',

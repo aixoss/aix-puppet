@@ -23,12 +23,12 @@ Puppet::Type.type(:vios).provide(:viosmngt) do
   #      false       absent    do nothing               n/a
   # ###########################################################################
   def exists?
-    Log.log_info("Provider viosmngt 'exists?' method : we want to realize \
-                 \"#{resource[:ensure]}\" for \"#{resource[:actions]}\" actions \
+    Log.log_info("Provider viosmngt 'exists?' method : we want to \
+realize \"#{resource[:ensure]}\" for \"#{resource[:actions]}\" actions \
 on \"#{resource[:vios_pairs]}\" VIOS (\
 with \"#{resource[:vios_altinst_rootvg]}\" for vios_altinst_rootvg and \
 with \"#{resource[:altinst_rootvg_force]}\" for altinst_rootvg_force and \
-with \"#{resource[:vios_lpp_sources]}\" lpp_sources and
+with \"#{resource[:vios_lpp_sources]}\" lpp_sources and \
 with \"#{resource[:update_options]}\" update_options).")
     #
     # default value for returned, depends on 'ensure'
@@ -177,26 +177,6 @@ with \"#{resource[:update_options]}\" update_options).")
         b_vios_pair_kept = 1
         vios_pair.each do |vios|
           Log.log_debug('vios=' + vios.to_s)
-          # This can be kept if ever we consider that save is necessary only in case of an update
-          #  needs to be done
-          #
-          # if !vios_lppsources.nil?
-          #   value_lpp_source = vios_lppsources[vios]
-          #   if value_lpp_source.nil? or value_lpp_source.empty?
-          #     msg = 'No vios_lpp_sources set on this "' + vios.to_s +
-          #  '" vios. No update to be done. Therefore no need to perform "save"'
-          #     Vios.add_vios_journal_msg(vios, msg)
-          #     Log.log_info(msg)
-          #     # This does not prevent us from continuing on next vios
-          #     next
-          #   end
-          # else
-          #   msg = 'No vios_lpp_sources set. No update to be done. Therefore no need to perform "save"'
-          #   Vios.add_vios_journal_msg(vios, msg)
-          #   Log.log_info(msg)
-          #   # This does not prevent us from continuing on next vios
-          #   next
-          # end
 
           # If vios already has an altinst_rootvg and we have force="reuse"
           #  then there is no need:
