@@ -209,28 +209,31 @@ associated to vios_pairs, used to perform update or install'
     desc '"update_options" attribute: options to be passed to update. \
  Possible update_options is : "commit" \
  More values to be supported in future : "install", "commit", "remove", "reject", "cleanup"'
-    defaultto :commit
-    param_update_options = []
+    defaultto :commit.to_s
+    param_update_options = [:commit.to_s]
     # To parse input
     validate do |values|
       Log.log_debug('values=' + values.to_s)
-      param_update_options = values.scan(/\w+/)
-      Log.log_debug('param_update_options=' + param_update_options.to_s)
-      invalid_update_options = ''
-      param_update_options.each do |update_option|
-        Log.log_debug('update_option=' + update_option.to_s)
-        if update_option.to_s != 'commit'
-          # more values to be supported in future ?
-          #          && update_option.to_s != 'install'
-          #          && update_option.to_s != 'remove'
-          #          && update_option.to_s != 'reject'
-          #          && update_option.to_s != 'cleanup'
-          Log.log_debug('invalid update_options=' + update_option.to_s)
-          invalid_update_options += ' ' + update_option
+      unless values.nil?
+        param_update_options = values.scan(/\w+/)
+        Log.log_debug('param_update_options=' + param_update_options.to_s)
+        invalid_update_options = ''
+        param_update_options.each do |update_option|
+          Log.log_debug('update_option=' + update_option.to_s)
+          if update_option.to_s != 'commit'
+            # more values to be supported in future ?
+            #          && update_option.to_s != 'install'
+            #          && update_option.to_s != 'remove'
+            #          && update_option.to_s != 'reject'
+            #          && update_option.to_s != 'cleanup'
+            Log.log_debug('invalid update_options=' + update_option.to_s)
+            invalid_update_options += ' ' + update_option
+          end
         end
+        raise('"update_options" contains invalid update options :' +
+                  invalid_update_options) unless invalid_update_options.empty?
       end
-      raise('"update_options" contains invalid update options :' +
-                invalid_update_options) unless invalid_update_options.empty?
+
     end
 
     munge do |_values|

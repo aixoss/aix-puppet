@@ -348,10 +348,10 @@ class aixautomation {
   */
 /*
 class aixautomation {
-   vios { 'vios_health_check_only_1':
-    actions    => 'health',
-    vios_pairs => '(p7jufv1)',
-  }
+    vios { 'vios_health_check_only_1':
+      actions    => 'health',
+      vios_pairs => '(p7jufv1)',
+    }
 }
 */
 /*
@@ -359,10 +359,10 @@ class aixautomation {
   */
 /*
 class aixautomation {
-   vios { 'vios_health_check_only_2':
-    actions    => 'health',
-    vios_pairs => '(p7jufv1,p7jufv2)',
-  }
+    vios { 'vios_health_check_only_2':
+      actions    => 'health',
+      vios_pairs => '(p7jufv1,p7jufv2)',
+    }
 }
 */
 
@@ -383,32 +383,38 @@ class aixautomation {
  II.4 To perform check and save on a VIOS pair
  */
 /*
- II.5 To perform check and save on a VIOS pair
+class aixautomation {
+    vios { 'vios_check_save_4':
+      actions              => 'check, save',
+      vios_pairs           => '(p7jufv1,p7jufv2)',
+      altinst_rootvg_force => 'yes',
+    }
+}
+/*
+ II.5 To perform update in preview mode on a VIOS pair
   */
 /*
 class aixautomation {
-vios { 'vios_check_save_update_5':
-  actions              => 'check, save, unmirror, autocommit, update',
-  vios_pairs           => '(p7jufv1,p7jufv2)',
-  options              => 'accept_licenses, preview',
-  update_options       => 'commit',
-  altinst_rootvg_force => 'yes',
-  vios_lpp_sources     => 'p7jufv1=vios_update_iso_31,p7jufv2=vios_update_iso_31',
-}
+    vios { 'vios_update_5':
+      actions              => 'check, save, unmirror, autocommit, update',
+      vios_pairs           => '(p7jufv1,p7jufv2)',
+      options              => 'accept_licenses, preview',
+      altinst_rootvg_force => 'yes',
+      vios_lpp_sources     => 'p7jufv1=vios_update_22623_22631,p7jufv2=vios_update_22623_22631',
+    }
 }
 */
-
 /*
-vios { 'vios update':
-    # Test case where vios pair is constituted with only one vios
-    ensure               => present,
-    name                 => 'vios12',
-    actions              => 'health,check,save,unmirror,autocommit,update',
-    vios_pairs           => '(p7juav1,p7juav2),(quimby-vios1,quimby-vios2)',
+ II.6 To perform update on two VIOS pairs
+  */
+/*
+class aixautomation {
+  vios { 'vios_update_6':
+    actions              => 'check, save, unmirror, autocommit, update',
+    vios_pairs           => '(p7juav1,p7juav2),(p7jufv1,p7jufv2)',
     options              => 'accept_licenses',
-    update_options       => 'commit',
-    vios_altinst_rootvg  => 'p7juav2=hdisk2,p7juav1=hdisk0',
     altinst_rootvg_force => 'yes',
-    vios_lpp_sources     => 'p7juav1=vios_update_22623,p7juav2=vios_update_22623',
+    vios_lpp_sources     => 'p7juav1=vios_update_22621_22631,p7juav2=vios_update_22621_22631,p7jufv1=vios_update_22623_22631,p7jufv2=vios_update_22623_22631',
   }
+}
 */
