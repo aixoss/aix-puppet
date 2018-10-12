@@ -1,12 +1,12 @@
 require_relative '../../puppet_x/Automation/Lib/Vios.rb'
 require_relative '../../puppet_x/Automation/Lib/Log.rb'
 
-
 # ##############################################################################
 # name : "vios" custom-type
 # description : this custom-type enables to automate VIOS install and update (and
 #  more) through nim commands : NIM push from a NIM server to a list of VIOS.
 # ##############################################################################
+
 Puppet::Type.newtype(:vios) do
   @doc = 'To manage all simple vios actions.'
 

@@ -1,5 +1,5 @@
 require_relative '../puppet_x/Automation/Lib/Log.rb'
-#
+
 # ##############################################################################
 # name : 'applied_manifest' factor
 # param : none

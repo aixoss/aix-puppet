@@ -11,6 +11,7 @@ require_relative '../puppet_x/Automation/Lib/Remote/c_rsh.rb'
 #  hash with hmc names known by the NIM server as value and a hash of
 #  hmc characteristics as values.
 # ##############################################################################
+
 include Automation::Lib
 include Automation::Lib::Remote
 

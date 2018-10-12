@@ -1,6 +1,7 @@
 require_relative '../puppet_x/Automation/Lib/Constants.rb'
 require_relative '../puppet_x/Automation/Lib/Log.rb'
 require_relative '../puppet_x/Automation/Lib/Remote/c_rsh.rb'
+
 # ##############################################################################
 # name : 'vios' factor
 # param : none

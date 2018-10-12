@@ -1,12 +1,12 @@
 require_relative '../../../puppet_x/Automation/Lib/Vios.rb'
 require_relative '../../../puppet_x/Automation/Lib/Log.rb'
 
-
 # ##############################################################################
 # name : 'viosmngt' provider of the 'vios' custom-type.
 # description :
 #   implement check/save/update/restore of VIOS above nim commands
 # ##############################################################################
+
 Puppet::Type.type(:vios).provide(:viosmngt) do
   include Automation::Lib
 
