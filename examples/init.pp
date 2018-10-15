@@ -342,10 +342,10 @@ class aixautomation {
 /*
  II. Samples of VIOS update
    Using 'vios' custom type.
-  */
+*/
 /*
  II.1 To perform health check (and only health check) on a single VIOS
-  */
+*/
 /*
 class aixautomation {
     vios { 'vios_health_check_only_1':
@@ -356,7 +356,7 @@ class aixautomation {
 */
 /*
  II.2 To perform health check (and only health check) on a VIOS pair
-  */
+*/
 /*
 class aixautomation {
     vios { 'vios_health_check_only_2':
@@ -368,35 +368,35 @@ class aixautomation {
 
 /*
  II.3 To perform check and save on a VIOS pair
-  */
+*/
 /*
 class aixautomation {
     vios { 'vios_check_save_3':
       ensure     => present,
-      actions    => 'check, save',
+      actions    => 'check, gc, save',
       vios_pairs => '(p7jufv1,p7jufv2)',
       altinst_rootvg_force => 'yes',
     }
 }
 */
 /*
- II.4 To perform check and save on a VIOS pair
- */
+ II.4 To perform check and save on two VIOS pairs
+*/
 /*
 class aixautomation {
     vios { 'vios_check_save_4':
-      actions              => 'check, save',
-      vios_pairs           => '(p7jufv1,p7jufv2)',
+      actions              => 'check, gc, save',
+      vios_pairs           => '(p7jufv1,p7jufv2),(p7jufv1,p7jufv2)',
       altinst_rootvg_force => 'yes',
     }
 }
 /*
  II.5 To perform update in preview mode on a VIOS pair
-  */
+*/
 /*
 class aixautomation {
     vios { 'vios_update_5':
-      actions              => 'check, save, unmirror, autocommit, update',
+      actions              => 'check, gc, save,unmirror, autocommit, update',
       vios_pairs           => '(p7jufv1,p7jufv2)',
       options              => 'accept_licenses, preview',
       altinst_rootvg_force => 'yes',
@@ -406,11 +406,11 @@ class aixautomation {
 */
 /*
  II.6 To perform update on two VIOS pairs
-  */
+*/
 /*
 class aixautomation {
   vios { 'vios_update_6':
-    actions              => 'check, save, unmirror, autocommit, update',
+    actions              => 'check, gc, save, unmirror, autocommit, update',
     vios_pairs           => '(p7juav1,p7juav2),(p7jufv1,p7jufv2)',
     options              => 'accept_licenses',
     altinst_rootvg_force => 'yes',

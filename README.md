@@ -523,7 +523,7 @@
   resources to exist prior from using AIX Automation. These NIM lppsource resources
   have to be manually built before using AIXAutomation Puppet module 
   (if we compare with LPAR updates, in which building NIM lppsource resources is 
-  one Puppet AixAUtomation step, and can be automatically done).<br>  
+  one Puppet Aix Automation step, and can be automatically done).<br>  
   Software maintenance operations only means in this case VIOS updates, no suma 
   download, no efix operations.<br>
   You'll find samples of manifest declarations in Puppet AIX Automation DSL language 
@@ -582,14 +582,20 @@
    update operation to be performed: you can have several 'vios' custom 
    types in './manifests/init.pp', each of them being uniquely identified.<br> 
   - <b>actions</b>: actions to be performed. This attribute is a 
-   multi-valuated attribute. Several values can be chosen among 
-   the various values: <b>health</b>, <b>check</b>, <b>save</b>, <b>unmirror</b>,
-    <b>autocommit</b>, <b>update</b>. By default, no value is assumed. <br>
+   multi-valuated attribute. Several values can be chosen among the various 
+   values: <b>health</b>, <b>check</b>, <b>gc</b>, <b>unmirror</b>,
+   <b>save</b>, <b>autocommit</b>, <b>update</b>. By default, no value 
+   is assumed. <br>
    -- <b>health</b> action enables VIOS health check prior from performing update. 
    If this health check is negative, VIOS update operation won't be 
    pursued. This action should always be run, but is independent and can 
-   be skipped by omitting the 'health' key-word from 'actions' attribute.<br>
+   be skipped by omitting the 'health' keyword from 'actions' attribute.<br>
    -- <b>check</b> action enables mirror and SSP cluster checks.<br> 
+   -- <b>gc</b> action enables to garbagge-collect "old_rootvg" VG while 
+   looking for the best disk to host new altinst_rootvg. If ever <b>gc</b> is set, 
+   an existing "old_rootvg" VG wil be cleaned, and its disk made available 
+   to host the new copy of rootvg. By default, <b>gc</b> is not set. User 
+   should use this option cautiously.<br> 
    -- <b>save</b> action enables to ensure that either a save copy of the rootvg 
    is taken or that a save copy of rootvg already exists prior from performing 
    update.<br>
@@ -632,25 +638,27 @@
   be taken to spare resources.<br>    
   - <b>altinst_rootvg_force</b>: possible values are 
   "<b>no</b>", "<b>yes</b>", "<b>reuse</b>". Carefully read what follows: <br>
-  <b>altinst_rootvg_force=>"no"</b> means that if ever it already exists an 'altinst_rootvg', 
-  this one won't be overriden. This is the safest option to preserve any existing 
-  'altinst_rootvg'. The presence of an existing 'altinst_rootvg' will prevent a 
-  new 'altinst_rootvg' from being taken, and will prevent the overall process 
-  of VIOS update from continuing. With <b>altinst_rootvg_force=>"no"</b>, 
-  if no 'altinst_rootvg' exists, a new one is created just before VIOS update.<br>
+  <b>altinst_rootvg_force=>"no"</b> means that if ever it already exists an 
+  'altinst_rootvg', this one won't be overriden. This is the safest option to 
+  preserve any existing 'altinst_rootvg'. The presence of an existing 
+  'altinst_rootvg' will prevent a new 'altinst_rootvg' from being taken, and 
+  will prevent the overall process of VIOS update from continuing. 
+  With <b>altinst_rootvg_force=>"no"</b>, if no 'altinst_rootvg' exists, 
+  a new one is created just before VIOS update.<br> 
   <b>altinst_rootvg_force=>"yes"</b> means that if ever it already exists 
   an 'altinst_rootvg', this one is going to be cleaned and removed, allowing a new one 
   to be taken just before VIOS update. Use this option cautiously as an existing 
   'altinst_rootvg' will be overridden. If no 'altinst_rootvg' already exists, one 
   'altinst_rootvg' will be taken just before VIOS update. <br>
-  <b>altinst_rootvg_force="reuse"</b> means that if ever it already exists an 'altinst_rootvg', 
-  this one is going to be kept and used, therefore no fresh 'altinst_rootvg' is taken 
-  as we consider the existing one as valuable. If no 'altinst_rootvg' exists, one 
-  'altinst_rootvg' will be taken just before VIOS update. This option is safe as an existing 
-  'altinst_rootvg' is not overridden. <br>
+  <b>altinst_rootvg_force="reuse"</b> means that if ever it already exists 
+  an 'altinst_rootvg', this one is going to be kept and used, therefore no 
+  fresh 'altinst_rootvg' is taken as we consider the existing one as valuable. 
+  If no 'altinst_rootvg' exists, one 'altinst_rootvg' will be taken just before 
+  VIOS update. This option is safe as an existing 'altinst_rootvg' is not 
+  overridden. <br>
   - <b>vios_lpp_sources</b>: this attribute enables to designate the NIM lppsource 
-  resource to be used to perform VIOS update operation. A NIM lppsource resource can be 
-  designated per vios following this given syntax :
+  resource to be used to perform VIOS update operation. A NIM lppsource resource 
+  can be designated per vios following this given syntax :
     "<b>vios1=lpp_source1, vios2=lpp_source2</b>" etc. 
   These given lppsources need to exist before launching Puppet AIXAutomation. <br>
 #### Indications on how to build VIOS update NIM lppsource resource

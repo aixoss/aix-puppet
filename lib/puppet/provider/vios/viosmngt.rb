@@ -226,6 +226,7 @@ with \"#{resource[:update_options]}\" update_options).")
             #
             vios_best_disk = Vios.find_best_alt_disk_vios(vios,
                                                           hvios,
+                                                          actions,
                                                           chosen_disk,
                                                           nb_of_physical_partitions[0],
                                                           force)

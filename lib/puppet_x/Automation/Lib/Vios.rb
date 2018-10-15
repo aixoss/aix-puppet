@@ -423,6 +423,7 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
       #    "1" key contains an array with vios with    altinst_rootvg
       #    altinst_rootvg (if it exists on a vios) can be removed and
       #      its disk reused.
+      # param : in:actions: list of actions enables by user.
       # param : in:chosen_disk: name of the disk chosen by user. My be empty
       #    If set we try to use this one as first choice, if it fits, if it
       #    does not fit, we do as this parameter was not set.
@@ -440,11 +441,13 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
       # ########################################################################
       def self.find_best_alt_disk_vios(vios,
           hvios,
+          actions,
           chosen_disk,
           nb_of_pp,
           altinst_rootvg_force)
         Log.log_debug('find_best_alt_disk_vios for "' + vios.to_s +
                           '" vios with hvios=' + hvios.to_s +
+                          ' with actions=' + actions.to_s +
                           ' with chosen_disk=' + chosen_disk.to_s +
                           ' with nb_of_pp=' + nb_of_pp.to_s +
                           ' with force=' + altinst_rootvg_force.to_s)
@@ -467,7 +470,7 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
           Log.log_info('find_best_alt_disk_vios on: ' + vios.to_s)
           alt_disk_to_reuse = []
           Log.log_info('Call to altvg_find_and_remove: ' + vios.to_s)
-          ret = Vios.altvg_find_and_remove(vios, alt_disk_to_reuse)
+          ret = Vios.altvg_find_and_remove(vios, actions, alt_disk_to_reuse)
           if ret == 0
             Log.log_info('There was an altinst_rootvg on ' + vios.to_s + ' which has been cleaned.')
           end
@@ -844,6 +847,7 @@ size_candidate_disk=#{size_candidate_disk}")
       # ########################################################################
       # name : altvg_find_and_remove
       # param : in:vios:string
+      # param : in:actions:string list of actions enabled by user
       # param : out:used_alt_disk:string array containing in index 0 alt_disk
       #  to be reused
       # description : Perform the symmetric operation of the NIM
@@ -853,11 +857,17 @@ size_candidate_disk=#{size_candidate_disk}")
       # return: 0 if ok, 1 otherwise
       # ########################################################################
       def self.altvg_find_and_remove(vios,
+          actions,
           used_alt_disk)
         Log.log_debug('altvg_find_and_remove on ' + vios.to_s)
         ret = 1
+        vgs = []
+        if !actions.nil? and actions.include? 'gc'
+          vgs = ['old_rootvg', 'altinst_rootvg']
+        else
+          vgs = ['altinst_rootvg']
+        end
 
-        vgs = ['old_rootvg', 'altinst_rootvg']
         vgs.each do |vg|
           ret = 1
           used_alt_disk[0] = ''
