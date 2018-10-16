@@ -92,16 +92,40 @@ with \"#{resource[:update_options]}\" update_options).")
           #
           if vios_pair.size == 2 or vios_pair.size == 1
             Log.log_info('nim_vios 1 =' + nim_vios.to_s + ' hmc_id=' + hmc_id + ' hmc_ip=' + hmc_ip)
+            # Possible optimization would be to run vios_health_init only once per hmc
             ret = Vios.vios_health_init(nim_vios,
                                         hmc_id,
                                         hmc_ip)
             if ret == 0
               Log.log_debug('nim_vios 2 =' + nim_vios.to_s)
-              ret = Vios.vios_health_check(nim_vios,
-                                           hmc_ip,
-                                           vios_pair)
-              if ret == 1
-                Log.log_err('Check health of "' + vios_pair.to_s + '" vios pair is unsuccessful')
+              vios1 = vios_pair[0]
+              vios2 = vios_pair[1]
+              Log.log_debug('vios1 =' + vios1.to_s + ' vios2 =' + vios2.to_s)
+              b_health_check = true
+              if !vios1.nil? and !vios1.empty?
+                if nim_vios[vios1]['vios_uuid'].nil? or nim_vios[vios1]['vios_uuid'].empty?
+                  Log.log_err('Health init failed to retrieve vios_uuid of ' + vios1 + '. Missing!')
+                  b_health_check = false
+                end
+              end
+              if !vios2.nil? and !vios2.empty?
+                if nim_vios[vios2]['vios_uuid'].nil? or nim_vios[vios2]['vios_uuid'].empty?
+                  Log.log_err('Health init failed to retrieve vios_uuid of ' + vios2 + '. Missing!')
+                  b_health_check = false
+                end
+              end
+              # Before launching vios_health_check, verify all info have been retrieved
+              if b_health_check
+                ret = Vios.vios_health_check(nim_vios,
+                                             hmc_ip,
+                                             vios_pair)
+                if ret == 1
+                  Log.log_err('Check health of "' + vios_pair.to_s + '" vios pair is unsuccessful')
+                  # This does not prevent from continuing on another pair
+                  next
+                end
+              else
+                Log.log_err('Check health of "' + vios_pair.to_s + '" vios pair is not possible as some vios_uuid are missing.')
                 # This does not prevent from continuing on another pair
                 next
               end
@@ -350,4 +374,5 @@ VIOS with \"#{resource[:vios_lpp_sources]}\" lpp_source.")
     #
     Log.log_debug('End of viosmngt.destroy')
   end
+
 end

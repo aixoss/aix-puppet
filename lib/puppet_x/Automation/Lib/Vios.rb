@@ -195,9 +195,8 @@ have been tested ok, and therefore this vios_pair is kept."
       #   - vios_health_init
       #   - vios_health_check
       #  This first method collects UUIDs (VIOS and Managed System UUIDs).
-      #  This operation uses 'vioshc.py' script to collect UUID, but if
-      #   info has already been found and persisted into yml file, these
-      #   persisted information can be directly used to spare time.
+      #  This operation uses 'vioshc.py' script to collect UUID, these
+      #   info are persisted into yml file.
       # ##################################################################
       def self.vios_health_init(nim_vios,
           hmc_id,
@@ -205,123 +204,103 @@ have been tested ok, and therefore this vios_pair is kept."
         Log.log_debug("vios_health_init: nim_vios='#{nim_vios}' hmc_id='#{hmc_id}', hmc_ip='#{hmc_ip}'")
         ret = 0
 
-        # If info have been found already and persisted into yml file
-        #  then it is not necessary to do that.
+        # Info retrieved by health init will be persisted into yml file
         vios_kept_and_init_file = ::File.join(Constants.output_dir,
                                               'vios',
                                               'vios_kept_and_init.yml')
-        #
-        b_missing_uuid = false
 
-        #
-        if File.exist?(vios_kept_and_init_file)
-          nim_vios_init = YAML.load_file(vios_kept_and_init_file)
-          # Log.log_debug('vios_health_init: '+nim_vios.to_s)
-          # Log.log_debug('vios_health_init: '+nim_vios.keys.to_s)
-          nim_vios.keys.each do |vios_key|
-            # Log.log_debug('vios_health_init: '+vios_key.to_s)
-            # Log.log_debug('vios_health_init: '+nim_vios_init[vios_key].to_s)
-            if !nim_vios_init[vios_key].nil? && !nim_vios_init[vios_key].empty?
-              if !nim_vios_init[vios_key]['vios_uuid'].nil? &&
-                  !nim_vios_init[vios_key]['vios_uuid'].empty? &&
-                  !nim_vios_init[vios_key]['cec_uuid'].nil? &&
-                  !nim_vios_init[vios_key]['cec_uuid'].empty?
-                Log.log_info("vios_health_init: nim_vios_init[vios_key]['vios_uuid']=#{nim_vios_init[vios_key]['vios_uuid']} \
-nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
-                nim_vios[vios_key]['vios_uuid'] = nim_vios_init[vios_key]['vios_uuid']
-                nim_vios[vios_key]['cec_uuid'] = nim_vios_init[vios_key]['cec_uuid']
-              else
-                b_missing_uuid = true
-                break
-              end
-            else
-              b_missing_uuid = true
-            end
+        # Info are retrieved using '/usr/sbin/vioshc.py' script
+        cmd_s = "/usr/sbin/vioshc.py -i #{hmc_ip} -l a"
+        # Add verbose
+        cmd_s << " -v "
+        Log.log_info("vios_health_init: calling command '#{cmd_s}' to retrieve vios_uuid and cec_uuid")
+
+        Open3.popen3({'LANG' => 'C'}, cmd_s) do |_stdin, stdout, stderr, wait_thr|
+          stderr.each_line do |line|
+            # Nothing is printed on stderr so far but log anyway
+            Log.log_err("[STDERR] #{line.chomp}")
           end
-        else
-          b_missing_uuid = true
-        end
+          unless wait_thr.value.success?
+            stdout.each_line {|line| Log.log_info(" #{line.chomp}")}
+            Log.log_err("vios_health_init: calling command '#{cmd_s}' to retrieve vios_uuid and cec_uuid")
+            return 1
+          end
 
-        # If info have not been found, they are retrieved using '/usr/sbin/vioshc.py' script
-        if b_missing_uuid
-          cmd_s = "/usr/sbin/vioshc.py -i #{hmc_ip} -l a"
-          # add verbose
-          cmd_s << " -v "
-          Log.log_info("vios_health_init: calling command '#{cmd_s}' to retrieve vios_uuid and cec_uuid")
+          managed_system_section = 0
+          vios_section = 0
 
-          Open3.popen3({'LANG' => 'C'}, cmd_s) do |_stdin, stdout, stderr, wait_thr|
-            stderr.each_line do |line|
-              # Nothing is printed on stderr so far but log anyway
-              Log.log_err("[STDERR] #{line.chomp}")
+          # Parse the output and store the UUIDs
+          b_found_cec = false
+          found_vios = 0
+          stdout.each_line do |line|
+            # Remove any space before and after
+            line.strip!
+            Log.log_debug(" #{line.chomp}")
+            if line.include?("ERROR") || line.include?("WARN")
+              # Needed this because vioshc.py script does not prints error to stderr
+              Log.log_warning("[WARNING] vios_health_init: (vioshc.py) script: '#{line.strip}'")
+              next
             end
-            unless wait_thr.value.success?
-              stdout.each_line {|line| Log.log_info(" #{line.chomp}")}
-              Log.log_err("vios_health_init: calling command '#{cmd_s}' to retrieve vios_uuid and cec_uuid")
-              return 1
-            end
 
-            cec_uuid = ''
-            cec_serial = ''
-            managed_system_section = 0
-            vios_section = 0
-
-            # Parse the output and store the UUIDs
-            stdout.each_line do |line|
-              # remove any space before and after
-              line.strip!
-              Log.log_debug(" #{line.chomp}")
-              if line.include?("ERROR") || line.include?("WARN")
-                # Needed this because vioshc.py script does not prints error to stderr
-                Log.log_warning("[WARNING] vios_health_init: (vioshc.py) script: '#{line.strip}'")
+            # New managed system section
+            if managed_system_section == 0
+              if line =~ /(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})\s+(\w{4}-\w{3}\*\w{7})/
+                Log.log_debug('vios_health_init: start of MS section')
+                managed_system_section = 1
+                cec_uuid = Regexp.last_match(1)
+                cec_serial = Regexp.last_match(2)
+                nim_vios.keys.each do |vios_key|
+                  if nim_vios[vios_key]['mgmt_cec_serial2'] == cec_serial
+                    nim_vios[vios_key]['cec_uuid'] = cec_uuid
+                    unless b_found_cec
+                      msg = "To perform vioshc on \"#{vios_key}\" vios, we successfully retrieved cec_uuid='#{cec_uuid}' and cec_serial='#{cec_serial}'"
+                      Log.log_info(msg)
+                      Vios.add_vios_journal_msg(vios_key, msg)
+                      b_found_cec = true
+                    end
+                  end
+                end
+                next
+              else
                 next
               end
-
-              # New managed system section
-              if managed_system_section == 0
-                if line =~ /(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})\s+(\w{4}-\w{3}\*\w{7})/
-                  Log.log_debug('vios_health_init: start of MS section')
-                  managed_system_section = 1
-                  cec_uuid = Regexp.last_match(1)
-                  cec_serial = Regexp.last_match(2)
-                  Log.log_debug("vios_health_init: found managed system: cec_uuid:'#{cec_uuid}' cec_serial:'#{cec_serial}'")
+            else
+              if vios_section == 0
+                if line =~ /^VIOS\s+Partition\sID$/
+                  vios_section = 1
+                  Log.log_debug('vios_health_init: start of VIOS section')
                   next
                 else
                   next
                 end
               else
-                if vios_section == 0
-                  if line =~ /^VIOS\s+Partition\sID$/
-                    vios_section = 1
-                    Log.log_debug('vios_health_init: start of VIOS section')
-                    next
-                  else
-                    next
-                  end
+                if line =~ /^$/
+                  Log.log_debug('vios_health_init: end of VIOS section')
+                  Log.log_debug('vios_health_init: end of MS section')
+                  managed_system_section = 0
+                  vios_section = 0
+                  b_found_cec = false
+                  next
                 else
-                  if line =~ /^$/
-                    Log.log_debug('vios_health_init: end of VIOS section')
-                    Log.log_debug('vios_health_init: end of MS section')
-                    managed_system_section = 0
-                    vios_section = 0
-                    cec_uuid = ''
-                    cec_serial = ''
-                    next
-                  else
+                  if b_found_cec
                     if line =~ /(\w{8}-\w{4}-\w{4}-\w{4}-\w{12})\s+(\w+)/
                       vios_uuid = Regexp.last_match(1)
                       vios_part_id = Regexp.last_match(2)
                       Log.log_debug('vios_uuid=' + vios_uuid + ' vios_part_id=' + vios_part_id)
-
                       # Retrieve the vios with the vios_part_id and the cec_serial value
                       # and store the UUIDs in the dictionaries
-                      nim_vios.keys.each do |vios_key|
-                        if nim_vios[vios_key]['mgmt_vios_id'] == vios_part_id &&
-                            nim_vios[vios_key]['mgmt_cec_serial2'] == cec_serial
-                          nim_vios[vios_key]['vios_uuid'] = vios_uuid
-                          nim_vios[vios_key]['cec_uuid'] = cec_uuid
-                          msg = "To perform vioshc on \"#{vios_key}\" vios, we successfully retrieved vios_part_id='#{vios_part_id}' and vios_uuid='#{vios_uuid}'"
-                          Log.log_info(msg)
-                          Vios.add_vios_journal_msg(vios_key, msg)
+                      if b_found_cec
+                        nim_vios.keys.each do |vios_key|
+                          if nim_vios[vios_key]['mgmt_vios_id'] == vios_part_id
+                            nim_vios[vios_key]['vios_uuid'] = vios_uuid
+                            msg = "To perform vioshc on \"#{vios_key}\" vios, we successfully retrieved vios_part_id='#{vios_part_id}' and vios_uuid='#{vios_uuid}'"
+                            Log.log_info(msg)
+                            Vios.add_vios_journal_msg(vios_key, msg)
+                            found_vios += 1
+                            break
+                          end
+                        end
+                        if found_vios == 2
                           break
                         end
                       end
@@ -335,12 +314,11 @@ nim_vios_init[vios_key]['cec_uuid']=#{nim_vios_init[vios_key]['cec_uuid']} ")
             end
           end
 
-          # Information retrieved are persisted into yaml file, for next time
+          # Information retrieved are persisted into yaml file
           File.write(vios_kept_and_init_file, nim_vios.to_yaml)
           Log.log_info('Refer to "' + vios_kept_and_init_file.to_s + '" to have full results of "vios_health_init".')
-        else
-          Log.log_info('vios_health_init: yaml was enough to retrieve vios_uuid and cec_uuid')
         end
+
         ret
       end
 

@@ -542,7 +542,10 @@
    This health check should always be run as a preliminary step, and in case of 
    unsuccessful result, VIOS update cannot be done on any VIOS of the pair, but  
    this health check is not mandatory, and could be skipped, by omitting the
-    '**health**' keyword from the 'actions' attribute.   
+   '**health**' keyword from the 'actions' attribute. Health check requires a 
+   preliminary step to run: 'health init' to retrieve VIOS UUID and CEC UUID, 
+   these info are persisted into 
+   ./aixautomation/output/vios/vios_kept_and_init.yml file.  
   - Before performing a VIOS update, Puppet AIX Automation insures a copy of rootvg 
    exists or is taken, to always offer possibility to come back on previous VIOS 
    version if anything proves to be wrong during or before the end of VIOS update. 
@@ -566,7 +569,7 @@
    - VIOS update logs for each VIOS can be found into ./output/vios
         Each VIOS has its own log file: NIM_UPDATEIOS_output_update_<vios_name>.log
    - VIOS update journal for each VIOS can be found into ./output/vios
-        Each VIOS has its own journal file: journal_<vios_name>.yml
+        Each VIOS has its own journal file: journal_<vios_name>.log
                
  ##### Attributes
    - <b>provider</b>: this attribute is not mandatory, if mentioned it needs 
