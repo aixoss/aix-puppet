@@ -267,7 +267,7 @@
  As a result, this file gives for each possible technical level the list of 
   available service packs.<br> 
  As a reference, the './output/facter/sp_per_tl.yml.Oct_2018' delivered 
-  file is the file computed from Metadata in October 2018.<br>
+  file is the file computed from Metadata in October 19th 2018.<br>
  It is a good practice to regularly consider that the 
   './output/facter/sp_per_tl.yml' is maybe not up-to-date, and therefore let 
   'suma' provider download metadata 'in live' and compute a more recent version 
