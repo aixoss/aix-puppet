@@ -40,7 +40,7 @@ class aixautomation {
     to_step => "preview",
   }
 }
-*
+*/
 /*
 class aixautomation {
   # This declaration allows to perform suma-download through suma provider
@@ -137,6 +137,7 @@ class aixautomation {
     lpp_source => "PAA_SP_7100-03_7100-03-07-1614",
     preview    => "yes",
   }
+  }
 */
 /*
 class aixautomation {
@@ -167,6 +168,7 @@ class aixautomation {
     sync       => "yes",
     mode       => "reject",
   }
+}
 */
 /*
 class aixautomation {
@@ -212,6 +214,7 @@ class aixautomation {
     sync       => "yes",
     mode       => "commit",
   }
+}
 */
 /*
  I.3. Samples of efix installation
@@ -242,6 +245,7 @@ class aixautomation {
     force    => "no",
     root     => "/export/extra/puppet/flrtvc",
   }
+}
 */
 /*
 class aixautomation {
