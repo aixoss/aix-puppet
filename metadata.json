@@ -1,8 +1,8 @@
 {
   "name": "aix-aixautomation",
-  "version": "0.7",
+  "version": "0.8",
   "author": "aix",
-  "summary": "This module enables automation of suma/install and update/efix operations on a list of LPAR",
+  "summary": "This module enables automation of AIX and VIOS updates: suma/install and update/efix operations on a list of LPAR, update operations on a list of VIOS pairs",
   "license": "Apache-2.0",
   "source": "aixautomation",
   "project_page": "https://github.com/aix-puppet/",

@@ -881,7 +881,10 @@ and #{filesets.size} filesets.")
         Log.log_info('End building NIM resource ' +
                          nim_lpp_source_resource)
         #
-        returned[nim_lpp_source_resource] = fixes
+        # remove fixe(s) if inter lock file detected
+        fl_lock_fixes = {}
+        fl_lock_fixes = filter_lock_fixes(target, target_nimresource_dir_name, fixes)
+        returned[nim_lpp_source_resource] = fl_lock_fixes.keys
         Log.log_debug('In step_build_nim_resource returned=' +
                           returned.to_s)
         returned
@@ -911,9 +914,13 @@ and #{filesets.size} filesets.")
           efixes_string = Utils.string_separated(efixes, ' ')
           #
           # efixes are applied
-          Log.log_debug('Performing efix installation')
-          Nim.perform_efix(target, nim_resource, efixes_string)
-          Log.log_debug('End performing efix installation')
+          unless efixes.empty?
+            Log.log_debug('Performing efix installation')
+            Nim.perform_efix(target, nim_resource, efixes_string)
+            Log.log_debug('End performing efix installation')
+          else
+            Log.log_info('Efix list empty - Nothing to install.')
+          end
         rescue StandardError => e
           Log.log_err('Exception e=' + e.to_s)
         end
@@ -1608,6 +1615,228 @@ when checking!")
       end
 
       # ########################################################################
+      # name : filter_lock_fixes
+      # param : input:target:string
+      # param : input:lpp_source_dir:string
+      # param : input:efixes_basenames:array
+      #
+      # return hash table efix=>Files location filtered by locked filesets
+      # description : filtering  fixes list by locked files
+      # ########################################################################
+      def filter_lock_fixes(target,
+                            lpp_source_dir,
+                            efixes_basenames)
+        Log.log_debug('Into filter_lock_fixes (target=' +
+                          target +
+                          '), lpp_source_dir=' +
+                          lpp_source_dir +
+                          ', efixes_basenames=' +
+                          efixes_basenames.to_s)
+        locked_fil = []
+        list_files_loc = {}
+        # get locked files from client
+        begin
+          locked_fil = get_locked_files(target)
+        rescue EmgrCmdError => e
+            Log.log_err("filter_lock_fixes -> get_locked_files Error for client #{target}:#{e}")
+        end
+        Log.log_debug("Locked files list for client [#{target}]: #{locked_fil}")
+        # get files from efix list
+        list_files_loc = get_efix_files_loc(lpp_source_dir, efixes_basenames)
+        #list_pkg_name_copy = list_pkg_name.dup
+        list_files_loc_copy = list_files_loc.dup
+        Log.log_debug("List files loc: #{list_files_loc}")
+        # remove efix from list if files are locked
+        locked_fil.each do |item|
+          list_files_loc.delete_if { |_, v| v.include?(item) }
+        end
+        # remove efix with package name doublon
+        unlock_efixes_basenames = {}
+        list_files_loc.each do |k, v|
+          unlock_efixes_basenames[k] = v
+          del_key = []
+          list_files_loc.delete(k)
+          v.each do |item|
+            list_files_loc.each do |ky, va|
+              del_key << ky if va.include?(item)
+            end
+            list_files_loc.delete_if { |kk, _| del_key.include?(kk) }
+          end
+        end
+        # next if efix list to apply is empty
+        if unlock_efixes_basenames.keys.empty?
+          Log.log_info("[#{target}] Have vulnerabilities but no installion will be done due to locked files")
+          Log.log_info("[#{target}] Use force option to remove locked files before update")
+        end
+        # check if conflict detected to log message
+        unlock_efixes_basenames.each do |key, _|
+          list_files_loc_copy.delete(key)
+        end
+        unless list_files_loc_copy.empty?
+          Log.log_info("[#{target}] Some Efix(es) will not be installed due to a conflict on files:")
+          unless locked_fil.empty?
+            Log.log_info("\t[#{target}]Conflicting files:")
+            Log.log_info("\t" + locked_fil.join("\n\t"))
+            Log.log_info("\n\tUse force option to remove locked packages before update")
+          end
+          Log.log_info("\t\tEFix\t=>    Files   ")
+          Log.log_info("\t\t------------------------")
+          list_files_loc_copy.each do |k, v|
+            Log.log_info("\t\t#{format('%s', k)}")
+            v.each do |item|
+              Log.log_info("\t\t\t\t=>#{format('%s', item)}")
+            end
+          end
+        end
+        unlock_efixes_basenames
+      end
+
+      # ########################################################################
+      # name : get_locked_files
+      # param : input:target:string
+      #
+      # return array of locked files for a specific target
+      # description : get files impacted from specific fileset
+      #    raise EmgrCmdError in case of error
+      # ########################################################################
+      def get_locked_files(target)
+        Log.log_debug('Into get_locked_files (target=' + target + ')')
+        locked_files = []
+        locked_labels = []
+        #get efix label already installed
+        emgr_s = "/usr/lpp/bos.sysmgt/nim/methods/c_rsh #{target} \"/usr/sbin/emgr -P\""
+        Log.log_debug("EMGR efix already install: #{emgr_s}")
+        exit_status = Open3.popen3({ 'LANG' => 'C' }, emgr_s) do |_stdin, stdout, stderr, wait_thr|
+          stdout.each_line do |line|
+            next if line =~ /^PACKAGE\s*INSTALLER\s*LABEL/
+            next if line =~ /^=*\s\=*\s\=*/
+            line_array = line.split(' ')
+            Log.log_debug("emgr: adding locked file #{line_array[2]} to locked files list")
+            locked_labels.push(line_array[2])
+            Log.log_debug("[STDOUT] #{line.chomp}")
+          end
+          stderr.each_line do |line|
+            Log.log_err("[STDERR] #{line.chomp}")
+          end
+          wait_thr.value # Process::Status object returned.
+        end
+        raise EmgrCmdError, "Error: Command \"#{emgr_s}\" returns above error!" unless exit_status.success?
+        locked_labels.delete_if { |item| item.nil? || item.empty? }
+        locked_labels.uniq!
+        Log.log_debug("get_locked_files : get labels for: #{target} => #{locked_labels}")
+        locked_labels.each do |label|
+          files = get_efix_files(target,label)
+          files.each do |file|
+            locked_files << file
+          end
+        end
+        locked_files.uniq!
+        Log.log_debug("get_locked_files : for: #{target} => #{locked_files}")
+        locked_files
+      end
+
+      # ########################################################################
+      # name : get_fileset_files_loc
+      # param : input:lpp_source_dir:string
+      # param : input:fileset:string
+      #
+      # return array of files
+      # description : get files impacted from specific fileset
+      #    raise EmgrCmdError in case of error
+      # ########################################################################
+      def get_fileset_files_loc(lpp_source_dir,
+                                fileset)
+        Log.log_debug('Into get_fileset_files_loc' +
+                          ', lpp_source_dir=' +
+                          lpp_source_dir +
+                          ', fileset=' +
+                          fileset)
+        loc_files = []
+        cmd_s = "/usr/sbin/emgr -d -e #{lpp_source_dir}/#{fileset} -v3 | /bin/grep -w 'LOCATION:' | /bin/cut -c17-"
+        Log.log_debug("get_fileset_files_loc: #{cmd_s}")
+        Open3.popen3({ 'LANG' => 'C' }, cmd_s) do |_stdin, stdout, stderr, wait_thr|
+          stderr.each_line do |line|
+            Log.log_err("[STDERR] #{line.chomp}")
+          end
+          unless wait_thr.value.success?
+            stdout.each_line { |line| Log.log_debug("[STDOUT] #{line.chomp}") }
+            raise EmgrCmdError, "Error: Command \"#{cmd_s}\" returns above error!"
+          end
+          stdout.each_line do |line|
+            Log.log_debug("[STDOUT] #{line.chomp}")
+            next unless line.include?('/')
+            loc_files << line.strip
+          end
+        end
+        loc_files.uniq!
+        Log.log_debug("get_fileset_files_loc for: #{lpp_source_dir}/#{fileset} => #{loc_files}")
+        loc_files
+      end
+
+      # ########################################################################
+      # name : get_efix_files
+      # param : input:target:string
+      # param : input:label:string
+      #
+      # return array of files
+      # description : get files impacted from specific efix
+      #    raise EmgrCmdError in case of error
+      # ########################################################################
+      def get_efix_files(target,
+                         label)
+        Log.log_debug('Into get_efix_files (target=' +
+                          target +
+                          '), label=' +
+                          label)
+        file_locations = []
+        cmd_s = "/usr/lpp/bos.sysmgt/nim/methods/c_rsh #{target} \"/usr/sbin/emgr -l -L #{label} -v3 | /bin/grep -w 'LOCATION:' | /bin/cut -c17-\""
+        Log.log_debug("get_efix_files: #{cmd_s}")
+        Open3.popen3({ 'LANG' => 'C' }, cmd_s) do |_stdin, stdout, stderr, wait_thr|
+          stderr.each_line do |line|
+            Log.log_err("[STDERR] #{line.chomp}")
+          end
+          unless wait_thr.value.success?
+            stdout.each_line { |line| Log.log_debug("[STDOUT] #{line.chomp}") }
+            raise EmgrCmdError, "Error: Command \"#{cmd_s}\" returns above error!"
+          end
+          stdout.each_line do |line|
+            Log.log_debug("[STDOUT] #{line.chomp}")
+            next unless line.include?('/')
+            file_locations << line.strip
+          end
+        end
+        file_locations.uniq!
+        Log.log_debug("get_efix_files for: #{target} : #{label}  => #{file_locations}")
+        file_locations
+      end
+
+      # ########################################################################
+      # name : get_efix_files_loc
+      # param : input:lpp_source_dir:string
+      # param : input:filesets:array
+      #
+      # return hash table locked files (key = fileset)
+      # description : get impacted location files from fileset list
+      # ########################################################################
+      def get_efix_files_loc(lpp_source_dir,
+                                   filesets)
+        Log.log_debug('Into get_efix_files_loc' +
+                          ', lpp_source_dir=' +
+                          lpp_source_dir +
+                          ', filesets=' +
+                          filesets.to_s)
+        loc_files_h = {}
+        filesets.each do |fileset|
+          begin
+            loc_files_h[fileset] = get_fileset_files_loc(lpp_source_dir, fileset)
+          rescue EmgrCmdError => e
+            Log.log_err("get_efix_files_loc -> get_fileset_files_loc Error: #{e}")
+          end
+        end
+        loc_files_h
+      end
+
+      # ########################################################################
       # name : increase_filesystem
       # param : input:path:string
       #
@@ -1652,6 +1881,9 @@ when checking!")
     end
     #
     class InvalidCsvProperty < StandardError
+    end
+    #
+    class EmgrCmdError < StandardError
     end
     #
   end

@@ -322,11 +322,11 @@ if line =~ /([0-9]+) skipped/
         end
 
         if exit_status.success? && !download_error
-          Log.log_info("Finish downloading #{succeeded} fixes (~ #{download_dl.to_f.round(2)} GB).")
-          Log.log_info('Done suma download operation ' + download_suma_command)
+          Log.log_info("Finished downloading #{succeeded} fixes (~ #{download_dl.to_f.round(2)} GB).")
+          Log.log_info('Done suma download operation: ' + download_suma_command)
         else
-          Log.log_err("Finish downloading #{succeeded} fixes (~ #{download_dl.to_f.round(2)} GB).")
-          Log.log_err('Done suma download operation ' + download_suma_command)
+          Log.log_err("Only downloaded #{succeeded} fixes (~ #{download_dl.to_f.round(2)} GB).")
+          Log.log_err('Suma download operation not done: ' + download_suma_command)
           raise SumaDownloadError,
                 'SumaDownloadError: Command ' + download_suma_command + ' returns above error!'
         end

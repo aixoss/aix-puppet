@@ -7,6 +7,7 @@ require_relative '../../../puppet_x/Automation/Lib/Log.rb'
 # description :
 #   implement install/update of LPARs above nim commands
 # ##############################################################################
+
 Puppet::Type.type(:patchmngt).provide(:nimpush) do
   include Automation::Lib
 
@@ -50,7 +51,7 @@ on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lpp_sourc
         unless Utils.check_input_lppsource(lpp_source).success?
           raise('"lpp_source" does not exist as NIM resource')
         end
-      when 'reject'
+        # when 'reject'
         # nothing
       else
         raise('"mode" must be either "commit", "apply", or "reject"')
@@ -257,7 +258,7 @@ action on \"#{resource[:targets]}\" targets with \"#{resource[:lpp_source]}\" lp
           Log.log_debug('Nim.maint')
         rescue Nim::NimMaintOpError => e
           Log.log_err("NimMaintOpError #{e} " + e.to_s)
-          Log.log_err("Could not commit #{filesets} on " + target)
+          Log.log_err("Could not commit all filesets on " + target)
         end
       end
 

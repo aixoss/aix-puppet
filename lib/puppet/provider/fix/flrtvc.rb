@@ -8,6 +8,7 @@ require_relative '../../../puppet_x/Automation/Lib/Constants.rb'
 # description :
 #  implement efix installations about flrtvc command, and nim commands
 # ##############################################################################
+
 Puppet::Type.type(:fix).provide(:flrtvc) do
   include Automation::Lib
 

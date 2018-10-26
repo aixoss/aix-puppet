@@ -17,7 +17,11 @@
 #  https://docs.puppet.com/guides/tests_smoke.html
 #
 /*
-  1. Samples of suma-downloads
+  I. Samples of AIX updates
+   Using 'download', 'fix', and patchmngt' custom types.
+*/
+/*
+  I.1. Samples of suma-downloads
    Declaration used here is 'download'.
 */
 /*
@@ -36,7 +40,7 @@ class aixautomation {
     to_step => "preview",
   }
 }
-*
+*/
 /*
 class aixautomation {
   # This declaration allows to perform suma-download through suma provider
@@ -114,7 +118,7 @@ class aixautomation {
 */
 
 /*
- 2. Samples of NIM push update
+ I.2. Samples of NIM push update
    Declaration used here is 'patchmngt'.
 */
 /*
@@ -132,6 +136,7 @@ class aixautomation {
     sync       => "yes",
     lpp_source => "PAA_SP_7100-03_7100-03-07-1614",
     preview    => "yes",
+  }
   }
 */
 /*
@@ -163,6 +168,7 @@ class aixautomation {
     sync       => "yes",
     mode       => "reject",
   }
+}
 */
 /*
 class aixautomation {
@@ -208,9 +214,10 @@ class aixautomation {
     sync       => "yes",
     mode       => "commit",
   }
+}
 */
 /*
- 3. Samples of efix installation
+ I.3. Samples of efix installation
    Declaration used here is 'fix'.
 */
 /*
@@ -238,6 +245,7 @@ class aixautomation {
     force    => "no",
     root     => "/export/extra/puppet/flrtvc",
   }
+}
 */
 /*
 class aixautomation {
@@ -256,7 +264,7 @@ class aixautomation {
 
 
 /*
- 4. Samples of install and remove
+ I.4. Samples of install and remove
    Declaration used here is 'patchmngt'.
 */
 /*
@@ -297,7 +305,7 @@ class aixautomation {
 }
 */
 /*
-5. Samples with all steps together:
+I.5. Samples with all steps together:
    Declarations used here are 'download', 'patchmngt', and 'fix'.
  This sample shows how to update one LPAR 'castor8' to the last 721 SP, and
   install all efixes.
@@ -332,6 +340,85 @@ class aixautomation {
     targets  => "castor8",
     force    => "yes",
     root     => "/exports/extra/test-puppet/flrtvc",
+  }
+}
+*/
+/*
+ II. Samples of VIOS update
+   Using 'vios' custom type.
+*/
+/*
+ II.1 To perform health check (and only health check) on a single VIOS
+*/
+/*
+class aixautomation {
+    vios { 'vios_health_check_only_1':
+      actions    => 'health',
+      vios_pairs => '(p7jufv1)',
+    }
+}
+*/
+/*
+ II.2 To perform health check (and only health check) on a VIOS pair
+*/
+/*
+class aixautomation {
+    vios { 'vios_health_check_only_2':
+      actions    => 'health',
+      vios_pairs => '(p7jufv1,p7jufv2)',
+    }
+}
+*/
+
+/*
+ II.3 To perform check and save on a VIOS pair
+*/
+/*
+class aixautomation {
+    vios { 'vios_check_save_3':
+      ensure     => present,
+      actions    => 'check, gc, save',
+      vios_pairs => '(p7jufv1,p7jufv2)',
+      altinst_rootvg_force => 'yes',
+    }
+}
+*/
+/*
+ II.4 To perform check and save on two VIOS pairs
+*/
+/*
+class aixautomation {
+    vios { 'vios_check_save_4':
+      actions              => 'check, gc, save',
+      vios_pairs           => '(p7jufv1,p7jufv2),(p7jufv1,p7jufv2)',
+      altinst_rootvg_force => 'yes',
+    }
+}
+/*
+ II.5 To perform update in preview mode on a VIOS pair
+*/
+/*
+class aixautomation {
+    vios { 'vios_update_5':
+      actions              => 'check, gc, save,unmirror, autocommit, update',
+      vios_pairs           => '(p7jufv1,p7jufv2)',
+      options              => 'accept_licenses, preview',
+      altinst_rootvg_force => 'yes',
+      vios_lpp_sources     => 'p7jufv1=vios_update_22623_22631,p7jufv2=vios_update_22623_22631',
+    }
+}
+*/
+/*
+ II.6 To perform update on two VIOS pairs
+*/
+/*
+class aixautomation {
+  vios { 'vios_update_6':
+    actions              => 'check, gc, save, unmirror, autocommit, update',
+    vios_pairs           => '(p7juav1,p7juav2),(p7jufv1,p7jufv2)',
+    options              => 'accept_licenses',
+    altinst_rootvg_force => 'yes',
+    vios_lpp_sources     => 'p7juav1=vios_update_22621_22631,p7juav2=vios_update_22621_22631,p7jufv1=vios_update_22623_22631,p7jufv2=vios_update_22623_22631',
   }
 }
 */

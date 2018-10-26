@@ -119,7 +119,7 @@ module Automation
 -a filesets='#{filesets}' #{target}"
         Log.log_debug("NIM install efixes cust operation: #{nim_command}")
         Log.log_debug("Start patching machine(s) '#{target}'.")
-        Open3.popen3({ 'LANG' => 'C' }, nim_command) \
+        exit_status = Open3.popen3({'LANG' => 'C'}, nim_command) \
 do |_stdin, stdout, stderr, wait_thr|
           thr = Thread.new do
             loop do
@@ -127,6 +127,7 @@ do |_stdin, stdout, stderr, wait_thr|
               sleep 3
             end
           end
+          sleep 4
           stdout.each_line do |line|
             line.chomp!
             Log.log_debug("\033[2K\r#{line}") if line =~ /^Processing Efix Package [0-9]+ of [0-9]+.$/
@@ -139,11 +140,11 @@ do |_stdin, stdout, stderr, wait_thr|
             line.chomp!
             Log.log_err(" #{line} !")
           end
-          unless stderr.nil?
-            Log.log_err(' To better understand error case, you should refer to remote file ' + target + ':/var/adm/ras/emgr.log')
-          end
           thr.exit
-          wait_thr.value # Process::Status object returned.
+          wait_thr.value # Process::Status object returned.-+
+        end
+        unless exit_status.success?
+          Log.log_err(' To better understand error case, you should refer to remote file ' + target + ':/var/adm/ras/emgr.log')
         end
         Log.log_debug("Finish patching #{target}.")
       end
@@ -186,7 +187,7 @@ target + ') lpp_source=' + lpp_source)
                 next unless !efix.nil? && !efix.strip.empty?
                 efix = efix.chomp
                 Log.log_info('Removing (' + index_efix.to_s + '/' +
-                                  nb_of_efixes.to_s + ') ' + efix)
+                                 nb_of_efixes.to_s + ') ' + efix)
                 remote_cmd = '/usr/sbin/emgr -r -L ' + efix
                 remote_cmd_rc = Remote.c_rsh(target,
                                              remote_cmd,
@@ -224,23 +225,23 @@ target + ') lpp_source=' + lpp_source)
       end
 
       # ########################################################################
-      # name : perform_efix_vios
+      # name : perform_updateios_vios
       # param : input:lpp_source:string
       # param : input:vios:string
       # param : input:_filesets:string
       # return :
-      # description : patch vios with efixes
+      # description : updateios vios
       # ########################################################################
-      def perform_efix_vios(lpp_source,
-                            vios,
-                            _filesets = 'all')
-        Log.log_debug('Nim.perform_efix_vios')
+      def perform_updateios_vios(lpp_source,
+                                 vios,
+                                 _filesets = 'all')
+        Log.log_debug('Nim.perform_updateios_vios')
         nim_command = "/usr/sbin/nim -o updateios -a preview=no \
 -a lpp_source=#{lpp_source} #{vios}"
         #
         Log.log_debug("NIM updateios operation: #{nim_command}")
-        Log.log_debug("Start patching machine(s) '#{vios}'.")
-        exit_status = Open3.popen3({ 'LANG' => 'C' }, nim_command) do |_stdin, stdout, stderr, wait_thr|
+        Log.log_debug("Start updating vios: '#{vios}'.")
+        exit_status = Open3.popen3({'LANG' => 'C'}, nim_command) do |_stdin, stdout, stderr, wait_thr|
           thr = Thread.new do
             loop do
               print '.'
@@ -249,11 +250,7 @@ target + ') lpp_source=' + lpp_source)
           end
           stdout.each_line do |line|
             line.chomp!
-            Log.log_debug("\033[2K\r#{line}") if line =~ /^Processing Efix Package [0-9]+ of [0-9]+.$/
-            Log.log_debug("\n#{line}") if line =~ /^EPKG NUMBER/
-            Log.log_debug("\n#{line}") if line =~ /^===========/
-            Log.log_debug("\033[0;31m#{line}\033[0m") if line =~ /INSTALL.*?FAILURE/
-            Log.log_debug("\033[0;32m#{line}\033[0m") if line =~ /INSTALL.*?SUCCESS/
+            Log.log_info(" #{line} !")
           end
           stderr.each_line do |line|
             line.chomp!

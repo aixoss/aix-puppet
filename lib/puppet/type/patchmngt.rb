@@ -40,11 +40,11 @@ used to perform update or install'
   # ############################################################################
   # :targets is a attribute giving the LPARs on which to apply action
   #
-  # Only valid targets are kept, targets need to be pingable,
+  # Only valid targets are kept, targets need to be ping-able,
   #  accessible through c_rsh, in a proper NIM state
   # ############################################################################
   newparam(:targets) do
-    desc '"targets" attribute: list of lpar or vios on which to perform action'
+    desc '"targets" attribute: list of LPAR on which to perform action'
     kept = []
     validate do |values|
       kept = []
@@ -71,7 +71,7 @@ either "status", "update", "install", or "reboot"'
   end
 
   # ############################################################################
-  # :sync attribute to control if action is synchonous or asyncronous
+  # :sync attribute to control if action is synchronous or asynchronous
   #
   # Check :sync against a short list, provide a default
   # ############################################################################
