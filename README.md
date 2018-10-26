@@ -1,5 +1,8 @@
 # Puppet AIX and VIOS Automation
-
+This documentation comes in addition to two documents delivered in source tree: 
+ - documentation/Puppet_Automate_update_in_NIM_environment_v0.9.pdf 
+ - documentation/Puppet_Automate_vios_update_in_NIM_environment_v0.9.pdf
+  
 #### Table of Contents
 
 1. [Description](#description)
